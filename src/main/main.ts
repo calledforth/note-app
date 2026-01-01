@@ -1,65 +1,10 @@
-import { app, BrowserWindow, ipcMain, dialog } from 'electron';
+import { app, BrowserWindow, ipcMain } from 'electron';
 import * as path from 'path';
 import { database } from './database';
 import { autoUpdater } from 'electron-updater';
 
 // Check if running in development mode
 const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
-
-// ============================================================================
-// AUTO-UPDATER SETUP
-// ============================================================================
-
-// Disable auto-download - we'll prompt user first
-autoUpdater.autoDownload = false;
-autoUpdater.autoInstallOnAppQuit = true;
-
-// Log for debugging
-autoUpdater.logger = console;
-
-autoUpdater.on('checking-for-update', () => {
-  console.log('[AutoUpdater] Checking for updates...');
-});
-
-autoUpdater.on('update-available', (info) => {
-  console.log('[AutoUpdater] Update available:', info.version);
-  dialog.showMessageBox({
-    type: 'info',
-    title: 'Update Available',
-    message: `A new version (${info.version}) is available. Would you like to download it now?`,
-    buttons: ['Download', 'Later'],
-  }).then((result) => {
-    if (result.response === 0) {
-      autoUpdater.downloadUpdate();
-    }
-  });
-});
-
-autoUpdater.on('update-not-available', () => {
-  console.log('[AutoUpdater] No updates available.');
-});
-
-autoUpdater.on('download-progress', (progress) => {
-  console.log(`[AutoUpdater] Download progress: ${Math.round(progress.percent)}%`);
-});
-
-autoUpdater.on('update-downloaded', () => {
-  console.log('[AutoUpdater] Update downloaded.');
-  dialog.showMessageBox({
-    type: 'info',
-    title: 'Update Ready',
-    message: 'Update downloaded. The app will restart to install the update.',
-    buttons: ['Restart Now', 'Later'],
-  }).then((result) => {
-    if (result.response === 0) {
-      autoUpdater.quitAndInstall();
-    }
-  });
-});
-
-autoUpdater.on('error', (error) => {
-  console.error('[AutoUpdater] Error:', error);
-});
 
 // ============================================================================
 // WINDOW CREATION
@@ -95,6 +40,64 @@ const createWindow = (): void => {
     mainWindow = null;
   });
 };
+
+// Helper to send events to renderer
+const sendToRenderer = (channel: string, ...args: unknown[]) => {
+  if (mainWindow?.webContents) {
+    mainWindow.webContents.send(channel, ...args);
+  }
+};
+
+// ============================================================================
+// AUTO-UPDATER SETUP
+// ============================================================================
+
+// Disable auto-download - we'll let user decide via the toast
+autoUpdater.autoDownload = false;
+autoUpdater.autoInstallOnAppQuit = true;
+
+// Log for debugging
+autoUpdater.logger = console;
+
+// Send events to renderer for the custom toast
+autoUpdater.on('checking-for-update', () => {
+  console.log('[AutoUpdater] Checking for updates...');
+  sendToRenderer('updater-checking');
+});
+
+autoUpdater.on('update-available', (info) => {
+  console.log('[AutoUpdater] Update available:', info.version);
+  sendToRenderer('updater-available', { version: info.version });
+});
+
+autoUpdater.on('update-not-available', () => {
+  console.log('[AutoUpdater] No updates available.');
+  sendToRenderer('updater-not-available');
+});
+
+autoUpdater.on('download-progress', (progress) => {
+  console.log(`[AutoUpdater] Download progress: ${Math.round(progress.percent)}%`);
+  sendToRenderer('updater-progress', progress.percent);
+});
+
+autoUpdater.on('update-downloaded', () => {
+  console.log('[AutoUpdater] Update downloaded.');
+  sendToRenderer('updater-downloaded');
+});
+
+autoUpdater.on('error', (error) => {
+  console.error('[AutoUpdater] Error:', error);
+  sendToRenderer('updater-error', error.message);
+});
+
+// IPC handlers for updater actions
+ipcMain.handle('updater-download', () => {
+  autoUpdater.downloadUpdate();
+});
+
+ipcMain.handle('updater-quit-and-install', () => {
+  autoUpdater.quitAndInstall();
+});
 
 // ============================================================================
 // WINDOW CONTROL IPC HANDLERS

@@ -2,6 +2,7 @@
   "$schema": "https://raw.githubusercontent.com/electron-userland/electron-builder/master/packages/app-builder-lib/scheme.json",
   "appId": "com.cletus.notes",
   "productName": "Notes",
+  "executableName": "Notes",
   "copyright": "Copyright © 2025 cletus",
   
   "directories": {

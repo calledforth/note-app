@@ -24,6 +24,11 @@ interface ApiNote {
     updatedAt: number;
 }
 
+// Update info type
+interface UpdateInfo {
+    version: string;
+}
+
 // Extend the Window interface with our electron API
 declare global {
     interface Window {
@@ -52,6 +57,21 @@ declare global {
                 createNote: (note: ApiNote) => Promise<{ success: boolean }>;
                 updateNote: (id: string, updates: Partial<ApiNote>) => Promise<{ success: boolean }>;
                 deleteNote: (id: string) => Promise<{ success: boolean }>;
+            };
+
+            // Auto-updater
+            updater: {
+                // Actions
+                downloadUpdate: () => Promise<void>;
+                quitAndInstall: () => Promise<void>;
+
+                // Event listeners
+                onCheckingForUpdate: (callback: () => void) => void;
+                onUpdateAvailable: (callback: (info: UpdateInfo) => void) => void;
+                onUpdateNotAvailable: (callback: () => void) => void;
+                onDownloadProgress: (callback: (percent: number) => void) => void;
+                onUpdateDownloaded: (callback: () => void) => void;
+                onError: (callback: (error: string) => void) => void;
             };
         };
     }

@@ -4,7 +4,7 @@ import { contextBridge, ipcRenderer } from 'electron';
 interface Workspace {
   id: string;
   name: string;
-  layout: any;
+  layout: unknown;
   createdAt: number;
   updatedAt: number;
 }
@@ -17,6 +17,11 @@ interface Note {
   content: string;
   createdAt: number;
   updatedAt: number;
+}
+
+// Update info type
+interface UpdateInfo {
+  version: string;
 }
 
 // Expose protected methods that allow the renderer process to use the APIs we need
@@ -61,5 +66,32 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
     deleteNote: (id: string): Promise<{ success: boolean }> =>
       ipcRenderer.invoke('db-delete-note', id),
+  },
+
+  // Auto-updater events
+  updater: {
+    // Actions
+    downloadUpdate: () => ipcRenderer.invoke('updater-download'),
+    quitAndInstall: () => ipcRenderer.invoke('updater-quit-and-install'),
+
+    // Event listeners
+    onCheckingForUpdate: (callback: () => void) => {
+      ipcRenderer.on('updater-checking', callback);
+    },
+    onUpdateAvailable: (callback: (info: UpdateInfo) => void) => {
+      ipcRenderer.on('updater-available', (_event, info: UpdateInfo) => callback(info));
+    },
+    onUpdateNotAvailable: (callback: () => void) => {
+      ipcRenderer.on('updater-not-available', callback);
+    },
+    onDownloadProgress: (callback: (percent: number) => void) => {
+      ipcRenderer.on('updater-progress', (_event, percent: number) => callback(percent));
+    },
+    onUpdateDownloaded: (callback: () => void) => {
+      ipcRenderer.on('updater-downloaded', callback);
+    },
+    onError: (callback: (error: string) => void) => {
+      ipcRenderer.on('updater-error', (_event, error: string) => callback(error));
+    },
   },
 });

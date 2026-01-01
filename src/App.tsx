@@ -5,6 +5,7 @@ import { ThemeManager } from './components/theme/ThemeManager';
 import { BentoWorkspace } from './components/workspace/BentoWorkspace';
 import { TitleBar } from './components/titlebar/TitleBar';
 import { CommandPalette, type CommandHandler } from './components/command/CommandPalette';
+import { UpdateToast } from './components/updater/UpdateToast';
 import './types/electron.d';
 
 
@@ -153,6 +154,7 @@ function App() {
           )}
         </main>
       </div>
+      <UpdateToast />
     </>
   );
 }
