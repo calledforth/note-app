@@ -1,56 +1,44 @@
 import { useEffect, useState, useCallback } from 'react';
-import { useNotesStore } from './stores/notesStore';
-import { useUiStore } from './stores/uiStore';
 import { useThemeStore, type NoteStyle } from './stores/themeStore';
+import { useBentoStore } from './stores/bentoStore';
 import { ThemeManager } from './components/theme/ThemeManager';
-import { FreeformWorkspace } from './components/workspace/FreeformWorkspace';
-import { GridWorkspace } from './components/workspace/GridWorkspace';
 import { BentoWorkspace } from './components/workspace/BentoWorkspace';
 import { TitleBar } from './components/titlebar/TitleBar';
 import { CommandPalette, type CommandHandler } from './components/command/CommandPalette';
+import './types/electron.d';
 
-// Declare electron API type
-declare global {
-  interface Window {
-    electronAPI?: {
-      windowControls: {
-        minimize: () => Promise<void>;
-        maximize: () => Promise<void>;
-        close: () => Promise<void>;
-        isMaximized: () => Promise<boolean>;
-      };
-    };
-  }
-}
 
 function App() {
-  const currentSpaceId = useNotesStore((state) => state.currentSpaceId);
-  const spaces = useNotesStore((state) => state.spaces);
-  const addSpace = useNotesStore((state) => state.addSpace);
-  const switchSpace = useNotesStore((state) => state.switchSpace);
-  const enterDashboard = useUiStore((state) => state.enterDashboard);
-  const enterFocus = useUiStore((state) => state.enterFocus);
+  // Bento store state
+  const workspaces = useBentoStore((state) => state.workspaces);
+  const currentWorkspaceId = useBentoStore((state) => state.currentWorkspaceId);
+  const isLoading = useBentoStore((state) => state.isLoading);
+  const isInitialized = useBentoStore((state) => state.isInitialized);
+  const initialize = useBentoStore((state) => state.initialize);
+  const createWorkspace = useBentoStore((state) => state.createWorkspace);
+  const switchWorkspace = useBentoStore((state) => state.switchWorkspace);
+  const createNote = useBentoStore((state) => state.createNote);
+
+  // Theme actions
   const cycleNoteStyle = useThemeStore((state) => state.cycleNoteStyle);
   const setNoteStyle = useThemeStore((state) => state.setNoteStyle);
 
   // Command Palette state
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
 
-  // Initialize with default space if none exists
+  // Initialize the bento store on mount
   useEffect(() => {
-    if (spaces.length === 0) {
-      useNotesStore.getState().addSpace('My Workspace', 'bento');
-    } else if (!currentSpaceId) {
-      switchSpace(spaces[0].id);
+    if (!isInitialized) {
+      initialize();
     }
-  }, [spaces, currentSpaceId, switchSpace]);
+  }, [initialize, isInitialized]);
 
   // Command execution handler
-  const handleExecuteCommand: CommandHandler = useCallback((commandId: string, payload?: unknown) => {
+  const handleExecuteCommand: CommandHandler = useCallback(async (commandId: string, payload?: unknown) => {
     // Handle workspace switching (dynamic commands)
     if (commandId.startsWith('workspace-')) {
       const workspaceId = commandId.replace('workspace-', '');
-      switchSpace(workspaceId);
+      await switchWorkspace(workspaceId);
       return;
     }
 
@@ -64,19 +52,13 @@ function App() {
     // Handle static commands
     switch (commandId) {
       case 'new-note':
-        // Create a new note in the current workspace
-        if (currentSpaceId) {
-          useNotesStore.getState().addNote(currentSpaceId, '');
-          // Switch to dashboard mode to see the new note
-          enterDashboard();
-        }
+        await createNote();
         break;
 
       case 'create-workspace':
-        // Create new workspace with provided name (defaults to Bento with 4x4 grid)
         if (payload && typeof payload === 'object' && 'name' in payload) {
           const { name } = payload as { name: string };
-          addSpace(name, 'bento');
+          await createWorkspace(name);
         }
         break;
 
@@ -99,7 +81,7 @@ function App() {
       default:
         console.log('Unknown command:', commandId);
     }
-  }, [currentSpaceId, switchSpace, setNoteStyle, addSpace, cycleNoteStyle, enterDashboard]);
+  }, [switchWorkspace, setNoteStyle, createNote, createWorkspace, cycleNoteStyle]);
 
   // Global keyboard shortcuts
   useEffect(() => {
@@ -120,7 +102,7 @@ function App() {
         return;
       }
 
-      // Ctrl/Cmd + Shift + T -> cycle note style (Wabi Grid <-> Zen Void)
+      // Ctrl/Cmd + Shift + T -> cycle note style
       if ((event.ctrlKey || event.metaKey) && event.shiftKey && key === 't') {
         event.preventDefault();
         cycleNoteStyle();
@@ -130,31 +112,26 @@ function App() {
       // Ctrl/Cmd + N -> new note
       if ((event.ctrlKey || event.metaKey) && key === 'n') {
         event.preventDefault();
-        if (currentSpaceId) {
-          useNotesStore.getState().addNote(currentSpaceId, '');
-          enterDashboard();
-        }
+        createNote();
         return;
-      }
-
-      // Ctrl/Cmd + E -> enter dashboard/editing mode
-      if ((event.ctrlKey || event.metaKey) && key === 'e') {
-        event.preventDefault();
-        enterDashboard();
-        return;
-      }
-
-      // Escape -> return to focus mode (only if command palette is not open)
-      if (key === 'escape' && !isCommandPaletteOpen) {
-        enterFocus();
       }
     };
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [enterDashboard, enterFocus, cycleNoteStyle, isCommandPaletteOpen, currentSpaceId]);
+  }, [cycleNoteStyle, createNote]);
 
-  const currentSpace = spaces.find((s) => s.id === currentSpaceId);
+  const currentWorkspace = workspaces.find((s) => s.id === currentWorkspaceId);
+
+  // Show loading state
+  if (isLoading || !isInitialized) {
+    return (
+      <div className="w-screen h-screen flex items-center justify-center bg-[var(--app-bg)] text-[var(--text-secondary)]">
+        <ThemeManager />
+        <p>Loading...</p>
+      </div>
+    );
+  }
 
   return (
     <>
@@ -167,17 +144,11 @@ function App() {
       <div className="w-screen h-screen flex flex-col bg-[var(--app-bg)] text-[var(--text-primary)] overflow-hidden">
         <TitleBar />
         <main className="flex-1 overflow-hidden flex flex-col">
-          {currentSpace ? (
-            currentSpace.mode === 'freeform' ? (
-              <FreeformWorkspace spaceId={currentSpace.id} />
-            ) : currentSpace.mode === 'bento' ? (
-              <BentoWorkspace spaceId={currentSpace.id} />
-            ) : (
-              <GridWorkspace spaceId={currentSpace.id} />
-            )
+          {currentWorkspace ? (
+            <BentoWorkspace spaceId={currentWorkspace.id} />
           ) : (
             <div className="flex items-center justify-center h-full text-[var(--text-secondary)]">
-              <p>No space selected</p>
+              <p>No workspace selected</p>
             </div>
           )}
         </main>

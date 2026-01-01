@@ -1,137 +1,108 @@
 "use client"
 
-import React, { useState, useCallback } from "react"
+import React, { useState, useCallback, useMemo } from "react"
 import { PanelGroup, Panel, PanelResizeHandle } from "react-resizable-panels"
-import { Plus, Split, Trash2 } from "lucide-react"
+import { Split, Trash2 } from "lucide-react"
 import { DndContext, DragOverlay, useDraggable, useDroppable } from "@dnd-kit/core"
 import type { DragEndEvent, DragStartEvent } from "@dnd-kit/core"
 import clsx from "clsx"
-import { useUiStore, type UiMode } from "../../stores/uiStore"
 import { RichTextEditor } from "../notes/RichTextEditor"
 import { useThemeStore } from "../../stores/themeStore"
+import { useBentoStore } from "../../stores/bentoStore"
+import type { LayoutNode, BentoNote } from "../../types/bento"
 
-// --- Types ---
+// ============================================================================
+// DRAGGABLE NOTE COMPONENT
+// - Supports Wabi Grid and Zen Void styles
+// - Split/Delete buttons appear on TITLE HOVER only
+// - Drag always enabled from edges
+// ============================================================================
 
-type Note = {
-  id: string
-  content: string
-  color: string
-}
-
-type PanelId = string
-
-interface BentoWorkspaceProps {
-  spaceId: string
-}
-
-// Recursive Layout Types
-type LayoutType = "container" | "pane"
-type LayoutDirection = "horizontal" | "vertical"
-
-interface LayoutNode {
-  id: string
-  type: LayoutType
-  direction?: LayoutDirection // For containers
-  children?: LayoutNode[] // For containers
-  defaultSize?: number // For initialization
-  panelId?: string // For panes
-}
-
-// --- Mock Data / Initial State ---
-
-// 4x4 Grid Layout - 4 equal columns, each with 4 equal rows
-const INITIAL_LAYOUT: LayoutNode = {
-  id: "root",
-  type: "container",
-  direction: "horizontal",
-  children: [
-    {
-      id: "col-1",
-      type: "container",
-      direction: "vertical",
-      defaultSize: 25,
-      children: [
-        { id: "pane-1-1", type: "pane", panelId: "p-1-1", defaultSize: 25 },
-        { id: "pane-1-2", type: "pane", panelId: "p-1-2", defaultSize: 25 },
-        { id: "pane-1-3", type: "pane", panelId: "p-1-3", defaultSize: 25 },
-        { id: "pane-1-4", type: "pane", panelId: "p-1-4", defaultSize: 25 },
-      ],
-    },
-    {
-      id: "col-2",
-      type: "container",
-      direction: "vertical",
-      defaultSize: 25,
-      children: [
-        { id: "pane-2-1", type: "pane", panelId: "p-2-1", defaultSize: 25 },
-        { id: "pane-2-2", type: "pane", panelId: "p-2-2", defaultSize: 25 },
-        { id: "pane-2-3", type: "pane", panelId: "p-2-3", defaultSize: 25 },
-        { id: "pane-2-4", type: "pane", panelId: "p-2-4", defaultSize: 25 },
-      ],
-    },
-    {
-      id: "col-3",
-      type: "container",
-      direction: "vertical",
-      defaultSize: 25,
-      children: [
-        { id: "pane-3-1", type: "pane", panelId: "p-3-1", defaultSize: 25 },
-        { id: "pane-3-2", type: "pane", panelId: "p-3-2", defaultSize: 25 },
-        { id: "pane-3-3", type: "pane", panelId: "p-3-3", defaultSize: 25 },
-        { id: "pane-3-4", type: "pane", panelId: "p-3-4", defaultSize: 25 },
-      ],
-    },
-    {
-      id: "col-4",
-      type: "container",
-      direction: "vertical",
-      defaultSize: 25,
-      children: [
-        { id: "pane-4-1", type: "pane", panelId: "p-4-1", defaultSize: 25 },
-        { id: "pane-4-2", type: "pane", panelId: "p-4-2", defaultSize: 25 },
-        { id: "pane-4-3", type: "pane", panelId: "p-4-3", defaultSize: 25 },
-        { id: "pane-4-4", type: "pane", panelId: "p-4-4", defaultSize: 25 },
-      ],
-    },
-  ],
-}
-
-// Draggable Note Component - Supports multiple styles (Wabi Grid, Zen Void)
 const DraggableNote = ({
   note,
   isOverlay = false,
   onContentChange,
-  uiMode = "dashboard",
+  onSplit,
+  onRemove,
 }: {
-  note: Note
+  note: BentoNote
   isOverlay?: boolean
   onContentChange?: (content: string) => void
-  uiMode?: UiMode
+  onSplit?: (direction: "horizontal" | "vertical") => void
+  onRemove?: () => void
 }) => {
-  const isDragDisabled = uiMode === "focus"
+  const [isTitleHovered, setIsTitleHovered] = useState(false)
   const currentNoteStyle = useThemeStore((state) => state.currentNoteStyle)
+
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
     id: note.id,
     data: { note },
-    disabled: isDragDisabled,
+    disabled: false,
   })
 
-  // Format date from note ID (which contains timestamp) or use current date
-  const noteDate = new Date(parseInt(note.id.split('-')[0]) || Date.now())
+  // Format date from note createdAt
+  const noteDate = new Date(note.createdAt)
   const formattedDate = noteDate.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
 
   if (isDragging && !isOverlay) {
     return <div ref={setNodeRef} className="opacity-0 w-full h-full" />
   }
 
-  // Drag handles component (shared between styles)
+  // Drag handles component - allows dragging from edges
   const DragHandles = () => (
-    !isOverlay && !isDragDisabled ? (
+    !isOverlay ? (
       <div className="absolute inset-0 pointer-events-none z-10">
         <div {...listeners} className="pointer-events-auto absolute inset-x-0 top-0 h-6 cursor-grab active:cursor-grabbing" />
         <div {...listeners} className="pointer-events-auto absolute inset-x-0 bottom-0 h-6 cursor-grab active:cursor-grabbing" />
         <div {...listeners} className="pointer-events-auto absolute inset-y-6 left-0 w-3 cursor-grab active:cursor-grabbing" />
         <div {...listeners} className="pointer-events-auto absolute inset-y-6 right-0 w-3 cursor-grab active:cursor-grabbing" />
+      </div>
+    ) : null
+  )
+
+  // Panel control buttons - shown on title hover
+  const PanelControls = () => (
+    isTitleHovered && !isOverlay && onSplit && onRemove ? (
+      <div className="flex items-center gap-1 ml-2">
+        <button
+          onClick={(e) => { e.stopPropagation(); onSplit("vertical"); }}
+          onPointerDown={(e) => e.stopPropagation()}
+          className={clsx(
+            "p-1 rounded transition-all duration-150",
+            currentNoteStyle === 'zen-void'
+              ? "text-white/40 hover:text-white/70 hover:bg-white/10"
+              : "text-[#555] hover:text-[#888] hover:bg-white/10"
+          )}
+          title="Split Vertically"
+        >
+          <Split className="w-3 h-3 rotate-90" />
+        </button>
+        <button
+          onClick={(e) => { e.stopPropagation(); onSplit("horizontal"); }}
+          onPointerDown={(e) => e.stopPropagation()}
+          className={clsx(
+            "p-1 rounded transition-all duration-150",
+            currentNoteStyle === 'zen-void'
+              ? "text-white/40 hover:text-white/70 hover:bg-white/10"
+              : "text-[#555] hover:text-[#888] hover:bg-white/10"
+          )}
+          title="Split Horizontally"
+        >
+          <Split className="w-3 h-3" />
+        </button>
+        <button
+          onClick={(e) => { e.stopPropagation(); onRemove(); }}
+          onPointerDown={(e) => e.stopPropagation()}
+          className={clsx(
+            "p-1 rounded transition-all duration-150",
+            currentNoteStyle === 'zen-void'
+              ? "text-white/40 hover:text-red-400/70 hover:bg-white/10"
+              : "text-[#555] hover:text-red-400 hover:bg-white/10"
+          )}
+          title="Remove Panel"
+        >
+          <Trash2 className="w-3 h-3" />
+        </button>
       </div>
     ) : null
   )
@@ -151,25 +122,31 @@ const DraggableNote = ({
       >
         <DragHandles />
 
-        {/* Header - Title and Date on same line (matching Wabi Grid layout) */}
-        <div className="flex justify-between items-center px-3 pt-3 pb-2">
+        {/* Header */}
+        <div
+          className="flex justify-between items-center px-3 pt-3 pb-2 relative z-20"
+          onMouseEnter={() => setIsTitleHovered(true)}
+          onMouseLeave={() => setIsTitleHovered(false)}
+        >
           <h3
             className="text-[16px] tracking-wide text-[var(--void-title)] transition-colors duration-300"
             style={{ fontFamily: "'Inter', sans-serif", fontWeight: 300 }}
           >
-            Untitled
+            {note.title}
           </h3>
-          <span
-            className="text-[9px] text-[var(--void-date)] uppercase tracking-wider transition-colors duration-300"
-            style={{ fontFamily: "'JetBrains Mono', monospace" }}
-          >
-            {formattedDate}
-          </span>
+          <div className="flex items-center">
+            <span
+              className="text-[9px] text-[var(--void-date)] uppercase tracking-wider transition-colors duration-300"
+              style={{ fontFamily: "'JetBrains Mono', monospace" }}
+            >
+              {formattedDate}
+            </span>
+            <PanelControls />
+          </div>
         </div>
 
-        {/* Content Area - Same padding as Wabi Grid */}
+        {/* Content Area */}
         <div className="flex-1 flex flex-col pl-3 pb-3 pr-1 min-h-0">
-          {/* Editor Area */}
           <div
             className="flex-1 min-h-0 zen-void-editor"
             onPointerDown={(e) => e.stopPropagation()}
@@ -196,25 +173,31 @@ const DraggableNote = ({
     >
       <DragHandles />
 
-      {/* Header - Title and Date on same line */}
-      <div className="flex justify-between items-center px-3 pt-3 pb-2">
+      {/* Header */}
+      <div
+        className="flex justify-between items-center px-3 pt-3 pb-2 relative z-20"
+        onMouseEnter={() => setIsTitleHovered(true)}
+        onMouseLeave={() => setIsTitleHovered(false)}
+      >
         <h3
           className="text-[12px] tracking-[0.2em] uppercase text-[var(--wabi-title)] transition-colors duration-300"
           style={{ fontFamily: "'Inter', sans-serif", fontWeight: 500 }}
         >
-          UNTITLED NOTE
+          {note.title.toUpperCase()}
         </h3>
-        <span
-          className="text-[9px] text-[var(--wabi-date)] transition-colors duration-300"
-          style={{ fontFamily: "'JetBrains Mono', monospace" }}
-        >
-          {formattedDate}
-        </span>
+        <div className="flex items-center">
+          <span
+            className="text-[9px] text-[var(--wabi-date)] transition-colors duration-300"
+            style={{ fontFamily: "'JetBrains Mono', monospace" }}
+          >
+            {formattedDate}
+          </span>
+          <PanelControls />
+        </div>
       </div>
 
-      {/* Content Area - Less right padding so scrollbar is closer to border */}
+      {/* Content Area */}
       <div className="flex-1 flex flex-col pl-3 pb-3 pr-1 min-h-0">
-        {/* Editor Area - Serif Italic Style */}
         <div
           className="flex-1 min-h-0 wabi-grid-editor"
           onPointerDown={(e) => e.stopPropagation()}
@@ -227,20 +210,21 @@ const DraggableNote = ({
   )
 }
 
-// Droppable Panel Component
+// ============================================================================
+// DROPPABLE PANEL COMPONENT
+// ============================================================================
+
 const PanelContent = ({
   panelId,
-  notes,
+  note,
   onSplit,
   onRemove,
-  uiMode,
   onNoteContentChange,
 }: {
   panelId: string
-  notes: Note[]
+  note: BentoNote | null
   onSplit: (direction: "horizontal" | "vertical") => void
   onRemove: () => void
-  uiMode: UiMode
   onNoteContentChange?: (noteId: string, content: string) => void
 }) => {
   const currentNoteStyle = useThemeStore((state) => state.currentNoteStyle)
@@ -248,110 +232,64 @@ const PanelContent = ({
     id: panelId,
   })
 
-  const hasNote = notes.length > 0
-
   return (
     <div
       ref={setNodeRef}
       className={clsx(
         "relative w-full h-full group transition-all duration-200",
         "bg-transparent",
-        // Style-specific border and radius
         currentNoteStyle === 'zen-void'
           ? "border border-[var(--void-border)] hover:border-[var(--void-border-hover)]"
           : "border border-[var(--wabi-border)] hover:border-[var(--wabi-border-hover)] rounded-xs",
+        isOver && "ring-2 ring-purple-500/30"
       )}
-      style={
-        uiMode === "dashboard"
-          ? {
-            background: isOver
-              ? "radial-gradient(ellipse at center, rgba(168, 85, 247, 0.12) 0%, rgba(168, 85, 247, 0.04) 50%, transparent 80%)"
-              : undefined,
-          }
-          : undefined
-      }
     >
-      {/* Hover gradient overlay for dashboard mode (only visible when not isOver, since isOver has its own) */}
-      {uiMode === "dashboard" && !isOver && (
-        <div
-          className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none"
-          style={{
-            background:
-              "radial-gradient(ellipse at center, rgba(168, 85, 247, 0.08) 0%, rgba(168, 85, 247, 0.03) 50%, transparent 80%)",
-          }}
-        />
-      )}
-      {/* Panel Controls (Visible on Hover in dashboard mode only) */}
-      {uiMode === "dashboard" && (
-        <div className="absolute top-2 right-2 flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity z-10">
-          <button
-            onClick={() => onSplit("vertical")}
-            className="p-1 rounded bg-[var(--surface-bg)]/80 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-bg)] transition-colors"
-            title="Split Vertically"
-          >
-            <Split className="w-3 h-3 rotate-90" />
-          </button>
-          <button
-            onClick={() => onSplit("horizontal")}
-            className="p-1 rounded bg-[var(--surface-bg)]/80 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-bg)] transition-colors"
-            title="Split Horizontally"
-          >
-            <Split className="w-3 h-3" />
-          </button>
-          <button
-            onClick={onRemove}
-            className="p-1 rounded bg-black/50 text-white/50 hover:text-red-400 hover:bg-black/80 transition-colors"
-            title="Remove Panel"
-          >
-            <Trash2 className="w-3 h-3" />
-          </button>
-        </div>
-      )}
-
       {/* Content Area */}
       <div className="w-full h-full p-1 relative z-0">
-        {hasNote ? (
+        {note ? (
           <DraggableNote
-            note={notes[0]}
-            uiMode={uiMode}
-            onContentChange={(content) => onNoteContentChange?.(notes[0].id, content)}
+            note={note}
+            onContentChange={(content) => onNoteContentChange?.(note.id, content)}
+            onSplit={onSplit}
+            onRemove={onRemove}
           />
-        ) : uiMode === "dashboard" ? (
-          <div className="w-full h-full flex items-center justify-center text-[var(--text-secondary)]/60 text-xs pointer-events-none">
+        ) : (
+          <div className="w-full h-full flex items-center justify-center text-[var(--text-secondary)]/40 text-xs pointer-events-none">
             Drop note here
           </div>
-        ) : null}
+        )}
       </div>
     </div>
   )
 }
 
-// Recursive Layout Renderer
+// ============================================================================
+// LAYOUT RENDERER
+// ============================================================================
+
 const LayoutRenderer = ({
   node,
-  panelNotes,
+  notesByPanel,
   onSplit,
   onRemove,
-  uiMode,
   isDragging,
   onNoteContentChange,
 }: {
   node: LayoutNode
-  panelNotes: Record<string, Note[]>
+  notesByPanel: Record<string, BentoNote>
   onSplit: (panelId: string, direction: "horizontal" | "vertical") => void
   onRemove: (panelId: string) => void
-  uiMode: UiMode
   isDragging: boolean
   onNoteContentChange?: (noteId: string, content: string) => void
 }) => {
   if (node.type === "pane") {
+    const note = node.panelId ? notesByPanel[node.panelId] : null
     return (
       <PanelContent
         panelId={node.panelId!}
-        notes={panelNotes[node.panelId!] || []}
+        note={note || null}
         onSplit={(dir) => onSplit(node.id, dir)}
         onRemove={() => onRemove(node.id)}
-        uiMode={uiMode}
         onNoteContentChange={onNoteContentChange}
       />
     )
@@ -364,10 +302,9 @@ const LayoutRenderer = ({
           <Panel id={child.id} order={index} defaultSize={child.defaultSize} minSize={4}>
             <LayoutRenderer
               node={child}
-              panelNotes={panelNotes}
+              notesByPanel={notesByPanel}
               onSplit={onSplit}
               onRemove={onRemove}
-              uiMode={uiMode}
               isDragging={isDragging}
               onNoteContentChange={onNoteContentChange}
             />
@@ -386,18 +323,19 @@ const LayoutRenderer = ({
   )
 }
 
-// Helper to update tree
+// ============================================================================
+// TREE MANIPULATION HELPERS
+// ============================================================================
+
 const splitNodeInTree = (root: LayoutNode, targetId: string, splitDirection: "horizontal" | "vertical"): LayoutNode => {
   if (root.id === targetId) {
-    // We found the node to split.
-    // If it's a pane, we replace it with a container containing two panes.
     if (root.type === "pane") {
       const parentDefaultSize = root.defaultSize ?? 50
       return {
         id: `group-${Date.now()}`,
         type: "container",
-        defaultSize: parentDefaultSize, // Preserve the space the original pane was occupying
-        direction: splitDirection === "vertical" ? "vertical" : "horizontal", // In ResizablePanels, vertical direction means items stacked vertically (rows)
+        defaultSize: parentDefaultSize,
+        direction: splitDirection === "vertical" ? "vertical" : "horizontal",
         children: [
           { ...root, defaultSize: 50 },
           {
@@ -429,16 +367,7 @@ const removeNodeFromTree = (root: LayoutNode, targetId: string): LayoutNode | nu
       .map((child) => removeNodeFromTree(child, targetId))
       .filter((child): child is LayoutNode => child !== null)
 
-    // If a container has no children, remove it too
     if (newChildren.length === 0) return null
-
-    // If a container has 1 child, collapse it (optional optimization, keeps tree clean)
-    // For simplicity, we'll just keep the container for now or lift the child.
-    // Let's just return the container with fewer children.
-
-    // Recalculate sizes? Resizable panels handles percentages, but if we remove one, others should grow.
-    // Ideally we re-normalize defaultSize. dnd-kit/resizable-panels might handle this automatically if we don't provide explicit sizes on re-render or if layout prop changes.
-    // We'll leave size mgmt to the library for this prototype.
 
     return {
       ...root,
@@ -449,56 +378,43 @@ const removeNodeFromTree = (root: LayoutNode, targetId: string): LayoutNode | nu
   return root
 }
 
-// --- Main Component ---
+// ============================================================================
+// MAIN BENTO WORKSPACE COMPONENT
+// ============================================================================
+
+interface BentoWorkspaceProps {
+  spaceId: string
+}
 
 export const BentoWorkspace = ({ spaceId: _spaceId }: BentoWorkspaceProps) => {
-  const [layout, setLayout] = useState<LayoutNode>(INITIAL_LAYOUT)
-  const [panelNotes, setPanelNotes] = useState<Record<PanelId, Note[]>>({})
-  const [draggedNote, setDraggedNote] = useState<Note | null>(null)
-  const uiMode = useUiStore((state) => state.uiMode)
-  const [isColorPickerOpen, setIsColorPickerOpen] = useState(false)
-  const themeTokens = useThemeStore((state) => state.getCurrentThemeTokens())
+  const [draggedNote, setDraggedNote] = useState<BentoNote | null>(null)
 
-  // --- Color Definitions for Sticky Notes ---
-  // Solid colors + texture patterns on dark base
-  const COLORS = [
-    // Solid Colors
-    { name: "Black", value: "bg-black", hex: "#000000", type: "solid" },
-    { name: "Charcoal", value: "bg-neutral-800", hex: "#262626", type: "solid" },
-    { name: "Stone", value: "bg-neutral-700", hex: "#404040", type: "solid" },
-    { name: "Blue", value: "bg-blue-600", hex: "#2563eb", type: "solid" },
-    { name: "Violet", value: "bg-violet-600", hex: "#7c3aed", type: "solid" },
-    { name: "Forest", value: "bg-emerald-900", hex: "#064e3b", type: "solid" },
-    // Texture Patterns (on dark base)
-    { name: "Stars", value: "note-pattern-noise", hex: "#0a0a0a", type: "pattern" },
-    { name: "Cross", value: "note-pattern-dots", hex: "#0a0a0a", type: "pattern" },
-    { name: "Grid", value: "note-pattern-grid", hex: "#0a0a0a", type: "pattern" },
-    { name: "Lines", value: "note-pattern-lines", hex: "#0a0a0a", type: "pattern" },
-  ]
+  // Get data from store
+  const notes = useBentoStore((state) => state.notes)
+  const currentWorkspace = useBentoStore((state) => state.currentWorkspace())
+  const updateWorkspaceLayout = useBentoStore((state) => state.updateWorkspaceLayout)
+  const updateNoteContent = useBentoStore((state) => state.updateNoteContent)
+  const updateNotePanelId = useBentoStore((state) => state.updateNotePanelId)
+  const deleteNote = useBentoStore((state) => state.deleteNote)
 
-  // -- Actions --
+  // Get layout from current workspace
+  const layout = currentWorkspace?.layout
 
-  const createNote = (color: string) => {
-    const newNote: Note = {
-      id: `note-${Date.now()}`,
-      content: "",
-      color: color,
+  // Create notesByPanel lookup for O(1) access
+  const notesByPanel = useMemo(() => {
+    const map: Record<string, BentoNote> = {}
+    for (const note of notes) {
+      if (note.panelId) {
+        map[note.panelId] = note
+      }
     }
+    return map
+  }, [notes])
 
-    // Find first empty panel or use the first panel
-    const firstPanelId = "p-1-1"
-    setPanelNotes((prev) => ({
-      ...prev,
-      [firstPanelId]: [...(prev[firstPanelId] || []), newNote],
-    }))
-
-    // Close the color picker after creating a note
-    setIsColorPickerOpen(false)
-  }
-
+  // Drag handlers
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event
-    setDraggedNote(active.data.current?.note as Note)
+    setDraggedNote(active.data.current?.note as BentoNote)
   }
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -507,128 +423,88 @@ export const BentoWorkspace = ({ spaceId: _spaceId }: BentoWorkspaceProps) => {
 
     if (!over) return
 
-    const note = active.data.current?.note as Note
+    const note = active.data.current?.note as BentoNote
     const targetPanelId = over.id as string
 
-    // Remove from old panel
-    const newPanelNotes = { ...panelNotes }
-    Object.keys(newPanelNotes).forEach((key) => {
-      newPanelNotes[key] = newPanelNotes[key].filter((n) => n.id !== note.id)
-    })
+    // If the target panel already has a note, don't swap (for now)
+    if (notesByPanel[targetPanelId] && notesByPanel[targetPanelId].id !== note.id) {
+      return
+    }
 
-    // Add to new panel (replace existing if any? Bento usually 1 item per cell)
-    // User said: "It's actually doing a mistake when I click on a note and it adds a sort of note to the focus panel... It should occupy the entire panel"
-    // So assume 1 note per panel for this layout.
-
-    // If target has a note, maybe swap? Or just overwrite?
-    // Let's overwrite/stack for now.
-    newPanelNotes[targetPanelId] = [note] // Force single note
-
-    setPanelNotes(newPanelNotes)
+    // Update note's panelId
+    updateNotePanelId(note.id, targetPanelId)
   }
 
+  // Content change handler
   const handleNoteContentChange = useCallback((noteId: string, content: string) => {
-    setPanelNotes((prev) => {
-      const newPanelNotes = { ...prev }
-      Object.keys(newPanelNotes).forEach((panelId) => {
-        const noteIndex = newPanelNotes[panelId].findIndex((n) => n.id === noteId)
-        if (noteIndex !== -1) {
-          newPanelNotes[panelId] = newPanelNotes[panelId].map((n) => (n.id === noteId ? { ...n, content } : n))
-        }
-      })
-      return newPanelNotes
-    })
-  }, [])
+    updateNoteContent(noteId, content)
+  }, [updateNoteContent])
 
+  // Layout manipulation
   const onSplit = useCallback((nodeId: string, direction: "horizontal" | "vertical") => {
-    setLayout((prev) => splitNodeInTree(prev, nodeId, direction))
-  }, [])
+    if (!currentWorkspace || !layout) return
+    const newLayout = splitNodeInTree(layout, nodeId, direction)
+    updateWorkspaceLayout(currentWorkspace.id, newLayout)
+  }, [currentWorkspace, layout, updateWorkspaceLayout])
 
   const onRemove = useCallback((nodeId: string) => {
-    setLayout((prev) => {
-      const newLayout = removeNodeFromTree(prev, nodeId)
-      return newLayout || prev // Prevent removing root if it results in null
-    })
-  }, [])
+    if (!currentWorkspace || !layout) return
+    const newLayout = removeNodeFromTree(layout, nodeId)
+    if (newLayout) {
+      updateWorkspaceLayout(currentWorkspace.id, newLayout)
+    }
+  }, [currentWorkspace, layout, updateWorkspaceLayout])
+
+  // Handle note deletion (also removes from panel)
+  const handleDeleteNote = useCallback((noteId: string) => {
+    deleteNote(noteId)
+  }, [deleteNote])
+
+  if (!layout) {
+    return (
+      <div className="h-full w-full flex items-center justify-center text-[var(--text-secondary)]">
+        Loading workspace...
+      </div>
+    )
+  }
 
   return (
     <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
       <div className="h-full w-full bg-[var(--app-bg)] text-[var(--text-primary)] overflow-hidden flex flex-col font-sans">
         {/* Workspace Area */}
-        <div className={"flex-1 overflow-hidden relative p-2"}>
+        <div className="flex-1 overflow-hidden relative p-2">
           <LayoutRenderer
             node={layout}
-            panelNotes={panelNotes}
+            notesByPanel={notesByPanel}
             onSplit={onSplit}
-            onRemove={onRemove}
-            uiMode={uiMode}
+            onRemove={(nodeId) => {
+              // Find and delete any note in this panel before removing it
+              const paneNode = findPaneById(layout, nodeId)
+              if (paneNode?.panelId && notesByPanel[paneNode.panelId]) {
+                handleDeleteNote(notesByPanel[paneNode.panelId].id)
+              }
+              onRemove(nodeId)
+            }}
             isDragging={!!draggedNote}
             onNoteContentChange={handleNoteContentChange}
           />
         </div>
-
-        {/* Floating Controls (visible in dashboard mode only) */}
-        {uiMode === "dashboard" && (
-          <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-50">
-            <div
-              className="relative flex items-center rounded-full border border-white/10 shadow-2xl overflow-visible"
-              style={{ backgroundColor: themeTokens.appBg }}
-            >
-              {/* Main trigger button */}
-              <button
-                onClick={() => setIsColorPickerOpen(!isColorPickerOpen)}
-                className="relative z-50 p-2.5 rounded-full text-[var(--text-secondary)] hover:text-[var(--text-primary)] transition-colors"
-                style={{ backgroundColor: themeTokens.appBg }}
-              >
-                <Plus className={`w-5 h-5 transition-transform duration-300 ${isColorPickerOpen ? "rotate-45" : ""}`} />
-              </button>
-
-              {/* Color buttons container - horizontal expansion */}
-              <div className="relative flex items-center h-5">
-                {COLORS.map((color, index) => (
-                  <button
-                    key={color.name}
-                    onClick={() => createNote(color.value)}
-                    className={clsx(
-                      "absolute rounded-full border border-white/30 will-change-transform hover:z-50 hover:border-white/50",
-                      color.type === "pattern" && color.value
-                    )}
-                    style={{
-                      width: "16px",
-                      height: "16px",
-                      backgroundColor: color.hex,
-                      transform: `translateX(${isColorPickerOpen ? index * 24 + 4 : 0}px) scale(${isColorPickerOpen ? 1 : 0.5})`,
-                      opacity: isColorPickerOpen ? 1 : 0,
-                      pointerEvents: isColorPickerOpen ? "auto" : "none",
-                      transition: `transform ${isColorPickerOpen ? "300ms" : "200ms"} cubic-bezier(0.4, 0, 0.2, 1) ${isColorPickerOpen ? index * 40 : (COLORS.length - index) * 20}ms,
-                                   opacity ${isColorPickerOpen ? "200ms" : "150ms"} ease ${isColorPickerOpen ? index * 40 : 0}ms`,
-                      boxShadow: "0 2px 8px rgba(0,0,0,0.3)",
-                    }}
-                    title={color.name}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.transform = `translateX(${index * 24 + 4}px) scale(1.15)`
-                    }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.transform = `translateX(${isColorPickerOpen ? index * 24 + 4 : 0}px) scale(${isColorPickerOpen ? 1 : 0.5})`
-                    }}
-                  />
-                ))}
-              </div>
-
-              {/* Spacer to prevent layout jump when expanded */}
-              <div
-                className="transition-all duration-300 ease-out"
-                style={{
-                  width: isColorPickerOpen ? `${COLORS.length * 24 + 8}px` : "0px",
-                }}
-              />
-            </div>
-          </div>
-        )}
 
         {/* Drag Overlay */}
         <DragOverlay>{draggedNote ? <DraggableNote note={draggedNote} isOverlay /> : null}</DragOverlay>
       </div>
     </DndContext>
   )
+}
+
+// Helper to find a pane by node ID
+function findPaneById(node: LayoutNode, id: string): LayoutNode | null {
+  if (node.id === id) return node
+  if (node.children) {
+    for (const child of node.children) {
+      const found = findPaneById(child, id)
+      if (found) return found
+    }
+  }
+  return null
 }

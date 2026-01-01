@@ -1,8 +1,6 @@
-"use client"
-
 import React, { useState, useEffect, useRef, useMemo } from 'react'
 import { useThemeStore, NOTE_STYLES } from '../../stores/themeStore'
-import { useNotesStore } from '../../stores/notesStore'
+import { useBentoStore } from '../../stores/bentoStore'
 import {
     Palette,
     Plus,
@@ -52,7 +50,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose,
 
     // Store access
     const currentNoteStyle = useThemeStore((state) => state.currentNoteStyle)
-    const spaces = useNotesStore((state) => state.spaces)
+    const workspaces = useBentoStore((state) => state.workspaces)
 
     // Build commands list dynamically
     const allCommands = useMemo((): CommandItem[] => {
@@ -78,11 +76,11 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose,
         })
 
         // Add all existing workspaces as switchable commands
-        spaces.forEach((space) => {
+        workspaces.forEach((workspace) => {
             commands.push({
-                id: `workspace-${space.id}`,
-                label: space.name,
-                description: `Switch to ${space.name}`,
+                id: `workspace-${workspace.id}`,
+                label: workspace.name,
+                description: `Switch to ${workspace.name}`,
                 icon: <Grid3X3 className="w-4 h-4" />,
                 category: 'Workspaces'
             })
@@ -135,7 +133,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose,
         })
 
         return commands
-    }, [spaces, currentNoteStyle])
+    }, [workspaces, currentNoteStyle])
 
     // Filter commands based on search
     const filteredCommands = useMemo(() => {

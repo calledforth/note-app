@@ -1,7 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useNotesStore } from '../../stores/notesStore';
-import { useUiStore } from '../../stores/uiStore';
+import { useBentoStore } from '../../stores/bentoStore';
 import { SettingsPanel } from '../dock/SettingsPanel';
 import {
   ChevronDown,
@@ -10,64 +9,49 @@ import {
   Maximize,
   X,
   Plus,
-  Grid3X3,
-  Layout,
   LayoutTemplate,
-  Zap,
-  Eye,
   Pencil,
   Trash2,
 } from 'lucide-react';
 import clsx from 'clsx';
+import '../../types/electron.d';
 
-declare global {
-  interface Window {
-    electronAPI?: {
-      windowControls: {
-        minimize: () => Promise<void>;
-        maximize: () => Promise<void>;
-        close: () => Promise<void>;
-        isMaximized: () => Promise<boolean>;
-      };
-    };
-  }
-}
 
 export function TitleBar() {
   const [isMaximized, setIsMaximized] = useState(false);
-  const spaces = useNotesStore((state) => state.spaces);
-  const currentSpaceId = useNotesStore((state) => state.currentSpaceId);
-  const switchSpace = useNotesStore((state) => state.switchSpace);
-  const addSpace = useNotesStore((state) => state.addSpace);
-  const deleteSpace = useNotesStore((state) => state.deleteSpace);
-  const updateSpace = useNotesStore((state) => state.updateSpace); // Need to add this to store if not exists
+
+  // Bento store
+  const workspaces = useBentoStore((state) => state.workspaces);
+  const currentWorkspaceId = useBentoStore((state) => state.currentWorkspaceId);
+  const switchWorkspace = useBentoStore((state) => state.switchWorkspace);
+  const createWorkspace = useBentoStore((state) => state.createWorkspace);
+  const deleteWorkspace = useBentoStore((state) => state.deleteWorkspace);
+  const updateWorkspaceName = useBentoStore((state) => state.updateWorkspaceName);
 
   const [showSettings, setShowSettings] = useState(false);
   const [workspaceMenuOpen, setWorkspaceMenuOpen] = useState(false);
   const [showCreateSpace, setShowCreateSpace] = useState(false);
   const [newSpaceName, setNewSpaceName] = useState('');
-  const [newSpaceMode, setNewSpaceMode] = useState<'freeform' | 'grid' | 'bento'>('freeform');
   const [isEditingName, setIsEditingName] = useState(false);
   const [editingName, setEditingName] = useState('');
   // Inline dropdown editing
   const [editingDropdownSpaceId, setEditingDropdownSpaceId] = useState<string | null>(null);
   const [editingDropdownName, setEditingDropdownName] = useState('');
-  const uiMode = useUiStore((state) => state.uiMode);
 
   const menuRef = useRef<HTMLDivElement | null>(null);
   const nameInputRef = useRef<HTMLInputElement | null>(null);
   const dropdownInputRef = useRef<HTMLInputElement | null>(null);
 
-  const currentSpace = useMemo(
-    () => spaces.find((s) => s.id === currentSpaceId) || null,
-    [spaces, currentSpaceId]
+  const currentWorkspace = useMemo(
+    () => workspaces.find((s) => s.id === currentWorkspaceId) || null,
+    [workspaces, currentWorkspaceId]
   );
 
   useEffect(() => {
-    if (currentSpace) {
-      setEditingName(currentSpace.name);
+    if (currentWorkspace) {
+      setEditingName(currentWorkspace.name);
     }
-  }, [currentSpace]);
+  }, [currentWorkspace]);
 
   useEffect(() => {
     if (isEditingName && nameInputRef.current) {
@@ -76,7 +60,6 @@ export function TitleBar() {
     }
   }, [isEditingName]);
 
-  // Focus dropdown input when editing starts
   useEffect(() => {
     if (editingDropdownSpaceId && dropdownInputRef.current) {
       dropdownInputRef.current.focus();
@@ -103,7 +86,7 @@ export function TitleBar() {
       if (target && menuRef.current && !menuRef.current.contains(target)) {
         setWorkspaceMenuOpen(false);
         setShowCreateSpace(false);
-        setEditingDropdownSpaceId(null); // Clear dropdown editing when closing
+        setEditingDropdownSpaceId(null);
       }
     };
     window.addEventListener('mousedown', onMouseDown);
@@ -117,28 +100,17 @@ export function TitleBar() {
   };
   const handleClose = () => window.electronAPI?.windowControls.close();
 
-  const handleCreateSpace = () => {
+  const handleCreateSpace = async () => {
     const name = newSpaceName.trim() || 'Untitled Workspace';
-    addSpace(name, newSpaceMode);
+    await createWorkspace(name);
     setNewSpaceName('');
     setShowCreateSpace(false);
     setWorkspaceMenuOpen(false);
   };
 
-  const handleNameSave = () => {
-    if (currentSpace && editingName.trim()) {
-      // Assuming updateSpace exists, or we implement it
-      // useNotesStore.getState().updateSpace(currentSpace.id, { name: editingName });
-      // For now, if updateSpace is missing, we might need to add it to store.
-      // Let's assume we'll fix store next if it errors.
-      // Or hack: access raw store state if needed, but cleaner to use action.
-      // Actually, let's just use the store reference we have.
-      // NOTE: We need to check if updateSpace is in the store interface.
-      // If not, we'll add it.
-
-      // Temporary: If updateSpace missing, we will add it to store file in next step.
-      // @ts-ignore
-      if (updateSpace) updateSpace(currentSpace.id, { name: editingName });
+  const handleNameSave = async () => {
+    if (currentWorkspace && editingName.trim()) {
+      await updateWorkspaceName(currentWorkspace.id, editingName.trim());
     }
     setIsEditingName(false);
   };
@@ -146,36 +118,25 @@ export function TitleBar() {
   const handleKeyDown = (e: React.KeyboardEvent) => {
     if (e.key === 'Enter') handleNameSave();
     if (e.key === 'Escape') {
-      setEditingName(currentSpace?.name || '');
+      setEditingName(currentWorkspace?.name || '');
       setIsEditingName(false);
     }
   };
 
   return (
     <>
-      {/* Focus Title Bar */}
+      {/* Title Bar */}
       <div
         className="h-8 bg-[var(--app-bg)] flex items-center justify-between select-none pl-3 pr-0 relative"
         style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}
       >
-        {/* Dynamic Radial Gradient Background */}
-        {uiMode === 'dashboard' ? (
-          // Editing mode: Purple gradient - brighter at center, sharp fade
-          <div
-            className="absolute inset-0 pointer-events-none"
-            style={{
-              background: 'radial-gradient(550px circle at 50% 50%, rgba(147, 51, 234, 0.25) 0%, rgba(139, 92, 246, 0.12) 20%, rgba(99, 102, 241, 0.04) 45%, transparent 65%)'
-            }}
-          />
-        ) : (
-          // Focus mode: Very subtle white gradient (barely visible)
-          <div
-            className="absolute inset-0 pointer-events-none"
-            style={{
-              background: 'radial-gradient(600px circle at 50% 50%, rgba(255, 255, 255, 0.02), transparent 50%)'
-            }}
-          />
-        )}
+        {/* Subtle background gradient */}
+        <div
+          className="absolute inset-0 pointer-events-none"
+          style={{
+            background: 'radial-gradient(600px circle at 50% 50%, rgba(255, 255, 255, 0.02), transparent 50%)'
+          }}
+        />
 
         {/* Left spacer */}
         <div className="flex-1" />
@@ -190,12 +151,8 @@ export function TitleBar() {
             onClick={() => setWorkspaceMenuOpen(!workspaceMenuOpen)}
             className="flex items-center gap-2 px-3 py-1 mt-0.5 rounded-full bg-[var(--surface-bg)]/50 border border-[var(--border-subtle)] hover:bg-[var(--surface-bg)] hover:border-[var(--text-secondary)]/30 transition-all cursor-pointer"
           >
-            {/* Mode Icon Badge - Outline Only */}
-            {uiMode === 'dashboard' ? (
-              <Zap className="w-3.5 h-3.5 text-purple-500" />
-            ) : (
-              <Eye className="w-3.5 h-3.5 text-[var(--text-secondary)]" />
-            )}
+            {/* Workspace Mode Icon - Always Bento */}
+            <LayoutTemplate className="w-3.5 h-3.5 text-[var(--text-secondary)]" />
 
             {/* Workspace Name */}
             {isEditingName ? (
@@ -210,7 +167,7 @@ export function TitleBar() {
               />
             ) : (
               <span className="text-xs font-semibold text-[var(--text-primary)]">
-                {currentSpace?.name || 'Select workspace'}
+                {currentWorkspace?.name || 'Select workspace'}
               </span>
             )}
 
@@ -231,10 +188,9 @@ export function TitleBar() {
                 className="absolute top-full left-1/2 -translate-x-1/2 mt-1 w-[240px] bg-[var(--app-bg)] border border-[var(--border-subtle)] rounded-lg shadow-[0_8px_24px_rgba(0,0,0,0.25)] z-50 overflow-hidden"
               >
                 <div className="py-1">
-                  {spaces.map((space, index) => {
-                    const ModeIcon = space.mode === 'freeform' ? Layout : space.mode === 'grid' ? Grid3X3 : LayoutTemplate;
+                  {workspaces.map((space, index) => {
                     const isEditingThisSpace = editingDropdownSpaceId === space.id;
-                    const isSelected = space.id === currentSpaceId;
+                    const isSelected = space.id === currentWorkspaceId;
 
                     return (
                       <motion.div
@@ -244,9 +200,7 @@ export function TitleBar() {
                         transition={{ delay: index * 0.03, duration: 0.2 }}
                         className={clsx(
                           "relative w-full text-left px-3 py-1.5 text-xs flex items-center gap-2 group/item cursor-pointer transition-colors",
-                          isSelected
-                            ? "hover:bg-[var(--surface-bg)]"
-                            : "hover:bg-[var(--surface-bg)]"
+                          "hover:bg-[var(--surface-bg)]"
                         )}
                         style={isSelected ? {
                           background: 'radial-gradient(ellipse at center, rgba(168, 85, 247, 0.15) 0%, rgba(168, 85, 247, 0.08) 50%, transparent 100%)'
@@ -259,7 +213,7 @@ export function TitleBar() {
                             isSelected ? "bg-purple-500/20" : "bg-[var(--surface-bg)]"
                           )}
                         >
-                          <ModeIcon className={clsx(
+                          <LayoutTemplate className={clsx(
                             "w-3 h-3",
                             isSelected ? "text-purple-400" : "text-[var(--text-primary)]"
                           )} />
@@ -271,10 +225,10 @@ export function TitleBar() {
                             ref={dropdownInputRef}
                             value={editingDropdownName}
                             onChange={(e) => setEditingDropdownName(e.target.value)}
-                            onKeyDown={(e) => {
+                            onKeyDown={async (e) => {
                               if (e.key === 'Enter') {
                                 if (editingDropdownName.trim()) {
-                                  updateSpace(space.id, { name: editingDropdownName.trim() });
+                                  await updateWorkspaceName(space.id, editingDropdownName.trim());
                                 }
                                 setEditingDropdownSpaceId(null);
                               }
@@ -282,9 +236,9 @@ export function TitleBar() {
                                 setEditingDropdownSpaceId(null);
                               }
                             }}
-                            onBlur={() => {
+                            onBlur={async () => {
                               if (editingDropdownName.trim()) {
-                                updateSpace(space.id, { name: editingDropdownName.trim() });
+                                await updateWorkspaceName(space.id, editingDropdownName.trim());
                               }
                               setEditingDropdownSpaceId(null);
                             }}
@@ -297,8 +251,8 @@ export function TitleBar() {
                               "truncate flex-1 cursor-pointer transition-colors",
                               isSelected ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)]"
                             )}
-                            onClick={() => {
-                              switchSpace(space.id);
+                            onClick={async () => {
+                              await switchWorkspace(space.id);
                               setWorkspaceMenuOpen(false);
                             }}
                             title={space.name}
@@ -323,9 +277,11 @@ export function TitleBar() {
                               <Pencil className="w-3 h-3" />
                             </motion.div>
                             <motion.div
-                              onClick={(e) => {
+                              onClick={async (e) => {
                                 e.stopPropagation();
-                                if (confirm('Delete workspace?')) deleteSpace(space.id);
+                                if (confirm('Delete workspace?')) {
+                                  await deleteWorkspace(space.id);
+                                }
                               }}
                               className="text-[var(--text-secondary)] hover:text-red-400 p-0.5 cursor-pointer"
                               whileHover={{ scale: 1.15 }}
@@ -346,7 +302,7 @@ export function TitleBar() {
                     <motion.button
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
-                      transition={{ delay: spaces.length * 0.03 + 0.1 }}
+                      transition={{ delay: workspaces.length * 0.03 + 0.1 }}
                       onClick={() => setShowCreateSpace(true)}
                       className="w-full flex items-center gap-1.5 px-2 py-1 rounded text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-bg)] transition-colors text-xs"
                     >
@@ -371,30 +327,6 @@ export function TitleBar() {
                           if (e.key === 'Escape') setShowCreateSpace(false);
                         }}
                       />
-
-                      <div className="grid grid-cols-3 gap-1">
-                        {[
-                          { id: 'freeform', icon: Layout, label: 'Canvas' },
-                          { id: 'grid', icon: Grid3X3, label: 'Grid' },
-                          { id: 'bento', icon: LayoutTemplate, label: 'Bento' },
-                        ].map((mode) => (
-                          <motion.button
-                            key={mode.id}
-                            onClick={() => setNewSpaceMode(mode.id as any)}
-                            className={clsx(
-                              "flex flex-col items-center justify-center gap-0.5 p-1 rounded border transition-all text-[9px]",
-                              newSpaceMode === mode.id
-                                ? "bg-[var(--text-primary)] text-[var(--app-bg)] border-[var(--text-primary)]"
-                                : "bg-transparent text-[var(--text-secondary)] border-transparent hover:bg-[var(--app-bg)]"
-                            )}
-                            whileHover={{ scale: 1.02 }}
-                            whileTap={{ scale: 0.98 }}
-                          >
-                            <mode.icon className="w-3 h-3" />
-                            <span>{mode.label}</span>
-                          </motion.button>
-                        ))}
-                      </div>
 
                       <motion.button
                         onClick={handleCreateSpace}
@@ -445,8 +377,8 @@ export function TitleBar() {
         </div>
       </div>
 
-      {showSettings && currentSpaceId && (
-        <SettingsPanel spaceId={currentSpaceId} onClose={() => setShowSettings(false)} />
+      {showSettings && currentWorkspaceId && (
+        <SettingsPanel spaceId={currentWorkspaceId} onClose={() => setShowSettings(false)} />
       )}
     </>
   );

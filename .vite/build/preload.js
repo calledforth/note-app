@@ -1,11 +1,1 @@
-"use strict";
-const electron = require("electron");
-electron.contextBridge.exposeInMainWorld("electronAPI", {
-  platform: process.platform,
-  windowControls: {
-    minimize: () => electron.ipcRenderer.invoke("window-minimize"),
-    maximize: () => electron.ipcRenderer.invoke("window-maximize"),
-    close: () => electron.ipcRenderer.invoke("window-close"),
-    isMaximized: () => electron.ipcRenderer.invoke("window-is-maximized")
-  }
-});
+"use strict";const r=require("electron");r.contextBridge.exposeInMainWorld("electronAPI",{platform:process.platform,windowControls:{minimize:()=>r.ipcRenderer.invoke("window-minimize"),maximize:()=>r.ipcRenderer.invoke("window-maximize"),close:()=>r.ipcRenderer.invoke("window-close"),isMaximized:()=>r.ipcRenderer.invoke("window-is-maximized")},database:{getAllWorkspaces:()=>r.ipcRenderer.invoke("db-get-all-workspaces"),getWorkspace:e=>r.ipcRenderer.invoke("db-get-workspace",e),createWorkspace:e=>r.ipcRenderer.invoke("db-create-workspace",e),updateWorkspace:(e,o)=>r.ipcRenderer.invoke("db-update-workspace",e,o),deleteWorkspace:e=>r.ipcRenderer.invoke("db-delete-workspace",e),getNotesForWorkspace:e=>r.ipcRenderer.invoke("db-get-notes-for-workspace",e),createNote:e=>r.ipcRenderer.invoke("db-create-note",e),updateNote:(e,o)=>r.ipcRenderer.invoke("db-update-note",e,o),deleteNote:e=>r.ipcRenderer.invoke("db-delete-note",e)}});

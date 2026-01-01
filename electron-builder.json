@@ -1,0 +1,56 @@
+{
+  "$schema": "https://raw.githubusercontent.com/electron-userland/electron-builder/master/packages/app-builder-lib/scheme.json",
+  "appId": "com.cletus.notes",
+  "productName": "Notes",
+  "copyright": "Copyright © 2025 cletus",
+  
+  "directories": {
+    "output": "release",
+    "buildResources": "build"
+  },
+  
+  "files": [
+    "dist/**/*",
+    "src/assets/**/*"
+  ],
+  
+  "extraResources": [
+    {
+      "from": "node_modules/better-sqlite3/build/Release/better_sqlite3.node",
+      "to": "better_sqlite3.node"
+    }
+  ],
+
+  "win": {
+    "target": [
+      {
+        "target": "nsis",
+        "arch": ["x64"]
+      }
+    ],
+    "icon": "src/assets/icon.png",
+    "artifactName": "${productName}-${version}-Setup.${ext}",
+    "signAndEditExecutable": false
+  },
+
+  "nsis": {
+    "oneClick": false,
+    "perMachine": false,
+    "allowToChangeInstallationDirectory": true,
+    "deleteAppDataOnUninstall": false,
+    "createDesktopShortcut": true,
+    "createStartMenuShortcut": true,
+    "shortcutName": "Notes"
+  },
+
+  "publish": {
+    "provider": "github",
+    "owner": "calledforth",
+    "repo": "note-app",
+    "releaseType": "release"
+  },
+
+  "electronDownload": {
+    "cache": ".cache/electron"
+  }
+}
