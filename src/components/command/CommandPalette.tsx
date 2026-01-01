@@ -13,8 +13,12 @@ import {
     ArrowLeft,
     Check,
     Grid3X3,
-    Sparkles
+    Sparkles,
+    Info
 } from 'lucide-react'
+
+// Get app version from package.json (injected at build time via Vite)
+const APP_VERSION = __APP_VERSION__ || '0.0.0'
 import clsx from 'clsx'
 
 // Command item types
@@ -130,6 +134,15 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose,
             description: 'Close the application',
             icon: <XCircle className="w-4 h-4" />,
             category: 'Window'
+        })
+
+        // === ABOUT ===
+        commands.push({
+            id: 'about-version',
+            label: `Version ${APP_VERSION}`,
+            description: 'Current application version',
+            icon: <Info className="w-4 h-4" />,
+            category: 'About'
         })
 
         return commands

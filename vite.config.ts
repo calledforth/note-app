@@ -4,6 +4,7 @@ import tailwindcss from '@tailwindcss/vite'
 import electron from 'vite-plugin-electron'
 import renderer from 'vite-plugin-electron-renderer'
 import path from 'path'
+import pkg from './package.json'
 
 // https://vite.dev/config/
 export default defineConfig({
@@ -47,6 +48,9 @@ export default defineConfig({
     // Enable Node.js API in the renderer process (for preload bridge)
     renderer(),
   ],
+  define: {
+    __APP_VERSION__: JSON.stringify(pkg.version),
+  },
   build: {
     outDir: 'dist/renderer',
     emptyOutDir: true,
@@ -57,3 +61,4 @@ export default defineConfig({
     },
   },
 })
+
