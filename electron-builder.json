@@ -4,7 +4,12 @@
   "productName": "Notes",
   "executableName": "Notes",
   "copyright": "Copyright © 2025 cletus",
-  
+
+  "extraMetadata": {
+    "name": "Notes",
+    "productName": "Notes",
+    "description": "A minimalist notes app"
+  },
   "directories": {
     "output": "release",
     "buildResources": "build"
