@@ -21,6 +21,7 @@ export const UpdateToast: React.FC<UpdateToastProps> = () => {
     const [updateInfo, setUpdateInfo] = useState<UpdateInfo | null>(null);
     const [downloadProgress, setDownloadProgress] = useState(0);
     const [dismissed, setDismissed] = useState(false);
+    const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
     const currentNoteStyle = useThemeStore((state) => state.currentNoteStyle);
     const isZenVoid = currentNoteStyle === 'zen-void';
@@ -55,8 +56,10 @@ export const UpdateToast: React.FC<UpdateToastProps> = () => {
             setDownloadProgress(100);
         };
 
-        const handleError = () => {
+        const handleError = (error: string) => {
             setStatus('error');
+            setErrorMessage(error);
+            console.error('[UpdateToast] Error:', error);
         };
 
         // Subscribe to events
@@ -225,12 +228,22 @@ export const UpdateToast: React.FC<UpdateToastProps> = () => {
                     )}
 
                     {status === 'error' && (
-                        <p className={clsx(
-                            "text-sm",
-                            "text-red-400/80"
-                        )}>
-                            Failed to download update. Please try again later.
-                        </p>
+                        <div className="space-y-2">
+                            <p className={clsx(
+                                "text-sm",
+                                "text-red-400/80"
+                            )}>
+                                Update failed
+                            </p>
+                            {errorMessage && (
+                                <p className={clsx(
+                                    "text-xs font-mono p-2 rounded",
+                                    isZenVoid ? "bg-white/5 text-white/50" : "bg-red-500/10 text-red-300/70"
+                                )}>
+                                    {errorMessage}
+                                </p>
+                            )}
+                        </div>
                     )}
                 </div>
             </motion.div>
