@@ -17,7 +17,8 @@
   
   "files": [
     "dist/**/*",
-    "src/assets/**/*"
+    "src/assets/**/*",
+    "build/**/*"
   ],
   
   "extraResources": [
@@ -36,13 +37,13 @@
     ],
     "icon": "build/icon.ico",
     "artifactName": "${productName}-${version}-Setup.${ext}",
-    "signAndEditExecutable": false
+    "signAndEditExecutable": true
   },
 
   "nsis": {
     "oneClick": false,
     "perMachine": false,
-    "allowToChangeInstallationDirectory": true,
+    "allowToChangeInstallationDirectory": true, 
     "deleteAppDataOnUninstall": false,
     "createDesktopShortcut": true,
     "createStartMenuShortcut": true,
