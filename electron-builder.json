@@ -34,6 +34,7 @@
         "arch": ["x64"]
       }
     ],
+    "icon": "build/icon.ico",
     "artifactName": "${productName}-${version}-Setup.${ext}",
     "signAndEditExecutable": false
   },

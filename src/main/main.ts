@@ -15,8 +15,8 @@ let mainWindow: BrowserWindow | null = null;
 const createWindow = (): void => {
   // Resolve icon path for both dev and production
   const iconPath = isDev
-    ? path.join(__dirname, '../../src/assets/icon.png')
-    : path.join(process.resourcesPath, 'app.asar/src/assets/icon.png');
+    ? path.join(__dirname, '../../src/assets/icon.ico')
+    : path.join(process.resourcesPath, 'app.asar/src/assets/icon.ico');
 
   mainWindow = new BrowserWindow({
     height: 700,
