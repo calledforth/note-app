@@ -8,7 +8,7 @@
   "extraMetadata": {
     "name": "Notes",
     "productName": "Notes",
-    "description": "A minimalist notes app"
+    "description": "Notes"
   },
   "directories": {
     "output": "release",
