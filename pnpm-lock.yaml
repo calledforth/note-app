@@ -43,9 +43,6 @@ importers:
       clsx:
         specifier: ^2.1.1
         version: 2.1.1
-      electron-builder:
-        specifier: ^26.0.12
-        version: 26.0.12(electron-builder-squirrel-windows@26.0.12)
       electron-updater:
         specifier: ^6.6.2
         version: 6.6.2
@@ -155,6 +152,9 @@ importers:
       electron:
         specifier: ^39.1.1
         version: 39.2.7
+      electron-builder:
+        specifier: ^26.0.12
+        version: 26.0.12(electron-builder-squirrel-windows@26.0.12)
       eslint:
         specifier: ^9.36.0
         version: 9.39.2(jiti@2.6.1)
