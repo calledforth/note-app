@@ -97,7 +97,7 @@ ipcMain.handle('updater-download', () => {
 });
 
 ipcMain.handle('updater-quit-and-install', () => {
-  autoUpdater.quitAndInstall();
+  autoUpdater.quitAndInstall(true, true);
 });
 
 // ============================================================================
@@ -169,6 +169,16 @@ ipcMain.handle('db-update-note', (_event, id: string, updates) => {
 
 ipcMain.handle('db-delete-note', (_event, id: string) => {
   database.deleteNote(id);
+  return { success: true };
+});
+
+// App Settings handlers
+ipcMain.handle('db-get-last-workspace-id', () => {
+  return database.getLastWorkspaceId();
+});
+
+ipcMain.handle('db-set-last-workspace-id', (_event, workspaceId: string) => {
+  database.setLastWorkspaceId(workspaceId);
   return { success: true };
 });
 

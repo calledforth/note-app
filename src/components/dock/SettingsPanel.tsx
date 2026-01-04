@@ -1,9 +1,6 @@
-import { useState } from "react";
 import { useNotesStore } from "../../stores/notesStore";
 import { useThemeStore, type ThemeKey } from "../../stores/themeStore";
-import { switchSpaceMode } from "../../utils/modeSwitcher";
-import type { SpaceMode } from "../../types";
-import { Layout, Grid3X3, LayoutTemplate, X, Check, Type, Palette } from "lucide-react";
+import { X, Check, Type, Palette } from "lucide-react";
 import clsx from "clsx";
 
 interface SettingsPanelProps {
@@ -11,27 +8,11 @@ interface SettingsPanelProps {
   onClose: () => void;
 }
 
-export function SettingsPanel({ spaceId, onClose }: SettingsPanelProps) {
-  const space = useNotesStore((state) =>
-    state.spaces.find((s) => s.id === spaceId)
-  );
+export function SettingsPanel({ spaceId: _spaceId, onClose }: SettingsPanelProps) {
   const theme = useNotesStore((state) => state.theme);
   const updateTheme = useNotesStore((state) => state.updateTheme);
   const currentTheme = useThemeStore((state) => state.currentTheme);
   const setTheme = useThemeStore((state) => state.setTheme);
-
-  const [selectedMode, setSelectedMode] = useState<SpaceMode>(
-    space?.mode || "freeform"
-  );
-
-  if (!space) return null;
-
-  const handleModeChange = (newMode: SpaceMode) => {
-    setSelectedMode(newMode);
-    if (newMode !== space.mode) {
-      switchSpaceMode(spaceId, newMode);
-    }
-  };
 
   const handleFontChange = (fontFamily: string) => {
     updateTheme(fontFamily);
@@ -41,27 +22,6 @@ export function SettingsPanel({ spaceId, onClose }: SettingsPanelProps) {
     { key: "neutral", label: "Neutral", color: "#171717" },
     { key: "black", label: "Midnight", color: "#000000" },
     { key: "white", label: "Clean", color: "#ffffff" },
-  ];
-
-  const layouts = [
-    {
-      mode: "freeform" as SpaceMode,
-      icon: Layout,
-      label: "Freeform",
-      desc: "Infinite canvas",
-    },
-    {
-      mode: "grid" as SpaceMode,
-      icon: Grid3X3,
-      label: "Grid",
-      desc: "Auto-aligned",
-    },
-    {
-      mode: "bento" as SpaceMode,
-      icon: LayoutTemplate,
-      label: "Bento",
-      desc: "Masonry style",
-    },
   ];
 
   const fonts = [
@@ -108,12 +68,6 @@ export function SettingsPanel({ spaceId, onClose }: SettingsPanelProps) {
               <h3 className="text-xs font-medium uppercase tracking-wide opacity-80">Appearance</h3>
             </div>
 
-            {/* 
-                Changes: 
-                - Increased gap (gap-3) to stop borders clashing
-                - Reduced height (h-14 instead of h-20)
-                - Removed container padding/background to keep it clean
-            */}
             <div className="flex gap-3">
               {themes.map((t) => {
                 const isActive = currentTheme === t.key;
@@ -150,51 +104,6 @@ export function SettingsPanel({ spaceId, onClose }: SettingsPanelProps) {
                     </div>
                   </button>
                 );
-              })}
-            </div>
-          </section>
-
-          {/* Layout Section */}
-          <section>
-            <div className="flex items-center gap-2 mb-3 text-[var(--text-primary)]">
-              <Layout className="w-3.5 h-3.5" />
-              <h3 className="text-xs font-medium uppercase tracking-wide opacity-80">Workspace Layout</h3>
-            </div>
-
-            {/* 
-                Changes:
-                - Reduced padding (p-3)
-                - Smaller text sizes
-                - Smaller icons
-            */}
-            <div className="grid grid-cols-3 gap-2">
-              {layouts.map(({ mode, icon: Icon, label, desc }) => {
-                const isSelected = selectedMode === mode;
-                return (
-                  <button
-                    key={mode}
-                    onClick={() => handleModeChange(mode)}
-                    className={clsx(
-                      "flex flex-col items-start p-3 rounded-xl transition-all duration-200 border text-left group",
-                      isSelected
-                        ? "bg-[var(--app-bg)] border-[var(--text-primary)]/30 shadow-sm"
-                        : "bg-transparent border-[var(--border-subtle)] hover:bg-[var(--app-bg)]/40 hover:border-[var(--border-subtle)]/80"
-                    )}
-                  >
-                    <div className={clsx(
-                      "p-1.5 rounded-lg mb-2 transition-colors",
-                      isSelected ? "bg-[var(--surface-bg)] text-[var(--text-primary)]" : "bg-[var(--app-bg)] text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]"
-                    )}>
-                      <Icon className="w-4 h-4" />
-                    </div>
-                    <span className={clsx("text-xs font-semibold block", isSelected ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)] group-hover:text-[var(--text-primary)]")}>
-                      {label}
-                    </span>
-                    <span className="text-[10px] text-[var(--text-secondary)] mt-0.5 opacity-70">
-                      {desc}
-                    </span>
-                  </button>
-                )
               })}
             </div>
           </section>

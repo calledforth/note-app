@@ -1,6 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useBentoStore } from '../../stores/bentoStore';
+import { useThemeStore } from '../../stores/themeStore';
 import { SettingsPanel } from '../dock/SettingsPanel';
 import {
   ChevronDown,
@@ -27,6 +28,9 @@ export function TitleBar() {
   const createWorkspace = useBentoStore((state) => state.createWorkspace);
   const deleteWorkspace = useBentoStore((state) => state.deleteWorkspace);
   const updateWorkspaceName = useBentoStore((state) => state.updateWorkspaceName);
+
+  // Theme store for styling
+  const currentNoteStyle = useThemeStore((state) => state.currentNoteStyle);
 
   const [showSettings, setShowSettings] = useState(false);
   const [workspaceMenuOpen, setWorkspaceMenuOpen] = useState(false);
@@ -123,21 +127,16 @@ export function TitleBar() {
     }
   };
 
+  // Styling based on current note style
+  const isZenVoid = currentNoteStyle === 'zen-void';
+
   return (
     <>
-      {/* Title Bar */}
+      {/* Title Bar - h-7, always visible */}
       <div
-        className="h-8 bg-[var(--app-bg)] flex items-center justify-between select-none pl-3 pr-0 relative"
+        className="h-8 bg-[var(--app-bg)] flex items-center justify-between select-none pl-2 pr-0 relative"
         style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}
       >
-        {/* Subtle background gradient */}
-        <div
-          className="absolute inset-0 pointer-events-none"
-          style={{
-            background: 'radial-gradient(600px circle at 50% 50%, rgba(255, 255, 255, 0.02), transparent 50%)'
-          }}
-        />
-
         {/* Left spacer */}
         <div className="flex-1" />
 
@@ -149,10 +148,18 @@ export function TitleBar() {
         >
           <button
             onClick={() => setWorkspaceMenuOpen(!workspaceMenuOpen)}
-            className="flex items-center gap-2 px-3 py-1 mt-0.5 rounded-full bg-[var(--surface-bg)]/50 border border-[var(--border-subtle)] hover:bg-[var(--surface-bg)] hover:border-[var(--text-secondary)]/30 transition-all cursor-pointer"
+            className={clsx(
+              "flex items-center gap-1.5 px-2 py-0.5 rounded-full transition-all cursor-pointer",
+              isZenVoid
+                ? "bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20"
+                : "bg-[var(--surface-bg)]/50 border border-[var(--border-subtle)] hover:bg-[var(--surface-bg)] hover:border-[var(--text-secondary)]/30"
+            )}
           >
             {/* Workspace Mode Icon - Always Bento */}
-            <LayoutTemplate className="w-3.5 h-3.5 text-[var(--text-secondary)]" />
+            <LayoutTemplate className={clsx(
+              "w-3 h-3",
+              isZenVoid ? "text-white/50" : "text-[var(--text-secondary)]"
+            )} />
 
             {/* Workspace Name */}
             {isEditingName ? (
@@ -163,21 +170,28 @@ export function TitleBar() {
                 onBlur={handleNameSave}
                 onKeyDown={handleKeyDown}
                 onClick={(e) => e.stopPropagation()}
-                className="bg-transparent text-xs font-semibold text-[var(--text-primary)] focus:outline-none min-w-[80px] w-auto"
+                className={clsx(
+                  "bg-transparent text-[10px] font-medium focus:outline-none min-w-[60px] w-auto",
+                  isZenVoid ? "text-white/80" : "text-[var(--text-primary)]"
+                )}
               />
             ) : (
-              <span className="text-xs font-semibold text-[var(--text-primary)]">
+              <span className={clsx(
+                "text-[10px] font-medium",
+                isZenVoid ? "text-white/80" : "text-[var(--text-primary)]"
+              )}>
                 {currentWorkspace?.name || 'Select workspace'}
               </span>
             )}
 
             <ChevronDown className={clsx(
-              "w-3 h-3 text-[var(--text-secondary)] transition-transform",
+              "w-2.5 h-2.5 transition-transform",
+              isZenVoid ? "text-white/40" : "text-[var(--text-secondary)]",
               workspaceMenuOpen && "rotate-180"
             )} />
           </button>
 
-          {/* Animated Dropdown Menu */}
+          {/* Animated Dropdown Menu - Theme-aware styling */}
           <AnimatePresence>
             {workspaceMenuOpen && (
               <motion.div
@@ -185,7 +199,12 @@ export function TitleBar() {
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -8, scale: 0.96 }}
                 transition={{ duration: 0.15, ease: "easeOut" }}
-                className="absolute top-full left-1/2 -translate-x-1/2 mt-1 w-[240px] bg-[var(--app-bg)] border border-[var(--border-subtle)] rounded-lg shadow-[0_8px_24px_rgba(0,0,0,0.25)] z-50 overflow-hidden"
+                className={clsx(
+                  "absolute top-full left-1/2 -translate-x-1/2 mt-1 w-[220px] shadow-[0_8px_24px_rgba(0,0,0,0.35)] z-50 overflow-hidden",
+                  isZenVoid
+                    ? "bg-[var(--void-bg)] border border-[var(--void-border)] rounded-md"
+                    : "bg-[var(--wabi-bg)] border border-[var(--wabi-border)] rounded-xs"
+                )}
               >
                 <div className="py-1">
                   {workspaces.map((space, index) => {
@@ -199,23 +218,27 @@ export function TitleBar() {
                         animate={{ opacity: 1, x: 0 }}
                         transition={{ delay: index * 0.03, duration: 0.2 }}
                         className={clsx(
-                          "relative w-full text-left px-3 py-1.5 text-xs flex items-center gap-2 group/item cursor-pointer transition-colors",
-                          "hover:bg-[var(--surface-bg)]"
+                          "relative w-full text-left px-2.5 py-1.5 text-xs flex items-center gap-2 group/item cursor-pointer transition-colors",
+                          isZenVoid
+                            ? "hover:bg-white/5"
+                            : "hover:bg-[var(--surface-bg)]",
+                          isSelected && (isZenVoid ? "bg-white/5" : "bg-[var(--surface-bg)]")
                         )}
-                        style={isSelected ? {
-                          background: 'radial-gradient(ellipse at center, rgba(168, 85, 247, 0.15) 0%, rgba(168, 85, 247, 0.08) 50%, transparent 100%)'
-                        } : undefined}
                       >
-                        {/* Mode icon with colored background */}
+                        {/* Mode icon with themed background */}
                         <div
                           className={clsx(
                             "w-5 h-5 rounded flex items-center justify-center flex-shrink-0",
-                            isSelected ? "bg-purple-500/20" : "bg-[var(--surface-bg)]"
+                            isSelected
+                              ? (isZenVoid ? "bg-white/10" : "bg-[var(--text-secondary)]/20")
+                              : (isZenVoid ? "bg-white/5" : "bg-[var(--surface-bg)]")
                           )}
                         >
                           <LayoutTemplate className={clsx(
                             "w-3 h-3",
-                            isSelected ? "text-purple-400" : "text-[var(--text-primary)]"
+                            isSelected
+                              ? (isZenVoid ? "text-white/80" : "text-[var(--text-primary)]")
+                              : (isZenVoid ? "text-white/40" : "text-[var(--text-secondary)]")
                           )} />
                         </div>
 
@@ -243,13 +266,20 @@ export function TitleBar() {
                               setEditingDropdownSpaceId(null);
                             }}
                             onClick={(e) => e.stopPropagation()}
-                            className="flex-1 bg-transparent text-[var(--text-primary)] text-xs focus:outline-none border-b border-[var(--text-secondary)]/50"
+                            className={clsx(
+                              "flex-1 bg-transparent text-xs focus:outline-none border-b",
+                              isZenVoid
+                                ? "text-white/80 border-white/30"
+                                : "text-[var(--text-primary)] border-[var(--text-secondary)]/50"
+                            )}
                           />
                         ) : (
                           <span
                             className={clsx(
                               "truncate flex-1 cursor-pointer transition-colors",
-                              isSelected ? "text-[var(--text-primary)]" : "text-[var(--text-secondary)]"
+                              isSelected
+                                ? (isZenVoid ? "text-white/90" : "text-[var(--text-primary)]")
+                                : (isZenVoid ? "text-white/50" : "text-[var(--text-secondary)]")
                             )}
                             onClick={async () => {
                               await switchWorkspace(space.id);
@@ -270,7 +300,12 @@ export function TitleBar() {
                                 setEditingDropdownName(space.name);
                                 setEditingDropdownSpaceId(space.id);
                               }}
-                              className="text-[var(--text-secondary)] hover:text-[var(--text-primary)] p-0.5 cursor-pointer"
+                              className={clsx(
+                                "p-0.5 cursor-pointer",
+                                isZenVoid
+                                  ? "text-white/30 hover:text-white/60"
+                                  : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
+                              )}
                               whileHover={{ scale: 1.15 }}
                               whileTap={{ scale: 0.95 }}
                             >
@@ -283,7 +318,12 @@ export function TitleBar() {
                                   await deleteWorkspace(space.id);
                                 }
                               }}
-                              className="text-[var(--text-secondary)] hover:text-red-400 p-0.5 cursor-pointer"
+                              className={clsx(
+                                "p-0.5 cursor-pointer",
+                                isZenVoid
+                                  ? "text-white/30 hover:text-red-400"
+                                  : "text-[var(--text-secondary)] hover:text-red-400"
+                              )}
                               whileHover={{ scale: 1.15 }}
                               whileTap={{ scale: 0.95 }}
                             >
@@ -297,14 +337,22 @@ export function TitleBar() {
                 </div>
 
                 {/* Create New */}
-                <div className="border-t border-[var(--border-subtle)] p-1.5">
+                <div className={clsx(
+                  "border-t p-1.5",
+                  isZenVoid ? "border-[var(--void-border)]" : "border-[var(--wabi-border)]"
+                )}>
                   {!showCreateSpace ? (
                     <motion.button
                       initial={{ opacity: 0 }}
                       animate={{ opacity: 1 }}
                       transition={{ delay: workspaces.length * 0.03 + 0.1 }}
                       onClick={() => setShowCreateSpace(true)}
-                      className="w-full flex items-center gap-1.5 px-2 py-1 rounded text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-bg)] transition-colors text-xs"
+                      className={clsx(
+                        "w-full flex items-center gap-1.5 px-2 py-1 rounded transition-colors text-xs",
+                        isZenVoid
+                          ? "text-white/40 hover:text-white/70 hover:bg-white/5"
+                          : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-bg)]"
+                      )}
                     >
                       <Plus className="w-3.5 h-3.5" />
                       <span>New Workspace</span>
@@ -319,7 +367,12 @@ export function TitleBar() {
                       <input
                         autoFocus
                         placeholder="Workspace name..."
-                        className="w-full bg-[var(--app-bg)] border border-[var(--border-subtle)] rounded px-2 py-1 text-xs text-[var(--text-primary)] focus:outline-none placeholder:text-[var(--text-secondary)]"
+                        className={clsx(
+                          "w-full rounded px-2 py-1 text-xs focus:outline-none",
+                          isZenVoid
+                            ? "bg-white/5 border border-white/10 text-white/80 placeholder:text-white/30"
+                            : "bg-[var(--app-bg)] border border-[var(--border-subtle)] text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]"
+                        )}
                         value={newSpaceName}
                         onChange={(e) => setNewSpaceName(e.target.value)}
                         onKeyDown={(e) => {
@@ -330,7 +383,12 @@ export function TitleBar() {
 
                       <motion.button
                         onClick={handleCreateSpace}
-                        className="w-full bg-[var(--text-primary)] text-[var(--app-bg)] text-[10px] font-semibold py-1 rounded hover:opacity-90 transition-opacity"
+                        className={clsx(
+                          "w-full text-[10px] font-semibold py-1 rounded transition-opacity hover:opacity-90",
+                          isZenVoid
+                            ? "bg-white/10 text-white/80"
+                            : "bg-[var(--text-primary)] text-[var(--app-bg)]"
+                        )}
                         whileHover={{ scale: 1.01 }}
                         whileTap={{ scale: 0.98 }}
                       >
@@ -344,36 +402,58 @@ export function TitleBar() {
           </AnimatePresence>
         </div>
 
-        {/* Right: Controls - pushed to edge */}
+        {/* Right: Controls */}
         <div className="flex-1 flex items-center justify-end relative z-10 pr-0" style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}>
-          <button
-            onClick={() => setShowSettings(true)}
-            className="w-9 h-8 flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-bg)] transition-colors"
-            title="Settings"
-          >
-            <Settings2 className="w-4 h-4" />
-          </button>
-          <button
-            onClick={handleMinimize}
-            className="w-9 h-8 flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-bg)] transition-colors"
-            title="Minimize"
-          >
-            <Minimize className="w-4 h-4" />
-          </button>
-          <button
-            onClick={handleMaximize}
-            className="w-9 h-8 flex items-center justify-center text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-bg)] transition-colors"
-            title="Maximize"
-          >
-            <Maximize className="w-4 h-4" />
-          </button>
-          <button
-            onClick={handleClose}
-            className="w-9 h-8 flex items-center justify-center text-[var(--text-secondary)] hover:bg-red-500 hover:text-white transition-colors"
-            title="Close"
-          >
-            <X className="w-4 h-4" />
-          </button>
+          <div className="flex items-center">
+            <button
+              onClick={() => setShowSettings(true)}
+              className={clsx(
+                "w-7 h-6 flex items-center justify-center transition-colors",
+                isZenVoid
+                  ? "text-white/30 hover:text-white/60 hover:bg-white/5"
+                  : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-bg)]"
+              )}
+              title="Settings"
+            >
+              <Settings2 className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={handleMinimize}
+              className={clsx(
+                "w-7 h-6 flex items-center justify-center transition-colors",
+                isZenVoid
+                  ? "text-white/30 hover:text-white/60 hover:bg-white/5"
+                  : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-bg)]"
+              )}
+              title="Minimize"
+            >
+              <Minimize className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={handleMaximize}
+              className={clsx(
+                "w-7 h-6 flex items-center justify-center transition-colors",
+                isZenVoid
+                  ? "text-white/30 hover:text-white/60 hover:bg-white/5"
+                  : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-bg)]"
+              )}
+              title="Maximize"
+            >
+              <Maximize className="w-3.5 h-3.5" />
+            </button>
+            <button
+              onClick={handleClose}
+              className={clsx(
+                "w-7 h-6 flex items-center justify-center transition-colors",
+                isZenVoid
+                  ? "text-white/30 hover:bg-red-500/80 hover:text-white"
+                  : "text-[var(--text-secondary)] hover:bg-red-500 hover:text-white"
+              )}
+              title="Close"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
         </div>
       </div>
 

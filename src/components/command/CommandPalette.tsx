@@ -14,7 +14,8 @@ import {
     Check,
     Grid3X3,
     Sparkles,
-    Info
+    Info,
+    Settings2
 } from 'lucide-react'
 
 // Get app version from package.json (injected at build time via Vite)
@@ -111,6 +112,15 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose,
                 category: 'Appearance',
                 isActive: currentNoteStyle === style.key
             })
+        })
+
+        // === SETTINGS ===
+        commands.push({
+            id: 'open-settings',
+            label: 'Settings',
+            description: 'Open application settings',
+            icon: <Settings2 className="w-4 h-4" />,
+            category: 'Settings'
         })
 
         // === WINDOW ===

@@ -66,6 +66,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
 
     deleteNote: (id: string): Promise<{ success: boolean }> =>
       ipcRenderer.invoke('db-delete-note', id),
+
+    // App Settings
+    getLastWorkspaceId: (): Promise<string | null> =>
+      ipcRenderer.invoke('db-get-last-workspace-id'),
+
+    setLastWorkspaceId: (workspaceId: string): Promise<{ success: boolean }> =>
+      ipcRenderer.invoke('db-set-last-workspace-id', workspaceId),
   },
 
   // Auto-updater events

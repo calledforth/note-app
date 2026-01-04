@@ -57,6 +57,10 @@ declare global {
                 createNote: (note: ApiNote) => Promise<{ success: boolean }>;
                 updateNote: (id: string, updates: Partial<ApiNote>) => Promise<{ success: boolean }>;
                 deleteNote: (id: string) => Promise<{ success: boolean }>;
+
+                // App Settings
+                getLastWorkspaceId: () => Promise<string | null>;
+                setLastWorkspaceId: (workspaceId: string) => Promise<{ success: boolean }>;
             };
 
             // Auto-updater

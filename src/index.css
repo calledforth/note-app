@@ -376,6 +376,35 @@
   color: var(--wabi-text-muted) !important;
 }
 
+/* Bold text styling for Wabi Grid - subtle but visible */
+.wabi-grid-editor .ql-editor strong,
+.wabi-grid-editor .ql-editor b {
+  font-weight: 500 !important;
+  color: #ddddd4 !important;
+  /* Slightly brighter cream for bold */
+}
+
+/* Italic text styling for Wabi Grid */
+.wabi-grid-editor .ql-editor em,
+.wabi-grid-editor .ql-editor i {
+  font-style: italic !important;
+}
+
+/* Bold + Italic combined - maintain bold brightness */
+.wabi-grid-editor .ql-editor strong em,
+.wabi-grid-editor .ql-editor strong i,
+.wabi-grid-editor .ql-editor em strong,
+.wabi-grid-editor .ql-editor i strong,
+.wabi-grid-editor .ql-editor b em,
+.wabi-grid-editor .ql-editor b i,
+.wabi-grid-editor .ql-editor em b,
+.wabi-grid-editor .ql-editor i b {
+  font-weight: 500 !important;
+  font-style: italic !important;
+  color: #ddddd4 !important;
+  /* Keep bold brightness for combined */
+}
+
 /* ========================================
    Zen Void Style - Minimal, Light Sans-Serif
    ======================================== */
@@ -455,4 +484,33 @@
   font-family: 'Inter', system-ui, sans-serif !important;
   font-weight: 300 !important;
   color: var(--void-text-muted) !important;
+}
+
+/* Bold text styling for Zen Void - subtle but visible */
+.zen-void-editor .ql-editor strong,
+.zen-void-editor .ql-editor b {
+  font-weight: 500 !important;
+  color: rgba(255, 255, 255, 0.75) !important;
+  /* Slightly brighter for bold */
+}
+
+/* Italic text styling for Zen Void */
+.zen-void-editor .ql-editor em,
+.zen-void-editor .ql-editor i {
+  font-style: italic !important;
+}
+
+/* Bold + Italic combined - maintain bold brightness */
+.zen-void-editor .ql-editor strong em,
+.zen-void-editor .ql-editor strong i,
+.zen-void-editor .ql-editor em strong,
+.zen-void-editor .ql-editor i strong,
+.zen-void-editor .ql-editor b em,
+.zen-void-editor .ql-editor b i,
+.zen-void-editor .ql-editor em b,
+.zen-void-editor .ql-editor i b {
+  font-weight: 500 !important;
+  font-style: italic !important;
+  color: rgba(255, 255, 255, 0.75) !important;
+  /* Keep bold brightness for combined */
 }

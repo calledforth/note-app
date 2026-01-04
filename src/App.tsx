@@ -6,6 +6,7 @@ import { BentoWorkspace } from './components/workspace/BentoWorkspace';
 import { TitleBar } from './components/titlebar/TitleBar';
 import { CommandPalette, type CommandHandler } from './components/command/CommandPalette';
 import { UpdateToast } from './components/updater/UpdateToast';
+import { SettingsPanel } from './components/dock/SettingsPanel';
 import './types/electron.d';
 
 
@@ -26,6 +27,9 @@ function App() {
 
   // Command Palette state
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+
+  // Settings Panel state (can be opened from command palette or title bar)
+  const [isSettingsPanelOpen, setIsSettingsPanelOpen] = useState(false);
 
   // Initialize the bento store on mount
   useEffect(() => {
@@ -67,6 +71,10 @@ function App() {
         cycleNoteStyle();
         break;
 
+      case 'open-settings':
+        setIsSettingsPanelOpen(true);
+        break;
+
       case 'window-minimize':
         window.electronAPI?.windowControls.minimize();
         break;
@@ -84,14 +92,15 @@ function App() {
     }
   }, [switchWorkspace, setNoteStyle, createNote, createWorkspace, cycleNoteStyle]);
 
-  // Global keyboard shortcuts
+  // Global keyboard shortcuts - use capture phase to intercept before editors consume events
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
       const key = event.key.toLowerCase();
 
-      // Ctrl/Cmd + K -> open command palette
+      // Ctrl/Cmd + K -> open command palette (highest priority)
       if ((event.ctrlKey || event.metaKey) && key === 'k') {
         event.preventDefault();
+        event.stopPropagation();
         setIsCommandPaletteOpen(true);
         return;
       }
@@ -99,6 +108,7 @@ function App() {
       // Ctrl/Cmd + Shift + P -> open command palette (VS Code style)
       if ((event.ctrlKey || event.metaKey) && event.shiftKey && key === 'p') {
         event.preventDefault();
+        event.stopPropagation();
         setIsCommandPaletteOpen(true);
         return;
       }
@@ -106,6 +116,7 @@ function App() {
       // Ctrl/Cmd + Shift + T -> cycle note style
       if ((event.ctrlKey || event.metaKey) && event.shiftKey && key === 't') {
         event.preventDefault();
+        event.stopPropagation();
         cycleNoteStyle();
         return;
       }
@@ -113,13 +124,15 @@ function App() {
       // Ctrl/Cmd + N -> new note
       if ((event.ctrlKey || event.metaKey) && key === 'n') {
         event.preventDefault();
+        event.stopPropagation();
         createNote();
         return;
       }
     };
 
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
+    // Use capture phase to intercept events before they reach the editor
+    window.addEventListener('keydown', handleKeyDown, { capture: true });
+    return () => window.removeEventListener('keydown', handleKeyDown, { capture: true });
   }, [cycleNoteStyle, createNote]);
 
   const currentWorkspace = workspaces.find((s) => s.id === currentWorkspaceId);
@@ -155,8 +168,14 @@ function App() {
         </main>
       </div>
       <UpdateToast />
+
+      {/* Settings Panel - opened from command palette or title bar */}
+      {isSettingsPanelOpen && currentWorkspaceId && (
+        <SettingsPanel spaceId={currentWorkspaceId} onClose={() => setIsSettingsPanelOpen(false)} />
+      )}
     </>
   );
 }
 
 export default App;
+

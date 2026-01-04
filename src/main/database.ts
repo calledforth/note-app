@@ -56,14 +56,19 @@ const migrations: Migration[] = [
       `);
         },
     },
-    // Future migrations go here:
-    // {
-    //   version: 2,
-    //   name: 'add_note_color',
-    //   up: (db) => {
-    //     db.exec(`ALTER TABLE notes ADD COLUMN color TEXT DEFAULT '#000000'`);
-    //   },
-    // },
+    // Migration for app settings to remember last workspace
+    {
+        version: 2,
+        name: 'add_app_settings',
+        up: (db) => {
+            db.exec(`
+                CREATE TABLE IF NOT EXISTS app_settings (
+                    key TEXT PRIMARY KEY,
+                    value TEXT NOT NULL
+                )
+            `);
+        },
+    },
 ];
 
 class StickyNotesDatabase {
@@ -263,6 +268,31 @@ class StickyNotesDatabase {
     deleteNote(id: string): void {
         if (!this.db) throw new Error('Database not initialized');
         this.db.prepare('DELETE FROM notes WHERE id = ?').run(id);
+    }
+
+    // ============================================================================
+    // APP SETTINGS OPERATIONS
+    // ============================================================================
+
+    getSetting(key: string): string | null {
+        if (!this.db) throw new Error('Database not initialized');
+        const row: any = this.db.prepare('SELECT value FROM app_settings WHERE key = ?').get(key);
+        return row ? row.value : null;
+    }
+
+    setSetting(key: string, value: string): void {
+        if (!this.db) throw new Error('Database not initialized');
+        this.db.prepare(
+            'INSERT OR REPLACE INTO app_settings (key, value) VALUES (?, ?)'
+        ).run(key, value);
+    }
+
+    getLastWorkspaceId(): string | null {
+        return this.getSetting('lastWorkspaceId');
+    }
+
+    setLastWorkspaceId(workspaceId: string): void {
+        this.setSetting('lastWorkspaceId', workspaceId);
     }
 }
 

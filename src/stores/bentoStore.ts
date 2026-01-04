@@ -86,6 +86,7 @@ export const useBentoStore = create<BentoStore>((set, get) => ({
                 };
 
                 await db.createWorkspace(defaultWorkspace);
+                await db.setLastWorkspaceId(defaultWorkspace.id);
 
                 set({
                     workspaces: [defaultWorkspace],
@@ -95,13 +96,17 @@ export const useBentoStore = create<BentoStore>((set, get) => ({
                     isInitialized: true,
                 });
             } else {
-                // Load notes for the first workspace
-                const firstWorkspace = workspaces[0];
-                const notes = await db.getNotesForWorkspace(firstWorkspace.id);
+                // Try to load the last used workspace, fallback to first
+                const lastWorkspaceId = await db.getLastWorkspaceId();
+                const targetWorkspace = lastWorkspaceId
+                    ? workspaces.find(w => w.id === lastWorkspaceId) || workspaces[0]
+                    : workspaces[0];
+
+                const notes = await db.getNotesForWorkspace(targetWorkspace.id);
 
                 set({
                     workspaces,
-                    currentWorkspaceId: firstWorkspace.id,
+                    currentWorkspaceId: targetWorkspace.id,
                     notes,
                     isLoading: false,
                     isInitialized: true,
@@ -178,6 +183,10 @@ export const useBentoStore = create<BentoStore>((set, get) => ({
 
         try {
             const notes = await db.getNotesForWorkspace(id);
+
+            // Save the last workspace ID for persistence
+            await db.setLastWorkspaceId(id);
+
             set({
                 currentWorkspaceId: id,
                 notes,
