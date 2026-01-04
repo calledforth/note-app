@@ -408,7 +408,7 @@ export function TitleBar() {
             <button
               onClick={() => setShowSettings(true)}
               className={clsx(
-                "w-7 h-6 flex items-center justify-center transition-colors",
+                "w-7 h-8 flex items-center justify-center transition-colors",
                 isZenVoid
                   ? "text-white/30 hover:text-white/60 hover:bg-white/5"
                   : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-bg)]"
@@ -420,7 +420,7 @@ export function TitleBar() {
             <button
               onClick={handleMinimize}
               className={clsx(
-                "w-7 h-6 flex items-center justify-center transition-colors",
+                "w-7 h-8 flex items-center justify-center transition-colors",
                 isZenVoid
                   ? "text-white/30 hover:text-white/60 hover:bg-white/5"
                   : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-bg)]"
@@ -432,7 +432,7 @@ export function TitleBar() {
             <button
               onClick={handleMaximize}
               className={clsx(
-                "w-7 h-6 flex items-center justify-center transition-colors",
+                "w-7 h-8 flex items-center justify-center transition-colors",
                 isZenVoid
                   ? "text-white/30 hover:text-white/60 hover:bg-white/5"
                   : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-bg)]"
@@ -444,7 +444,7 @@ export function TitleBar() {
             <button
               onClick={handleClose}
               className={clsx(
-                "w-7 h-6 flex items-center justify-center transition-colors",
+                "w-7 h-8 flex items-center justify-center transition-colors",
                 isZenVoid
                   ? "text-white/30 hover:bg-red-500/80 hover:text-white"
                   : "text-[var(--text-secondary)] hover:bg-red-500 hover:text-white"
