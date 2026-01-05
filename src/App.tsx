@@ -1,12 +1,15 @@
 import { useEffect, useState, useCallback } from 'react';
+import { AnimatePresence } from 'framer-motion';
 import { useThemeStore, type NoteStyle } from './stores/themeStore';
 import { useBentoStore } from './stores/bentoStore';
+import { useMantraStore } from './stores/mantraStore';
 import { ThemeManager } from './components/theme/ThemeManager';
 import { BentoWorkspace } from './components/workspace/BentoWorkspace';
 import { TitleBar } from './components/titlebar/TitleBar';
 import { CommandPalette, type CommandHandler } from './components/command/CommandPalette';
 import { UpdateToast } from './components/updater/UpdateToast';
 import { SettingsPanel } from './components/dock/SettingsPanel';
+import { MantraPage } from './components/mantra/MantraPage';
 import './types/electron.d';
 
 
@@ -25,11 +28,19 @@ function App() {
   const cycleNoteStyle = useThemeStore((state) => state.cycleNoteStyle);
   const setNoteStyle = useThemeStore((state) => state.setNoteStyle);
 
+  // Mantra store
+  const shouldShowMantraOnStartup = useMantraStore((state) => state.shouldShowMantraOnStartup);
+
   // Command Palette state
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
 
   // Settings Panel state (can be opened from command palette or title bar)
   const [isSettingsPanelOpen, setIsSettingsPanelOpen] = useState(false);
+
+  // Mantra page state
+  const [showMantraStartup, setShowMantraStartup] = useState(false);
+  const [showMantraFromPalette, setShowMantraFromPalette] = useState(false);
+  const [hasCheckedMantra, setHasCheckedMantra] = useState(false);
 
   // Initialize the bento store on mount
   useEffect(() => {
@@ -37,6 +48,16 @@ function App() {
       initialize();
     }
   }, [initialize, isInitialized]);
+
+  // Check if we should show the mantra on startup (only once)
+  useEffect(() => {
+    if (isInitialized && !hasCheckedMantra) {
+      setHasCheckedMantra(true);
+      if (shouldShowMantraOnStartup()) {
+        setShowMantraStartup(true);
+      }
+    }
+  }, [isInitialized, hasCheckedMantra, shouldShowMantraOnStartup]);
 
   // Command execution handler
   const handleExecuteCommand: CommandHandler = useCallback(async (commandId: string, payload?: unknown) => {
@@ -73,6 +94,10 @@ function App() {
 
       case 'open-settings':
         setIsSettingsPanelOpen(true);
+        break;
+
+      case 'show-mantra':
+        setShowMantraFromPalette(true);
         break;
 
       case 'window-minimize':
@@ -173,9 +198,29 @@ function App() {
       {isSettingsPanelOpen && currentWorkspaceId && (
         <SettingsPanel spaceId={currentWorkspaceId} onClose={() => setIsSettingsPanelOpen(false)} />
       )}
+
+      {/* Mantra Page - Startup (no exit option, must complete) */}
+      <AnimatePresence>
+        {showMantraStartup && (
+          <MantraPage
+            canExit={false}
+            onComplete={() => setShowMantraStartup(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* Mantra Page - From Command Palette (with exit option) */}
+      <AnimatePresence>
+        {showMantraFromPalette && (
+          <MantraPage
+            canExit={true}
+            onComplete={() => setShowMantraFromPalette(false)}
+            onExit={() => setShowMantraFromPalette(false)}
+          />
+        )}
+      </AnimatePresence>
     </>
   );
 }
 
 export default App;
-

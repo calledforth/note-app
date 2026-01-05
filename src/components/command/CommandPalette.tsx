@@ -15,7 +15,8 @@ import {
     Grid3X3,
     Sparkles,
     Info,
-    Settings2
+    Settings2,
+    Sunrise
 } from 'lucide-react'
 
 // Get app version from package.json (injected at build time via Vite)
@@ -112,6 +113,15 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose,
                 category: 'Appearance',
                 isActive: currentNoteStyle === style.key
             })
+        })
+
+        // === RITUALS ===
+        commands.push({
+            id: 'show-mantra',
+            label: 'Mantra',
+            description: 'Open morning mantra ritual',
+            icon: <Sunrise className="w-4 h-4" />,
+            category: 'Rituals'
         })
 
         // === SETTINGS ===
