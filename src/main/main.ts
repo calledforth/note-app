@@ -13,10 +13,15 @@ const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
 let mainWindow: BrowserWindow | null = null;
 
 const createWindow = (): void => {
+  // Read saved window dimensions from database (defaults: 1000x700)
+  const savedWidth = database.getSetting('windowWidth');
+  const savedHeight = database.getSetting('windowHeight');
+  const windowWidth = savedWidth ? parseInt(savedWidth, 10) : 1000;
+  const windowHeight = savedHeight ? parseInt(savedHeight, 10) : 700;
 
   mainWindow = new BrowserWindow({
-    height: 700,
-    width: 1000,
+    height: windowHeight,
+    width: windowWidth,
     backgroundColor: '#171717',
     frame: false,
     titleBarStyle: 'hidden',
@@ -36,6 +41,15 @@ const createWindow = (): void => {
     // Production: load from built files
     mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
   }
+
+  // Save window dimensions when closing
+  mainWindow.on('close', () => {
+    if (mainWindow) {
+      const [width, height] = mainWindow.getSize();
+      database.setSetting('windowWidth', width.toString());
+      database.setSetting('windowHeight', height.toString());
+    }
+  });
 
   mainWindow.on('closed', () => {
     mainWindow = null;
