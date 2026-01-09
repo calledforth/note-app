@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useCallback, useMemo, useRef, useEffect } from "react"
+import React, { useState, useCallback, useMemo } from "react"
 import { PanelGroup, Panel, PanelResizeHandle } from "react-resizable-panels"
 import { Split, Trash2 } from "lucide-react"
 import { DndContext, DragOverlay, useDraggable, useDroppable } from "@dnd-kit/core"
@@ -14,9 +14,8 @@ import type { LayoutNode, BentoNote } from "../../types/bento"
 // ============================================================================
 // DRAGGABLE NOTE COMPONENT
 // - Supports Wabi Grid and Zen Void styles
-// - Split/Delete buttons appear on TITLE HOVER only
-// - Drag always enabled from edges
-// - Single-click title to edit
+// - No title, minimal header with action buttons on hover
+// - Drag only from header area
 // ============================================================================
 
 const DraggableNote = ({
@@ -25,19 +24,14 @@ const DraggableNote = ({
   onContentChange,
   onSplit,
   onRemove,
-  onTitleChange,
 }: {
   note: BentoNote
   isOverlay?: boolean
   onContentChange?: (content: string) => void
   onSplit?: (direction: "horizontal" | "vertical") => void
   onRemove?: () => void
-  onTitleChange?: (title: string) => void
 }) => {
-  const [isTitleHovered, setIsTitleHovered] = useState(false)
-  const [isEditingTitle, setIsEditingTitle] = useState(false)
-  const [editingTitleValue, setEditingTitleValue] = useState(note.title)
-  const titleInputRef = useRef<HTMLInputElement>(null)
+  const [isHeaderHovered, setIsHeaderHovered] = useState(false)
   const currentNoteStyle = useThemeStore((state) => state.currentNoteStyle)
 
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
@@ -46,72 +40,16 @@ const DraggableNote = ({
     disabled: false,
   })
 
-  // Focus input when editing starts
-  useEffect(() => {
-    if (isEditingTitle && titleInputRef.current) {
-      titleInputRef.current.focus()
-    }
-  }, [isEditingTitle])
-
-  // Keep editingTitleValue synced with note.title when not editing (for external updates)
-  useEffect(() => {
-    if (!isEditingTitle) {
-      setEditingTitleValue(note.title)
-    }
-  }, [note.title, isEditingTitle])
-
-  // Handle title save
-  const handleTitleSave = () => {
-    const trimmedTitle = editingTitleValue.trim()
-    if (trimmedTitle && trimmedTitle !== note.title) {
-      onTitleChange?.(trimmedTitle)
-    } else {
-      setEditingTitleValue(note.title) // Reset to original if empty
-    }
-    setIsEditingTitle(false)
-  }
-
-  // Handle title key events
-  const handleTitleKeyDown = (e: React.KeyboardEvent) => {
-    if (e.key === 'Enter') {
-      e.preventDefault()
-      handleTitleSave()
-    } else if (e.key === 'Escape') {
-      setEditingTitleValue(note.title)
-      setIsEditingTitle(false)
-    }
-  }
-
-  // Handle single-click to edit
-  const handleTitleClick = () => {
-    if (!isOverlay) {
-      setEditingTitleValue(note.title)
-      setIsEditingTitle(true)
-    }
-  }
-
   if (isDragging && !isOverlay) {
     return <div ref={setNodeRef} className="opacity-0 w-full h-full" />
   }
 
-  // Drag handles component - allows dragging from edges
-  const DragHandles = () => (
-    !isOverlay ? (
-      <div className="absolute inset-0 pointer-events-none z-10">
-        <div {...listeners} className="pointer-events-auto absolute inset-x-0 top-0 h-6 cursor-grab active:cursor-grabbing" />
-        <div {...listeners} className="pointer-events-auto absolute inset-x-0 bottom-0 h-6 cursor-grab active:cursor-grabbing" />
-        <div {...listeners} className="pointer-events-auto absolute inset-y-6 left-0 w-3 cursor-grab active:cursor-grabbing" />
-        <div {...listeners} className="pointer-events-auto absolute inset-y-6 right-0 w-3 cursor-grab active:cursor-grabbing" />
-      </div>
-    ) : null
-  )
-
-  // Panel control buttons - shown on title hover (always rendered, opacity controlled)
+  // Panel control buttons - shown on header hover
   const PanelControls = () => (
     !isOverlay && onSplit && onRemove ? (
       <div className={clsx(
-        "flex items-center gap-1 ml-2 transition-opacity duration-150",
-        isTitleHovered ? "opacity-100" : "opacity-0 pointer-events-none"
+        "flex items-center gap-1 transition-opacity duration-150",
+        isHeaderHovered ? "opacity-100" : "opacity-0 pointer-events-none"
       )}>
         <button
           onClick={(e) => { e.stopPropagation(); onSplit("vertical"); }}
@@ -169,35 +107,16 @@ const DraggableNote = ({
           isOverlay && "shadow-2xl z-50",
         )}
       >
-        <DragHandles />
-
-        {/* Header */}
+        {/* Draggable Header - minimal, no title */}
         <div
-          className="flex justify-between items-center px-3 pt-3 pb-2 relative z-20"
-          onMouseEnter={() => setIsTitleHovered(true)}
-          onMouseLeave={() => setIsTitleHovered(false)}
-        >
-          {isEditingTitle ? (
-            <input
-              ref={titleInputRef}
-              type="text"
-              value={editingTitleValue}
-              onChange={(e) => setEditingTitleValue(e.target.value)}
-              onBlur={handleTitleSave}
-              onKeyDown={handleTitleKeyDown}
-              onPointerDown={(e) => e.stopPropagation()}
-              className="text-[16px] tracking-wide text-[var(--void-title)] bg-transparent border-none outline-none w-full"
-              style={{ fontFamily: "'Inter', sans-serif", fontWeight: 300 }}
-            />
-          ) : (
-            <h3
-              className="text-[16px] tracking-wide text-[var(--void-title)] cursor-text"
-              style={{ fontFamily: "'Inter', sans-serif", fontWeight: 300 }}
-              onClick={handleTitleClick}
-            >
-              {editingTitleValue}
-            </h3>
+          {...(isOverlay ? {} : listeners)}
+          className={clsx(
+            "flex justify-end items-center relative z-20",
+            !isOverlay && "cursor-grab active:cursor-grabbing"
           )}
+          onMouseEnter={() => setIsHeaderHovered(true)}
+          onMouseLeave={() => setIsHeaderHovered(false)}
+        >
           <PanelControls />
         </div>
 
@@ -227,35 +146,16 @@ const DraggableNote = ({
         isOverlay && "shadow-2xl z-50 ring-1 ring-white/20",
       )}
     >
-      <DragHandles />
-
-      {/* Header */}
+      {/* Draggable Header - minimal, no title */}
       <div
-        className="flex justify-between items-center px-3 pt-3 pb-2 relative z-20"
-        onMouseEnter={() => setIsTitleHovered(true)}
-        onMouseLeave={() => setIsTitleHovered(false)}
-      >
-        {isEditingTitle ? (
-          <input
-            ref={titleInputRef}
-            type="text"
-            value={editingTitleValue}
-            onChange={(e) => setEditingTitleValue(e.target.value.toUpperCase())}
-            onBlur={handleTitleSave}
-            onKeyDown={handleTitleKeyDown}
-            onPointerDown={(e) => e.stopPropagation()}
-            className="text-[12px] tracking-[0.2em] uppercase text-[var(--wabi-title)] bg-transparent border-none outline-none w-full"
-            style={{ fontFamily: "'Inter', sans-serif", fontWeight: 500 }}
-          />
-        ) : (
-          <h3
-            className="text-[12px] tracking-[0.2em] uppercase text-[var(--wabi-title)] cursor-text"
-            style={{ fontFamily: "'Inter', sans-serif", fontWeight: 500 }}
-            onClick={handleTitleClick}
-          >
-            {editingTitleValue.toUpperCase()}
-          </h3>
+        {...(isOverlay ? {} : listeners)}
+        className={clsx(
+          "flex justify-end items-center relative z-20",
+          !isOverlay && "cursor-grab active:cursor-grabbing"
         )}
+        onMouseEnter={() => setIsHeaderHovered(true)}
+        onMouseLeave={() => setIsHeaderHovered(false)}
+      >
         <PanelControls />
       </div>
 
@@ -283,14 +183,12 @@ const PanelContent = ({
   onSplit,
   onRemove,
   onNoteContentChange,
-  onNoteTitleChange,
 }: {
   panelId: string
   note: BentoNote | null
   onSplit: (direction: "horizontal" | "vertical") => void
   onRemove: () => void
   onNoteContentChange?: (noteId: string, content: string) => void
-  onNoteTitleChange?: (noteId: string, title: string) => void
 }) => {
   const currentNoteStyle = useThemeStore((state) => state.currentNoteStyle)
   const [isPanelHovered, setIsPanelHovered] = useState(false)
@@ -374,7 +272,6 @@ const PanelContent = ({
           <DraggableNote
             note={note}
             onContentChange={(content) => onNoteContentChange?.(note.id, content)}
-            onTitleChange={(title) => onNoteTitleChange?.(note.id, title)}
             onSplit={onSplit}
             onRemove={onRemove}
           />
@@ -408,7 +305,6 @@ const LayoutRenderer = ({
   onRemove,
   isDragging,
   onNoteContentChange,
-  onNoteTitleChange,
 }: {
   node: LayoutNode
   notesByPanel: Record<string, BentoNote>
@@ -416,7 +312,6 @@ const LayoutRenderer = ({
   onRemove: (panelId: string) => void
   isDragging: boolean
   onNoteContentChange?: (noteId: string, content: string) => void
-  onNoteTitleChange?: (noteId: string, title: string) => void
 }) => {
   if (node.type === "pane") {
     const note = node.panelId ? notesByPanel[node.panelId] : null
@@ -427,7 +322,6 @@ const LayoutRenderer = ({
         onSplit={(dir) => onSplit(node.id, dir)}
         onRemove={() => onRemove(node.id)}
         onNoteContentChange={onNoteContentChange}
-        onNoteTitleChange={onNoteTitleChange}
       />
     )
   }
@@ -444,7 +338,6 @@ const LayoutRenderer = ({
               onRemove={onRemove}
               isDragging={isDragging}
               onNoteContentChange={onNoteContentChange}
-              onNoteTitleChange={onNoteTitleChange}
             />
           </Panel>
           {index < (node.children?.length || 0) - 1 && (
@@ -532,7 +425,6 @@ export const BentoWorkspace = ({ spaceId: _spaceId }: BentoWorkspaceProps) => {
   const currentWorkspace = useBentoStore((state) => state.currentWorkspace())
   const updateWorkspaceLayout = useBentoStore((state) => state.updateWorkspaceLayout)
   const updateNoteContent = useBentoStore((state) => state.updateNoteContent)
-  const updateNoteTitle = useBentoStore((state) => state.updateNoteTitle)
   const updateNotePanelId = useBentoStore((state) => state.updateNotePanelId)
   const deleteNote = useBentoStore((state) => state.deleteNote)
 
@@ -578,11 +470,6 @@ export const BentoWorkspace = ({ spaceId: _spaceId }: BentoWorkspaceProps) => {
   const handleNoteContentChange = useCallback((noteId: string, content: string) => {
     updateNoteContent(noteId, content)
   }, [updateNoteContent])
-
-  // Title change handler
-  const handleNoteTitleChange = useCallback((noteId: string, title: string) => {
-    updateNoteTitle(noteId, title)
-  }, [updateNoteTitle])
 
   // Layout manipulation
   const onSplit = useCallback((nodeId: string, direction: "horizontal" | "vertical") => {
@@ -631,7 +518,6 @@ export const BentoWorkspace = ({ spaceId: _spaceId }: BentoWorkspaceProps) => {
             }}
             isDragging={!!draggedNote}
             onNoteContentChange={handleNoteContentChange}
-            onNoteTitleChange={handleNoteTitleChange}
           />
         </div>
 
