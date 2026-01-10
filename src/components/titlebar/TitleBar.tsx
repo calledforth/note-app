@@ -6,8 +6,8 @@ import { SettingsPanel } from '../dock/SettingsPanel';
 import {
   ChevronDown,
   Settings2,
-  Minimize,
-  Maximize,
+  Minus,
+  Square,
   X,
   Plus,
   LayoutTemplate,
@@ -148,19 +148,8 @@ export function TitleBar() {
         >
           <button
             onClick={() => setWorkspaceMenuOpen(!workspaceMenuOpen)}
-            className={clsx(
-              "flex items-center gap-1.5 px-2 py-0.5 rounded-full transition-all cursor-pointer",
-              isZenVoid
-                ? "bg-white/5 border border-white/10 hover:bg-white/10 hover:border-white/20"
-                : "bg-[var(--surface-bg)]/50 border border-[var(--border-subtle)] hover:bg-[var(--surface-bg)] hover:border-[var(--text-secondary)]/30"
-            )}
+            className="flex items-center gap-1.5 transition-all cursor-pointer hover:opacity-70"
           >
-            {/* Workspace Mode Icon - Always Bento */}
-            <LayoutTemplate className={clsx(
-              "w-3 h-3",
-              isZenVoid ? "text-white/50" : "text-[var(--text-secondary)]"
-            )} />
-
             {/* Workspace Name */}
             {isEditingName ? (
               <input
@@ -170,23 +159,16 @@ export function TitleBar() {
                 onBlur={handleNameSave}
                 onKeyDown={handleKeyDown}
                 onClick={(e) => e.stopPropagation()}
-                className={clsx(
-                  "bg-transparent text-[10px] font-medium focus:outline-none min-w-[60px] w-auto",
-                  isZenVoid ? "text-white/80" : "text-[var(--text-primary)]"
-                )}
+                className="bg-transparent text-xs font-medium focus:outline-none min-w-[60px] w-auto text-[#bbb]"
               />
             ) : (
-              <span className={clsx(
-                "text-[10px] font-medium",
-                isZenVoid ? "text-white/80" : "text-[var(--text-primary)]"
-              )}>
+              <span className="text-xs font-medium text-[#bbb]">
                 {currentWorkspace?.name || 'Select workspace'}
               </span>
             )}
 
             <ChevronDown className={clsx(
-              "w-2.5 h-2.5 transition-transform",
-              isZenVoid ? "text-white/40" : "text-[var(--text-secondary)]",
+              "w-3 h-3 transition-transform text-[#888]",
               workspaceMenuOpen && "rotate-180"
             )} />
           </button>
@@ -407,51 +389,31 @@ export function TitleBar() {
           <div className="flex items-center">
             <button
               onClick={() => setShowSettings(true)}
-              className={clsx(
-                "w-7 h-8 flex items-center justify-center transition-colors",
-                isZenVoid
-                  ? "text-white/30 hover:text-white/60 hover:bg-white/5"
-                  : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-bg)]"
-              )}
+              className="w-10 h-8 flex items-center justify-center transition-colors text-[#888] hover:text-[#ccc] hover:bg-white/5"
               title="Settings"
             >
-              <Settings2 className="w-3.5 h-3.5" />
+              <Settings2 className="w-4 h-4" />
             </button>
             <button
               onClick={handleMinimize}
-              className={clsx(
-                "w-7 h-8 flex items-center justify-center transition-colors",
-                isZenVoid
-                  ? "text-white/30 hover:text-white/60 hover:bg-white/5"
-                  : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-bg)]"
-              )}
+              className="w-10 h-8 flex items-center justify-center transition-colors text-[#888] hover:text-[#ccc] hover:bg-white/5"
               title="Minimize"
             >
-              <Minimize className="w-3.5 h-3.5" />
+              <Minus className="w-4 h-4" strokeWidth={1.5} />
             </button>
             <button
               onClick={handleMaximize}
-              className={clsx(
-                "w-7 h-8 flex items-center justify-center transition-colors",
-                isZenVoid
-                  ? "text-white/30 hover:text-white/60 hover:bg-white/5"
-                  : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-bg)]"
-              )}
+              className="w-10 h-8 flex items-center justify-center transition-colors text-[#888] hover:text-[#ccc] hover:bg-white/5"
               title="Maximize"
             >
-              <Maximize className="w-3.5 h-3.5" />
+              <Square className="w-3.5 h-3.5" strokeWidth={1.5} />
             </button>
             <button
               onClick={handleClose}
-              className={clsx(
-                "w-7 h-8 flex items-center justify-center transition-colors",
-                isZenVoid
-                  ? "text-white/30 hover:bg-red-500/80 hover:text-white"
-                  : "text-[var(--text-secondary)] hover:bg-red-500 hover:text-white"
-              )}
+              className="w-10 h-8 flex items-center justify-center transition-colors text-[#888] hover:bg-red-500 hover:text-white"
               title="Close"
             >
-              <X className="w-3.5 h-3.5" />
+              <X className="w-4 h-4" strokeWidth={1.5} />
             </button>
           </div>
         </div>

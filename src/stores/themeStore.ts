@@ -2,7 +2,7 @@ import { create } from 'zustand';
 import { persist } from 'zustand/middleware';
 
 export type ThemeKey = 'neutral' | 'black' | 'white';
-export type NoteStyle = 'wabi-grid' | 'zen-void';
+export type NoteStyle = 'wabi-grid' | 'zen-void' | 'test-lab';
 
 interface ThemeTokens {
   appBg: string;
@@ -18,7 +18,7 @@ interface ThemeTokens {
 
 const THEMES: Record<ThemeKey, ThemeTokens> = {
   neutral: {
-    appBg: '#0a0a0a',
+    appBg: '#0c0c0c',
     surfaceBg: '#171717',
     borderSubtle: '#262626',
     textPrimary: '#e5e5e5',
@@ -62,6 +62,7 @@ const THEMES: Record<ThemeKey, ThemeTokens> = {
 export const NOTE_STYLES: { key: NoteStyle; name: string; description: string }[] = [
   { key: 'wabi-grid', name: 'Wabi Grid', description: 'Japanese-inspired, serif italic' },
   { key: 'zen-void', name: 'Zen Void', description: 'Minimal, light sans-serif' },
+  { key: 'test-lab', name: 'Test Lab', description: 'Experimental playground theme' },
 ];
 
 interface ThemeStore {
@@ -76,7 +77,7 @@ interface ThemeStore {
 }
 
 const THEME_ORDER: ThemeKey[] = ['neutral', 'black', 'white'];
-const NOTE_STYLE_ORDER: NoteStyle[] = ['wabi-grid', 'zen-void'];
+const NOTE_STYLE_ORDER: NoteStyle[] = ['wabi-grid', 'zen-void', 'test-lab'];
 
 export const useThemeStore = create<ThemeStore>()(
   persist(

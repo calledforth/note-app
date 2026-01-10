@@ -1,7 +1,8 @@
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&display=swap');
-@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Arimo:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
 
 @import "tailwindcss";
 
@@ -18,7 +19,7 @@
 /* Theme CSS Variables - Applied dynamically by ThemeManager */
 :root {
   /* Default values (neutral theme) - will be overridden by ThemeManager */
-  --app-bg: #0a0a0a;
+  --app-bg: #070707;
   --surface-bg: #171717;
   --border-subtle: #262626;
   --text-primary: #e5e5e5;
@@ -31,23 +32,23 @@
   --badge-text: #ffffff;
 
   /* ===== Wabi Grid Style Variables ===== */
-  --wabi-bg: #030303;
+  --wabi-bg: #070707;
   /* Warm charcoal background */
-  --wabi-text: #cccbc2;
+  --wabi-text: #dbdbdb;
   /* Cream/kinari text */
-  --wabi-text-muted: rgba(179, 178, 172, 0.4);
+  --wabi-text-muted: rgba(211, 211, 211, 0.5);
   /* Muted cream for placeholder */
-  --wabi-border: #222;
-  /* Border color */
-  --wabi-border-hover: #444;
-  /* Border hover color */
+  --wabi-border: rgba(255, 255, 255, 0.08);
+  /* Subtle border - zen void style */
+  --wabi-border-hover: rgba(255, 255, 255, 0.12);
+  /* Border hover - zen void style */
   --wabi-title: #aaa;
   /* Title color */
   --wabi-date: #666;
   /* Date color */
 
   /* ===== Zen Void Style Variables ===== */
-  --void-bg: #050505;
+  --void-bg: #000000;
   /* Near-black background */
   --void-title: rgba(255, 255, 255, 0.92);
   /* Bright white title */
@@ -61,6 +62,22 @@
   /* Border hover */
   --void-date: rgba(255, 255, 255, 0.25);
   /* Date color */
+
+  /* ===== Test Lab Style Variables (Experimental) ===== */
+  --lab-bg: #111111;
+  /* Background - neutral-900 */
+  --lab-text: #e0e0e0;
+  /* Primary text color */
+  --lab-text-muted: rgba(167, 165, 165, 0.5);
+  /* Muted/placeholder text */
+  --lab-border: #2a2a2a;
+  /* Border color - lighter */
+  --lab-border-hover: #4a4a4a;
+  /* Border hover color - lighter */
+  --lab-title: #ccc;
+  /* Title color */
+  --lab-accent: #8b5cf6;
+  /* Accent color - violet */
 }
 
 @layer base {
@@ -335,9 +352,9 @@
   /* Small right padding for scrollbar gap */
   font-family: 'JetBrains Mono', monospace !important;
   font-style: normal !important;
-  font-weight: 300 !important;
-  font-size: 0.8rem !important;
-  line-height: 1.9 !important;
+  font-weight: 400 !important;
+  font-size: 0.82rem !important;
+  line-height: 1.7 !important;
   letter-spacing: 0.02em !important;
   color: var(--wabi-text) !important;
   /* Cream/kinari color */
@@ -373,14 +390,14 @@
 .wabi-grid-editor .ql-editor.ql-blank::before {
   font-family: 'JetBrains Mono', monospace !important;
   font-style: italic !important;
-  font-weight: 300 !important;
+  font-weight: 400 !important;
   color: var(--wabi-text-muted) !important;
 }
 
 /* Bold text styling for Wabi Grid - subtle but visible */
 .wabi-grid-editor .ql-editor strong,
 .wabi-grid-editor .ql-editor b {
-  font-weight: 500 !important;
+  font-weight: 600 !important;
   color: #ddddd4 !important;
   /* Slightly brighter cream for bold */
 }
@@ -514,4 +531,126 @@
   font-style: italic !important;
   color: rgba(255, 255, 255, 0.75) !important;
   /* Keep bold brightness for combined */
+}
+
+/* ========================================
+   Test Lab Style - Experimental Playground
+   ======================================== */
+
+/* Test Lab Editor Container */
+.test-lab-editor {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  height: 100%;
+  min-height: 0;
+}
+
+/* Target ReactQuill's internal .quill wrapper */
+.test-lab-editor .quill {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+  overflow: hidden;
+}
+
+.test-lab-editor .ql-container {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  overflow: hidden;
+  position: relative;
+}
+
+.test-lab-editor .ql-editor {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  padding: 0 6px 0 0 !important;
+  /* Small right padding for scrollbar gap */
+  font-family: 'Arimo', system-ui, sans-serif !important;
+  font-weight: 400 !important;
+  font-size: 0.875rem !important;
+  line-height: 2.0 !important;
+  letter-spacing: 0.02em !important;
+  color: var(--lab-text) !important;
+  overflow-y: auto !important;
+  -webkit-overflow-scrolling: touch;
+}
+
+/* Scrollbar styling for Test Lab editor */
+.test-lab-editor .ql-editor::-webkit-scrollbar {
+  width: 3px;
+}
+
+.test-lab-editor .ql-editor::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.test-lab-editor .ql-editor::-webkit-scrollbar-thumb {
+  background: transparent;
+  border-radius: 2px;
+  transition: background 0.2s ease;
+}
+
+/* Show scrollbar on hover over the editor */
+.test-lab-editor:hover .ql-editor::-webkit-scrollbar-thumb {
+  background: #333;
+}
+
+.test-lab-editor:hover .ql-editor::-webkit-scrollbar-thumb:hover {
+  background: #555;
+}
+
+/* Placeholder styling for Test Lab */
+.test-lab-editor .ql-editor.ql-blank::before {
+  font-family: 'Arimo', system-ui, sans-serif !important;
+  font-weight: 400 !important;
+  color: var(--lab-text-muted) !important;
+}
+
+/* Bold text styling for Test Lab */
+.test-lab-editor .ql-editor strong,
+.test-lab-editor .ql-editor b {
+  font-weight: 600 !important;
+  color: #fff !important;
+}
+
+/* Italic text styling for Test Lab */
+.test-lab-editor .ql-editor em,
+.test-lab-editor .ql-editor i {
+  font-style: italic !important;
+}
+
+/* Bold + Italic combined */
+.test-lab-editor .ql-editor strong em,
+.test-lab-editor .ql-editor strong i,
+.test-lab-editor .ql-editor em strong,
+.test-lab-editor .ql-editor i strong,
+.test-lab-editor .ql-editor b em,
+.test-lab-editor .ql-editor b i,
+.test-lab-editor .ql-editor em b,
+.test-lab-editor .ql-editor i b {
+  font-weight: 600 !important;
+  font-style: italic !important;
+  color: #fff !important;
+}
+
+/* Command Palette styling for Test Lab */
+.command-palette-test-lab ::-webkit-scrollbar {
+  width: 4px;
+}
+
+.command-palette-test-lab ::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.command-palette-test-lab ::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 2px;
 }

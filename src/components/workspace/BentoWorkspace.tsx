@@ -48,18 +48,13 @@ const DraggableNote = ({
   const PanelControls = () => (
     !isOverlay && onSplit && onRemove ? (
       <div className={clsx(
-        "flex items-center gap-1 transition-opacity duration-150",
+        "flex items-center gap-1 pt-2 pr-2 transition-opacity duration-150",
         isHeaderHovered ? "opacity-100" : "opacity-0 pointer-events-none"
       )}>
         <button
           onClick={(e) => { e.stopPropagation(); onSplit("vertical"); }}
           onPointerDown={(e) => e.stopPropagation()}
-          className={clsx(
-            "p-1 rounded transition-all duration-150",
-            currentNoteStyle === 'zen-void'
-              ? "text-white/40 hover:text-white/70 hover:bg-white/10"
-              : "text-[#555] hover:text-[#888] hover:bg-white/10"
-          )}
+          className="p-1 rounded transition-all duration-150 text-white/60 hover:text-white/90 hover:bg-white/10"
           title="Split Vertically"
         >
           <Split className="w-3 h-3 rotate-90" />
@@ -67,12 +62,7 @@ const DraggableNote = ({
         <button
           onClick={(e) => { e.stopPropagation(); onSplit("horizontal"); }}
           onPointerDown={(e) => e.stopPropagation()}
-          className={clsx(
-            "p-1 rounded transition-all duration-150",
-            currentNoteStyle === 'zen-void'
-              ? "text-white/40 hover:text-white/70 hover:bg-white/10"
-              : "text-[#555] hover:text-[#888] hover:bg-white/10"
-          )}
+          className="p-1 rounded transition-all duration-150 text-white/60 hover:text-white/90 hover:bg-white/10"
           title="Split Horizontally"
         >
           <Split className="w-3 h-3" />
@@ -80,12 +70,7 @@ const DraggableNote = ({
         <button
           onClick={(e) => { e.stopPropagation(); onRemove(); }}
           onPointerDown={(e) => e.stopPropagation()}
-          className={clsx(
-            "p-1 rounded transition-all duration-150",
-            currentNoteStyle === 'zen-void'
-              ? "text-white/40 hover:text-red-400/70 hover:bg-white/10"
-              : "text-[#555] hover:text-red-400 hover:bg-white/10"
-          )}
+          className="p-1 rounded transition-all duration-150 text-white/60 hover:text-red-400 hover:bg-white/10"
           title="Remove Panel"
         >
           <Trash2 className="w-3 h-3" />
@@ -124,6 +109,46 @@ const DraggableNote = ({
         <div className="flex-1 flex flex-col pl-3 pb-3 pr-1 min-h-0">
           <div
             className="flex-1 min-h-0 zen-void-editor"
+            onPointerDown={(e) => e.stopPropagation()}
+            onKeyDown={(e) => e.stopPropagation()}
+          >
+            <RichTextEditor noteId={note.id} content={note.content} onContentChange={onContentChange} />
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // =============== TEST LAB STYLE (Experimental) ===============
+  if (currentNoteStyle === 'test-lab') {
+    return (
+      <div
+        ref={setNodeRef}
+        {...attributes}
+        className={clsx(
+          "group relative w-full h-full transition-all duration-300",
+          "flex flex-col overflow-hidden rounded-md",
+          "bg-[var(--lab-bg)]",
+          isOverlay && "shadow-2xl z-50 ring-1 ring-[var(--lab-accent)]/30",
+        )}
+      >
+        {/* Draggable Header - minimal, no title */}
+        <div
+          {...(isOverlay ? {} : listeners)}
+          className={clsx(
+            "flex justify-end items-center relative z-20",
+            !isOverlay && "cursor-grab active:cursor-grabbing"
+          )}
+          onMouseEnter={() => setIsHeaderHovered(true)}
+          onMouseLeave={() => setIsHeaderHovered(false)}
+        >
+          <PanelControls />
+        </div>
+
+        {/* Content Area */}
+        <div className="flex-1 flex flex-col pl-3 pb-3 pr-1 min-h-0">
+          <div
+            className="flex-1 min-h-0 test-lab-editor"
             onPointerDown={(e) => e.stopPropagation()}
             onKeyDown={(e) => e.stopPropagation()}
           >
@@ -199,16 +224,11 @@ const PanelContent = ({
   // Panel controls for empty panels - shown on hover
   const EmptyPanelControls = () => (
     isPanelHovered ? (
-      <div className="absolute top-2 right-2 z-20 flex items-center gap-1">
+      <div className="absolute top-4 right-4 z-20 flex items-center gap-1">
         <button
           onClick={(e) => { e.stopPropagation(); onSplit("vertical"); }}
           onPointerDown={(e) => e.stopPropagation()}
-          className={clsx(
-            "p-1 rounded transition-all duration-150",
-            currentNoteStyle === 'zen-void'
-              ? "text-white/40 hover:text-white/70 hover:bg-white/10"
-              : "text-[#555] hover:text-[#888] hover:bg-white/10"
-          )}
+          className="p-1 rounded transition-all duration-150 text-white/60 hover:text-white/90 hover:bg-white/10"
           title="Split Vertically"
         >
           <Split className="w-3 h-3 rotate-90" />
@@ -216,12 +236,7 @@ const PanelContent = ({
         <button
           onClick={(e) => { e.stopPropagation(); onSplit("horizontal"); }}
           onPointerDown={(e) => e.stopPropagation()}
-          className={clsx(
-            "p-1 rounded transition-all duration-150",
-            currentNoteStyle === 'zen-void'
-              ? "text-white/40 hover:text-white/70 hover:bg-white/10"
-              : "text-[#555] hover:text-[#888] hover:bg-white/10"
-          )}
+          className="p-1 rounded transition-all duration-150 text-white/60 hover:text-white/90 hover:bg-white/10"
           title="Split Horizontally"
         >
           <Split className="w-3 h-3" />
@@ -229,12 +244,7 @@ const PanelContent = ({
         <button
           onClick={(e) => { e.stopPropagation(); onRemove(); }}
           onPointerDown={(e) => e.stopPropagation()}
-          className={clsx(
-            "p-1 rounded transition-all duration-150",
-            currentNoteStyle === 'zen-void'
-              ? "text-white/40 hover:text-red-400/70 hover:bg-white/10"
-              : "text-[#555] hover:text-red-400 hover:bg-white/10"
-          )}
+          className="p-1 rounded transition-all duration-150 text-white/60 hover:text-red-400 hover:bg-white/10"
           title="Remove Panel"
         >
           <Trash2 className="w-3 h-3" />
@@ -243,31 +253,56 @@ const PanelContent = ({
     ) : null
   )
 
+  // Get border classes based on theme
+  const getBorderClasses = () => {
+    if (currentNoteStyle === 'zen-void') {
+      return "border border-[var(--void-border)] hover:border-[var(--void-border-hover)]"
+    }
+    if (currentNoteStyle === 'test-lab') {
+      return "border border-[var(--lab-border)] hover:border-[var(--lab-border-hover)] rounded-md"
+    }
+    return "border border-[var(--wabi-border)] hover:border-[var(--wabi-border-hover)] rounded-xs"
+  }
+
+  // Get drop zone classes based on theme
+  const getDropZoneClasses = () => {
+    if (!isOver) return ""
+    if (currentNoteStyle === 'zen-void') {
+      return "border-white/40 bg-white/8 ring-2 ring-white/20 ring-inset"
+    }
+    if (currentNoteStyle === 'test-lab') {
+      return "border-[var(--lab-border-hover)] bg-[#111] ring-2 ring-[var(--lab-accent)]/30 ring-inset"
+    }
+    return "border-[var(--wabi-border-hover)] bg-[#1a1915] ring-2 ring-[var(--wabi-border-hover)]/40 ring-inset"
+  }
+
+  // Get drop zone shadow based on theme
+  const getDropZoneShadow = () => {
+    if (!isOver) return undefined
+    if (currentNoteStyle === 'zen-void') {
+      return { boxShadow: 'inset 0 0 30px rgba(255, 255, 255, 0.08)' }
+    }
+    if (currentNoteStyle === 'test-lab') {
+      return { boxShadow: 'inset 0 0 30px rgba(139, 92, 246, 0.1)' }
+    }
+    return { boxShadow: 'inset 0 0 30px rgba(196, 181, 140, 0.1)' }
+  }
+
   return (
     <div
       ref={setNodeRef}
       className={clsx(
-        "relative w-full h-full group transition-all duration-200",
-        "bg-transparent",
-        currentNoteStyle === 'zen-void'
-          ? "border border-[var(--void-border)] hover:border-[var(--void-border-hover)]"
-          : "border border-[var(--wabi-border)] hover:border-[var(--wabi-border-hover)] rounded-xs",
-        // Enhanced drop zone feedback - more prominent glow
-        isOver && (currentNoteStyle === 'zen-void'
-          ? "border-white/40 bg-white/8 ring-2 ring-white/20 ring-inset"
-          : "border-[var(--wabi-border-hover)] bg-[#1a1915] ring-2 ring-[var(--wabi-border-hover)]/40 ring-inset"
-        )
+        "relative w-full h-full group bg-transparent",
+        currentNoteStyle === 'zen-void' ? "transition-all duration-200" : "transition-all duration-500",
+        getBorderClasses(),
+        getDropZoneClasses()
       )}
-      style={isOver ? {
-        boxShadow: currentNoteStyle === 'zen-void'
-          ? 'inset 0 0 30px rgba(255, 255, 255, 0.08)'
-          : 'inset 0 0 30px rgba(196, 181, 140, 0.1)'
-      } : undefined}
+      style={getDropZoneShadow()}
       onMouseEnter={() => setIsPanelHovered(true)}
       onMouseLeave={() => setIsPanelHovered(false)}
     >
       {/* Content Area */}
-      <div className="w-full h-full p-1 relative z-0">
+      <div className="w-full h-full relative z-0">
         {note ? (
           <DraggableNote
             note={note}
