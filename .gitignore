@@ -34,3 +34,6 @@ out
 
 # Database (user data)
 *.db
+
+.cursor
+

@@ -1,4 +1,4 @@
-import { useMemo, useRef, useEffect } from 'react';
+import { useMemo, useRef, useEffect, useState } from 'react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.bubble.css';
 import { useNotesStore } from '../../stores/notesStore';
@@ -12,6 +12,18 @@ interface RichTextEditorProps {
 export function RichTextEditor({ noteId, content, onContentChange }: RichTextEditorProps) {
   const quillRef = useRef<ReactQuill>(null);
   const theme = useNotesStore((state) => state.theme);
+
+  // Local state buffer to prevent stale props from resetting the editor
+  const [localContent, setLocalContent] = useState(content);
+  const isInternalChange = useRef(false);
+
+  // Sync local state with props ONLY when props change externally (not from our own edits)
+  useEffect(() => {
+    if (!isInternalChange.current && content !== localContent) {
+      setLocalContent(content);
+    }
+    isInternalChange.current = false;
+  }, [content]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // Configure Quill without toolbar - users type directly
   const modules = useMemo(
@@ -124,6 +136,11 @@ export function RichTextEditor({ noteId, content, onContentChange }: RichTextEdi
   ];
 
   const handleChange = (value: string) => {
+    // Mark this as an internal change so the useEffect doesn't reset our state
+    isInternalChange.current = true;
+    setLocalContent(value); // Update local state immediately
+
+    // Then propagate to parent (which will trigger async store update)
     if (onContentChange) {
       onContentChange(value);
     } else {
@@ -147,7 +164,7 @@ export function RichTextEditor({ noteId, content, onContentChange }: RichTextEdi
       <ReactQuill
         ref={quillRef}
         theme="bubble"
-        value={content}
+        value={localContent}
         onChange={handleChange}
         modules={modules}
         formats={formats}

@@ -1,8 +1,6 @@
-"use client"
-
 import React, { useState, useCallback, useMemo } from "react"
 import { PanelGroup, Panel, PanelResizeHandle } from "react-resizable-panels"
-import { Split, Trash2 } from "lucide-react"
+import { Split, Trash2, MoreHorizontal, Square, SquareDashed } from "lucide-react"
 import { DndContext, DragOverlay, useDraggable, useDroppable } from "@dnd-kit/core"
 import type { DragEndEvent, DragStartEvent } from "@dnd-kit/core"
 import clsx from "clsx"
@@ -10,28 +8,34 @@ import { RichTextEditor } from "../notes/RichTextEditor"
 import { useThemeStore } from "../../stores/themeStore"
 import { useBentoStore } from "../../stores/bentoStore"
 import type { LayoutNode, BentoNote } from "../../types/bento"
+import { computeBorderVisibility } from "../../types/bento"
 
 // ============================================================================
 // DRAGGABLE NOTE COMPONENT
 // - Supports Wabi Grid and Zen Void styles
-// - No title, minimal header with action buttons on hover
+// - Persistent "..." menu that expands to show controls
 // - Drag only from header area
 // ============================================================================
 
 const DraggableNote = ({
   note,
   isOverlay = false,
+  showBorder = true,
   onContentChange,
   onSplit,
   onRemove,
+  onToggleBorder,
 }: {
   note: BentoNote
   isOverlay?: boolean
+  showBorder?: boolean
   onContentChange?: (content: string) => void
   onSplit?: (direction: "horizontal" | "vertical") => void
   onRemove?: () => void
+  onToggleBorder?: () => void
 }) => {
   const [isHeaderHovered, setIsHeaderHovered] = useState(false)
+  const [isMenuExpanded, setIsMenuExpanded] = useState(false)
   const currentNoteStyle = useThemeStore((state) => state.currentNoteStyle)
 
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
@@ -40,40 +44,87 @@ const DraggableNote = ({
     disabled: false,
   })
 
+  // Get padding classes based on showBorder (Notion-like margins for borderless panels)
+  const getContentPadding = () => {
+    if (!showBorder) {
+      // Borderless: Notion-like generous side padding for focused writing
+      return "px-[12%] pt-8 pb-6"
+    }
+    // Bordered: Standard compact padding
+    return "pl-3 pb-3 pr-1"
+  }
+
   if (isDragging && !isOverlay) {
     return <div ref={setNodeRef} className="opacity-0 w-full h-full" />
   }
 
-  // Panel control buttons - shown on header hover
+  // Panel control buttons - expandable "..." menu
   const PanelControls = () => (
     !isOverlay && onSplit && onRemove ? (
-      <div className={clsx(
-        "flex items-center gap-1 pt-2 pr-2 transition-opacity duration-150",
-        isHeaderHovered ? "opacity-100" : "opacity-0 pointer-events-none"
-      )}>
+      <div
+        className={clsx(
+          "flex items-center gap-0.5 pt-2 pr-2 transition-all duration-200",
+          isHeaderHovered || isMenuExpanded ? "opacity-100" : "opacity-0 pointer-events-none"
+        )}
+        onMouseLeave={() => setIsMenuExpanded(false)}
+      >
+        {/* Expanded controls - shown when menu is expanded */}
+        <div className={clsx(
+          "flex items-center gap-0.5 overflow-hidden transition-all duration-200",
+          isMenuExpanded ? "max-w-[200px] opacity-100" : "max-w-0 opacity-0"
+        )}>
+          {/* Border toggle */}
+          <button
+            onClick={(e) => { e.stopPropagation(); onToggleBorder?.(); }}
+            onPointerDown={(e) => e.stopPropagation()}
+            className={clsx(
+              "p-1 rounded transition-all duration-150 hover:bg-white/10",
+              showBorder ? "text-white/60 hover:text-white/90" : "text-amber-400/80 hover:text-amber-400"
+            )}
+            title={showBorder ? "Hide Border" : "Show Border"}
+          >
+            {showBorder ? <Square className="w-3 h-3" /> : <SquareDashed className="w-3 h-3" />}
+          </button>
+          {/* Split vertically */}
+          <button
+            onClick={(e) => { e.stopPropagation(); onSplit("vertical"); setIsMenuExpanded(false); }}
+            onPointerDown={(e) => e.stopPropagation()}
+            className="p-1 rounded transition-all duration-150 text-white/60 hover:text-white/90 hover:bg-white/10"
+            title="Split Vertically"
+          >
+            <Split className="w-3 h-3 rotate-90" />
+          </button>
+          {/* Split horizontally */}
+          <button
+            onClick={(e) => { e.stopPropagation(); onSplit("horizontal"); setIsMenuExpanded(false); }}
+            onPointerDown={(e) => e.stopPropagation()}
+            className="p-1 rounded transition-all duration-150 text-white/60 hover:text-white/90 hover:bg-white/10"
+            title="Split Horizontally"
+          >
+            <Split className="w-3 h-3" />
+          </button>
+          {/* Delete */}
+          <button
+            onClick={(e) => { e.stopPropagation(); onRemove(); }}
+            onPointerDown={(e) => e.stopPropagation()}
+            className="p-1 rounded transition-all duration-150 text-white/60 hover:text-red-400 hover:bg-white/10"
+            title="Remove Panel"
+          >
+            <Trash2 className="w-3 h-3" />
+          </button>
+        </div>
+
+        {/* Menu trigger - always visible when header hovered */}
         <button
-          onClick={(e) => { e.stopPropagation(); onSplit("vertical"); }}
+          onClick={(e) => { e.stopPropagation(); setIsMenuExpanded(!isMenuExpanded); }}
           onPointerDown={(e) => e.stopPropagation()}
-          className="p-1 rounded transition-all duration-150 text-white/60 hover:text-white/90 hover:bg-white/10"
-          title="Split Vertically"
+          className={clsx(
+            "p-1 rounded transition-all duration-150 hover:bg-white/10",
+            isMenuExpanded ? "text-white/90 bg-white/10" : "text-white/40 hover:text-white/70"
+          )}
+          title="Panel Options"
         >
-          <Split className="w-3 h-3 rotate-90" />
-        </button>
-        <button
-          onClick={(e) => { e.stopPropagation(); onSplit("horizontal"); }}
-          onPointerDown={(e) => e.stopPropagation()}
-          className="p-1 rounded transition-all duration-150 text-white/60 hover:text-white/90 hover:bg-white/10"
-          title="Split Horizontally"
-        >
-          <Split className="w-3 h-3" />
-        </button>
-        <button
-          onClick={(e) => { e.stopPropagation(); onRemove(); }}
-          onPointerDown={(e) => e.stopPropagation()}
-          className="p-1 rounded transition-all duration-150 text-white/60 hover:text-red-400 hover:bg-white/10"
-          title="Remove Panel"
-        >
-          <Trash2 className="w-3 h-3" />
+          <MoreHorizontal className="w-3.5 h-3.5" />
         </button>
       </div>
     ) : null
@@ -106,11 +157,10 @@ const DraggableNote = ({
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 flex flex-col pl-3 pb-3 pr-1 min-h-0">
+        <div className={clsx("flex-1 flex flex-col min-h-0", getContentPadding())}>
           <div
             className="flex-1 min-h-0 zen-void-editor"
             onPointerDown={(e) => e.stopPropagation()}
-            onKeyDown={(e) => e.stopPropagation()}
           >
             <RichTextEditor noteId={note.id} content={note.content} onContentChange={onContentChange} />
           </div>
@@ -146,11 +196,10 @@ const DraggableNote = ({
         </div>
 
         {/* Content Area */}
-        <div className="flex-1 flex flex-col pl-3 pb-3 pr-1 min-h-0">
+        <div className={clsx("flex-1 flex flex-col min-h-0", getContentPadding())}>
           <div
             className="flex-1 min-h-0 test-lab-editor"
             onPointerDown={(e) => e.stopPropagation()}
-            onKeyDown={(e) => e.stopPropagation()}
           >
             <RichTextEditor noteId={note.id} content={note.content} onContentChange={onContentChange} />
           </div>
@@ -185,11 +234,10 @@ const DraggableNote = ({
       </div>
 
       {/* Content Area */}
-      <div className="flex-1 flex flex-col pl-3 pb-3 pr-1 min-h-0">
+      <div className={clsx("flex-1 flex flex-col min-h-0", getContentPadding())}>
         <div
           className="flex-1 min-h-0 wabi-grid-editor"
           onPointerDown={(e) => e.stopPropagation()}
-          onKeyDown={(e) => e.stopPropagation()}
         >
           <RichTextEditor noteId={note.id} content={note.content} onContentChange={onContentChange} />
         </div>
@@ -205,15 +253,19 @@ const DraggableNote = ({
 const PanelContent = ({
   panelId,
   note,
+  showBorder,
   onSplit,
   onRemove,
   onNoteContentChange,
+  onToggleBorder,
 }: {
   panelId: string
   note: BentoNote | null
+  showBorder: boolean
   onSplit: (direction: "horizontal" | "vertical") => void
   onRemove: () => void
   onNoteContentChange?: (noteId: string, content: string) => void
+  onToggleBorder?: () => void
 }) => {
   const currentNoteStyle = useThemeStore((state) => state.currentNoteStyle)
   const [isPanelHovered, setIsPanelHovered] = useState(false)
@@ -253,8 +305,13 @@ const PanelContent = ({
     ) : null
   )
 
-  // Get border classes based on theme
+  // Get border classes based on theme and showBorder flag
   const getBorderClasses = () => {
+    // Borderless panels blend into the background
+    if (!showBorder) {
+      return "border border-transparent"
+    }
+    // Bordered panels (sharing space with siblings)
     if (currentNoteStyle === 'zen-void') {
       return "border border-[var(--void-border)] hover:border-[var(--void-border-hover)]"
     }
@@ -306,21 +363,26 @@ const PanelContent = ({
         {note ? (
           <DraggableNote
             note={note}
+            showBorder={showBorder}
             onContentChange={(content) => onNoteContentChange?.(note.id, content)}
             onSplit={onSplit}
             onRemove={onRemove}
+            onToggleBorder={onToggleBorder}
           />
         ) : (
           <>
             <EmptyPanelControls />
-            <div className={clsx(
-              "w-full h-full flex items-center justify-center text-xs pointer-events-none",
-              isOver
-                ? (currentNoteStyle === 'zen-void' ? "text-white/50" : "text-[var(--text-secondary)]/60")
-                : "text-[var(--text-secondary)]/40"
-            )}>
-              {isOver ? "Release to drop" : "Drop note here"}
-            </div>
+            {/* Only show drop hint for bordered panels, keep borderless clean */}
+            {showBorder && (
+              <div className={clsx(
+                "w-full h-full flex items-center justify-center text-xs pointer-events-none",
+                isOver
+                  ? (currentNoteStyle === 'zen-void' ? "text-white/50" : "text-[var(--text-secondary)]/60")
+                  : "text-[var(--text-secondary)]/40"
+              )}>
+                {isOver ? "Release to drop" : "Drop note here"}
+              </div>
+            )}
           </>
         )}
       </div>
@@ -336,27 +398,36 @@ const PanelContent = ({
 const LayoutRenderer = ({
   node,
   notesByPanel,
+  borderVisibilityMap,
   onSplit,
   onRemove,
   isDragging,
   onNoteContentChange,
+  onToggleBorder,
 }: {
   node: LayoutNode
   notesByPanel: Record<string, BentoNote>
+  borderVisibilityMap: Set<string>
   onSplit: (panelId: string, direction: "horizontal" | "vertical") => void
   onRemove: (panelId: string) => void
   isDragging: boolean
   onNoteContentChange?: (noteId: string, content: string) => void
+  onToggleBorder?: (noteId: string) => void
 }) => {
   if (node.type === "pane") {
     const note = node.panelId ? notesByPanel[node.panelId] : null
+    // Compute effective showBorder: default behavior, unless user has overridden with borderHidden
+    const defaultShowBorder = node.panelId ? borderVisibilityMap.has(node.panelId) : false
+    const showBorder = note?.borderHidden ? false : defaultShowBorder
     return (
       <PanelContent
         panelId={node.panelId!}
         note={note || null}
+        showBorder={showBorder}
         onSplit={(dir) => onSplit(node.id, dir)}
         onRemove={() => onRemove(node.id)}
         onNoteContentChange={onNoteContentChange}
+        onToggleBorder={note ? () => onToggleBorder?.(note.id) : undefined}
       />
     )
   }
@@ -369,10 +440,12 @@ const LayoutRenderer = ({
             <LayoutRenderer
               node={child}
               notesByPanel={notesByPanel}
+              borderVisibilityMap={borderVisibilityMap}
               onSplit={onSplit}
               onRemove={onRemove}
               isDragging={isDragging}
               onNoteContentChange={onNoteContentChange}
+              onToggleBorder={onToggleBorder}
             />
           </Panel>
           {index < (node.children?.length || 0) - 1 && (
@@ -462,6 +535,7 @@ export const BentoWorkspace = ({ spaceId: _spaceId }: BentoWorkspaceProps) => {
   const updateNoteContent = useBentoStore((state) => state.updateNoteContent)
   const updateNotePanelId = useBentoStore((state) => state.updateNotePanelId)
   const deleteNote = useBentoStore((state) => state.deleteNote)
+  const toggleNoteBorder = useBentoStore((state) => state.toggleNoteBorder)
 
   // Get layout from current workspace
   const layout = currentWorkspace?.layout
@@ -476,6 +550,12 @@ export const BentoWorkspace = ({ spaceId: _spaceId }: BentoWorkspaceProps) => {
     }
     return map
   }, [notes])
+
+  // Pre-compute which panels should show borders (optimized - runs once per layout change)
+  const borderVisibilityMap = useMemo(() => {
+    if (!layout) return new Set<string>()
+    return computeBorderVisibility(layout)
+  }, [layout])
 
   // Drag handlers
   const handleDragStart = (event: DragStartEvent) => {
@@ -526,6 +606,11 @@ export const BentoWorkspace = ({ spaceId: _spaceId }: BentoWorkspaceProps) => {
     deleteNote(noteId)
   }, [deleteNote])
 
+  // Handle border toggle for a note
+  const handleToggleBorder = useCallback((noteId: string) => {
+    toggleNoteBorder(noteId)
+  }, [toggleNoteBorder])
+
   if (!layout) {
     return (
       <div className="h-full w-full flex items-center justify-center text-[var(--text-secondary)]">
@@ -542,6 +627,7 @@ export const BentoWorkspace = ({ spaceId: _spaceId }: BentoWorkspaceProps) => {
           <LayoutRenderer
             node={layout}
             notesByPanel={notesByPanel}
+            borderVisibilityMap={borderVisibilityMap}
             onSplit={onSplit}
             onRemove={(nodeId) => {
               // Find and delete any note in this panel before removing it
@@ -553,6 +639,7 @@ export const BentoWorkspace = ({ spaceId: _spaceId }: BentoWorkspaceProps) => {
             }}
             isDragging={!!draggedNote}
             onNoteContentChange={handleNoteContentChange}
+            onToggleBorder={handleToggleBorder}
           />
         </div>
 

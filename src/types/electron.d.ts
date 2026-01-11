@@ -20,6 +20,7 @@ interface ApiNote {
     panelId: string | null;
     title: string;
     content: string;
+    borderHidden?: boolean;
     createdAt: number;
     updatedAt: number;
 }

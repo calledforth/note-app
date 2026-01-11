@@ -31,40 +31,60 @@ export interface BentoNote {
     panelId: string | null; // Which panel this note is in (null if not placed)
     title: string;
     content: string;
+    borderHidden?: boolean; // User override: hide border for this note's panel
     createdAt: number;
     updatedAt: number;
 }
 
 // ============================================================================
-// DEFAULT LAYOUT - 2x2 Grid
+// DEFAULT LAYOUT - Single Panel (Notion-like clean start)
 // ============================================================================
 
 export const DEFAULT_LAYOUT: LayoutNode = {
     id: 'root',
-    type: 'container',
-    direction: 'horizontal',
-    children: [
-        {
-            id: 'col-1',
-            type: 'container',
-            direction: 'vertical',
-            defaultSize: 50,
-            children: [
-                { id: 'pane-1-1', type: 'pane', panelId: 'p-1-1', defaultSize: 50 },
-                { id: 'pane-1-2', type: 'pane', panelId: 'p-1-2', defaultSize: 50 },
-            ],
-        },
-        {
-            id: 'col-2',
-            type: 'container',
-            direction: 'vertical',
-            defaultSize: 50,
-            children: [
-                { id: 'pane-2-1', type: 'pane', panelId: 'p-2-1', defaultSize: 50 },
-                { id: 'pane-2-2', type: 'pane', panelId: 'p-2-2', defaultSize: 50 },
-            ],
-        },
-    ],
+    type: 'pane',
+    panelId: 'p-main',
+    defaultSize: 100,
+};
+
+// ============================================================================
+// BORDER VISIBILITY COMPUTATION
+// Pre-computes which panels should show borders (optimized - runs once)
+// ============================================================================
+
+/**
+ * Computes which panels should show borders based on layout structure.
+ * 
+ * RULE: "Multiple Panels = Borders"
+ * - Any panel that shares a container with siblings gets borders
+ * - Single panel = NO borders (clean, focused writing)
+ * - User can override per-panel via borderHidden property
+ * 
+ * @param layout - The root layout node
+ * @returns Set of panelIds that should display borders by default
+ */
+export const computeBorderVisibility = (layout: LayoutNode): Set<string> => {
+    const borderedPanels = new Set<string>();
+
+    const traverse = (node: LayoutNode, parentHasMultipleChildren: boolean): void => {
+        if (node.type === 'pane') {
+            // If parent container has multiple children, this panel needs borders
+            if (parentHasMultipleChildren && node.panelId) {
+                borderedPanels.add(node.panelId);
+            }
+            return;
+        }
+
+        // It's a container - check if it has multiple children
+        const hasMultipleChildren = (node.children?.length ?? 0) > 1;
+
+        for (const child of node.children ?? []) {
+            traverse(child, hasMultipleChildren);
+        }
+    };
+
+    traverse(layout, false); // Root starts with no parent siblings
+    return borderedPanels;
 };
 
 // ============================================================================

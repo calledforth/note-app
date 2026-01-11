@@ -4,6 +4,39 @@ import { DEFAULT_LAYOUT, generateId, findFirstEmptyPanel } from '../types/bento'
 import '../types/electron.d';
 
 // ============================================================================
+// DEBOUNCE UTILITY FOR DATABASE PERSISTENCE
+// ============================================================================
+
+// Map to track pending debounced updates per note
+const debounceMap = new Map<string, ReturnType<typeof setTimeout>>();
+// Map to track the latest content for each pending note (for flush)
+const pendingContentMap = new Map<string, string>();
+
+const debouncedDbUpdate = (noteId: string, content: string, db: NonNullable<typeof window.electronAPI>['database']) => {
+    // Store the latest content for this note
+    pendingContentMap.set(noteId, content);
+
+    // Clear any existing timeout for this note
+    const existingTimeout = debounceMap.get(noteId);
+    if (existingTimeout) {
+        clearTimeout(existingTimeout);
+    }
+
+    // Set new timeout - persist after 500ms of no typing
+    const timeout = setTimeout(async () => {
+        try {
+            await db.updateNote(noteId, { content });
+            debounceMap.delete(noteId);
+            pendingContentMap.delete(noteId);
+        } catch (error) {
+            console.error('[BentoStore] Failed to persist note content:', error);
+        }
+    }, 500);
+
+    debounceMap.set(noteId, timeout);
+};
+
+// ============================================================================
 // STORE INTERFACE
 // ============================================================================
 
@@ -30,10 +63,14 @@ interface BentoStore {
 
     // Note actions
     createNote: () => Promise<string | null>; // Returns new note ID or null if no space
-    updateNoteContent: (id: string, content: string) => Promise<void>;
+    updateNoteContent: (id: string, content: string) => void; // Now synchronous with debounced persistence
     updateNoteTitle: (id: string, title: string) => Promise<void>;
     updateNotePanelId: (id: string, panelId: string | null) => Promise<void>;
+    toggleNoteBorder: (id: string) => Promise<void>; // Toggle borderHidden for a note
     deleteNote: (id: string) => Promise<void>;
+
+    // Utility
+    flushPendingWrites: () => Promise<void>; // Flush all pending debounced writes immediately
 }
 
 // ============================================================================
@@ -88,10 +125,23 @@ export const useBentoStore = create<BentoStore>((set, get) => ({
                 await db.createWorkspace(defaultWorkspace);
                 await db.setLastWorkspaceId(defaultWorkspace.id);
 
+                // Create an initial note for immediate writing experience
+                const initialNote: BentoNote = {
+                    id: generateId(),
+                    workspaceId: defaultWorkspace.id,
+                    panelId: 'p-main',
+                    title: '',
+                    content: '',
+                    createdAt: now,
+                    updatedAt: now,
+                };
+
+                await db.createNote(initialNote);
+
                 set({
                     workspaces: [defaultWorkspace],
                     currentWorkspaceId: defaultWorkspace.id,
-                    notes: [],
+                    notes: [initialNote],
                     isLoading: false,
                     isInitialized: true,
                 });
@@ -137,10 +187,23 @@ export const useBentoStore = create<BentoStore>((set, get) => ({
 
         await db.createWorkspace(newWorkspace);
 
+        // Create an initial note in the main panel for immediate writing experience
+        const initialNote: BentoNote = {
+            id: generateId(),
+            workspaceId: newWorkspace.id,
+            panelId: 'p-main', // Default layout uses 'p-main' as the panel ID
+            title: '',
+            content: '',
+            createdAt: now,
+            updatedAt: now,
+        };
+
+        await db.createNote(initialNote);
+
         set(state => ({
             workspaces: [...state.workspaces, newWorkspace],
             currentWorkspaceId: newWorkspace.id,
-            notes: [], // New workspace has no notes
+            notes: [initialNote], // New workspace starts with an initial note
         }));
 
         return newWorkspace.id;
@@ -268,17 +331,19 @@ export const useBentoStore = create<BentoStore>((set, get) => ({
         return newNote.id;
     },
 
-    updateNoteContent: async (id: string, content: string) => {
+    updateNoteContent: (id: string, content: string) => {
         const db = window.electronAPI?.database;
         if (!db) throw new Error('Database not available');
 
-        await db.updateNote(id, { content });
-
+        // OPTIMISTIC UPDATE: Update UI state IMMEDIATELY
         set(state => ({
             notes: state.notes.map(n =>
                 n.id === id ? { ...n, content, updatedAt: Date.now() } : n
             ),
         }));
+
+        // DEBOUNCED PERSISTENCE: Save to database after 500ms of inactivity
+        debouncedDbUpdate(id, content, db);
     },
 
     updateNoteTitle: async (id: string, title: string) => {
@@ -316,5 +381,43 @@ export const useBentoStore = create<BentoStore>((set, get) => ({
         set(state => ({
             notes: state.notes.filter(n => n.id !== id),
         }));
+    },
+
+    toggleNoteBorder: async (id: string) => {
+        const db = window.electronAPI?.database;
+        if (!db) throw new Error('Database not available');
+
+        const note = get().notes.find(n => n.id === id);
+        if (!note) return;
+
+        const newBorderHidden = !note.borderHidden;
+
+        await db.updateNote(id, { borderHidden: newBorderHidden });
+
+        set(state => ({
+            notes: state.notes.map(n =>
+                n.id === id ? { ...n, borderHidden: newBorderHidden, updatedAt: Date.now() } : n
+            ),
+        }));
+    },
+
+    flushPendingWrites: async () => {
+        const db = window.electronAPI?.database;
+        if (!db) return;
+
+        // Clear all timeouts and write immediately
+        for (const [noteId, timeout] of debounceMap.entries()) {
+            clearTimeout(timeout);
+            const content = pendingContentMap.get(noteId);
+            if (content !== undefined) {
+                try {
+                    await db.updateNote(noteId, { content });
+                } catch (error) {
+                    console.error('[BentoStore] Failed to flush note content:', error);
+                }
+            }
+        }
+        debounceMap.clear();
+        pendingContentMap.clear();
     },
 }));
