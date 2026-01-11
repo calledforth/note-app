@@ -44,13 +44,10 @@ const DraggableNote = ({
     disabled: false,
   })
 
-  // Get padding classes based on showBorder (Notion-like margins for borderless panels)
+  // Get container padding - minimal and uniform for all panels
+  // Note: Horizontal content padding is handled via CSS (clamp-based responsive padding in .ql-editor)
   const getContentPadding = () => {
-    if (!showBorder) {
-      // Borderless: Notion-like generous side padding for focused writing
-      return "px-[12%] pt-8 pb-6"
-    }
-    // Bordered: Standard compact padding
+    // Uniform minimal container padding - no special treatment for borderless panels
     return "pl-3 pb-3 pr-1"
   }
 

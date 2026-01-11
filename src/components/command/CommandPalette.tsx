@@ -305,21 +305,27 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose,
                         // Style-specific container styling
                         currentNoteStyle === 'zen-void'
                             ? "command-palette-zen-void"
-                            : "command-palette-wabi-grid"
+                            : currentNoteStyle === 'test-lab'
+                                ? "command-palette-test-lab"
+                                : "command-palette-wabi-grid"
                     )}
                 >
                     <div className={clsx(
                         "overflow-hidden shadow-2xl",
                         currentNoteStyle === 'zen-void'
-                            ? "bg-[var(--void-bg)] border border-[var(--void-border)] rounded-md"
-                            : "bg-[var(--wabi-bg)] border border-[var(--wabi-border)] rounded-xs"
+                            ? "bg-[#000000] border border-[var(--void-border)] rounded-md"
+                            : currentNoteStyle === 'test-lab'
+                                ? "bg-[#0a0a0a] border border-[var(--lab-border)] rounded-md"
+                                : "bg-[#050505] border border-[var(--wabi-border)] rounded-md"
                     )}>
                         {/* Search Input */}
                         <div className={clsx(
                             "flex items-center gap-2 px-3 py-2",
                             currentNoteStyle === 'zen-void'
                                 ? "border-b border-[var(--void-border)]"
-                                : "border-b border-[var(--wabi-border)]"
+                                : currentNoteStyle === 'test-lab'
+                                    ? "border-b border-[var(--lab-border)]"
+                                    : "border-b border-[var(--wabi-border)]"
                         )}>
                             {/* Back button for sub-modes */}
                             {mode !== 'commands' && (
@@ -555,9 +561,11 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose,
                             "flex items-center justify-center gap-6 px-3 py-2 text-[10px]",
                             currentNoteStyle === 'zen-void'
                                 ? "border-t border-[var(--void-border)] text-white/30"
-                                : "border-t border-[var(--wabi-border)] text-[var(--wabi-text-muted)]"
+                                : currentNoteStyle === 'test-lab'
+                                    ? "border-t border-[var(--lab-border)] text-[var(--lab-text-muted)]"
+                                    : "border-t border-[var(--wabi-border)] text-[var(--wabi-text-muted)]"
                         )}
-                            style={{ fontFamily: currentNoteStyle === 'zen-void' ? "'Inter', sans-serif" : "'JetBrains Mono', monospace" }}
+                            style={{ fontFamily: currentNoteStyle === 'zen-void' ? "'Inter', sans-serif" : currentNoteStyle === 'test-lab' ? "'Arimo', sans-serif" : "'JetBrains Mono', monospace" }}
                         >
                             {mode === 'commands' && (
                                 <>

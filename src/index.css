@@ -318,6 +318,8 @@
   height: 100%;
   min-height: 0;
   /* Critical for flex children to shrink */
+  /* Enable container queries for responsive padding */
+  container-type: inline-size;
 }
 
 /* Target ReactQuill's internal .quill wrapper */
@@ -348,8 +350,8 @@
   left: 0;
   right: 0;
   bottom: 0;
-  padding: 0 6px 0 0 !important;
-  /* Small right padding for scrollbar gap */
+  /* Default: percentage-based padding for small panes, caps at 25px */
+  padding: 0 clamp(1px, 5%, 25px) 0 clamp(1px, 5%, 25px) !important;
   font-family: 'JetBrains Mono', monospace !important;
   font-style: normal !important;
   font-weight: 400 !important;
@@ -357,9 +359,45 @@
   line-height: 1.7 !important;
   letter-spacing: 0.02em !important;
   color: var(--wabi-text) !important;
-  /* Cream/kinari color */
   overflow-y: auto !important;
   -webkit-overflow-scrolling: touch;
+}
+
+/* Smooth padding curve with gradual breakpoints */
+@container (min-width: 400px) {
+  .wabi-grid-editor .ql-editor {
+    padding: 0 25px 0 25px !important;
+  }
+}
+
+@container (min-width: 600px) {
+  .wabi-grid-editor .ql-editor {
+    padding: 0 40px 0 40px !important;
+  }
+}
+
+@container (min-width: 800px) {
+  .wabi-grid-editor .ql-editor {
+    padding: 0 60px 0 60px !important;
+  }
+}
+
+@container (min-width: 1000px) {
+  .wabi-grid-editor .ql-editor {
+    padding: 0 90px 0 90px !important;
+  }
+}
+
+@container (min-width: 1200px) {
+  .wabi-grid-editor .ql-editor {
+    padding: 0 130px 0 130px !important;
+  }
+}
+
+@container (min-width: 1500px) {
+  .wabi-grid-editor .ql-editor {
+    padding: 0 180px 0 180px !important;
+  }
 }
 
 /* Scrollbar styling for Wabi Grid editor - hidden by default, visible on hover */
@@ -434,6 +472,8 @@
   overflow: hidden;
   height: 100%;
   min-height: 0;
+  /* Enable container queries for responsive padding */
+  container-type: inline-size;
 }
 
 /* Target ReactQuill's internal .quill wrapper */
@@ -461,8 +501,8 @@
   left: 0;
   right: 0;
   bottom: 0;
-  padding: 0 6px 0 0 !important;
-  /* Small right padding for scrollbar gap */
+  /* Default: percentage-based padding for small panes, caps at 25px */
+  padding: 0 clamp(1px, 5%, 25px) 0 clamp(1px, 5%, 25px) !important;
   font-family: 'Inter', system-ui, sans-serif !important;
   font-weight: 300 !important;
   font-size: 0.875rem !important;
@@ -471,6 +511,43 @@
   color: var(--void-text-muted) !important;
   overflow-y: auto !important;
   -webkit-overflow-scrolling: touch;
+}
+
+/* Smooth padding curve with gradual breakpoints */
+@container (min-width: 400px) {
+  .zen-void-editor .ql-editor {
+    padding: 0 25px 0 25px !important;
+  }
+}
+
+@container (min-width: 600px) {
+  .zen-void-editor .ql-editor {
+    padding: 0 40px 0 40px !important;
+  }
+}
+
+@container (min-width: 800px) {
+  .zen-void-editor .ql-editor {
+    padding: 0 60px 0 60px !important;
+  }
+}
+
+@container (min-width: 1000px) {
+  .zen-void-editor .ql-editor {
+    padding: 0 90px 0 90px !important;
+  }
+}
+
+@container (min-width: 1200px) {
+  .zen-void-editor .ql-editor {
+    padding: 0 130px 0 130px !important;
+  }
+}
+
+@container (min-width: 1500px) {
+  .zen-void-editor .ql-editor {
+    padding: 0 180px 0 180px !important;
+  }
 }
 
 /* Scrollbar styling for Zen Void editor - matching Wabi Grid */
@@ -544,6 +621,8 @@
   overflow: hidden;
   height: 100%;
   min-height: 0;
+  /* Enable container queries for responsive padding */
+  container-type: inline-size;
 }
 
 /* Target ReactQuill's internal .quill wrapper */
@@ -571,8 +650,8 @@
   left: 0;
   right: 0;
   bottom: 0;
-  padding: 0 6px 0 0 !important;
-  /* Small right padding for scrollbar gap */
+  /* Default: percentage-based padding for small panes, caps at 25px */
+  padding: 0 clamp(1px, 5%, 25px) 0 clamp(1px, 5%, 25px) !important;
   font-family: 'Arimo', system-ui, sans-serif !important;
   font-weight: 400 !important;
   font-size: 0.875rem !important;
@@ -581,6 +660,43 @@
   color: var(--lab-text) !important;
   overflow-y: auto !important;
   -webkit-overflow-scrolling: touch;
+}
+
+/* Smooth padding curve with gradual breakpoints */
+@container (min-width: 400px) {
+  .test-lab-editor .ql-editor {
+    padding: 0 25px 0 25px !important;
+  }
+}
+
+@container (min-width: 600px) {
+  .test-lab-editor .ql-editor {
+    padding: 0 40px 0 40px !important;
+  }
+}
+
+@container (min-width: 800px) {
+  .test-lab-editor .ql-editor {
+    padding: 0 60px 0 60px !important;
+  }
+}
+
+@container (min-width: 1000px) {
+  .test-lab-editor .ql-editor {
+    padding: 0 90px 0 90px !important;
+  }
+}
+
+@container (min-width: 1200px) {
+  .test-lab-editor .ql-editor {
+    padding: 0 130px 0 130px !important;
+  }
+}
+
+@container (min-width: 1500px) {
+  .test-lab-editor .ql-editor {
+    padding: 0 180px 0 180px !important;
+  }
 }
 
 /* Scrollbar styling for Test Lab editor */
