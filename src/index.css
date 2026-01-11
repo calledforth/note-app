@@ -196,6 +196,23 @@
   animation: slide-down 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+/* Note swap animation - subtle fade in when note lands in new panel */
+@keyframes note-swap-in {
+  from {
+    opacity: 0.4;
+    transform: scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.note-swap-animation {
+  animation: note-swap-in 0.2s ease-out forwards;
+}
+
 /* Command Palette Scrollbar Styling */
 .command-palette-zen-void ::-webkit-scrollbar {
   width: 4px;
@@ -769,4 +786,123 @@
 .command-palette-test-lab ::-webkit-scrollbar-thumb {
   background: #333;
   border-radius: 2px;
+}
+
+/* ========================================
+   Quill List Styling Overrides
+   - Bullet list padding aligned with numbered lists
+   - Enhanced checkbox/todo list visibility
+   NOTE: Quill uses <li data-list="..."> NOT <ul>/<ol> tags!
+   ======================================== */
+
+/* Reduce bullet list left padding to align with numbered lists */
+/* Quill uses data-list="bullet" for bullet lists */
+.wabi-grid-editor .ql-editor li[data-list="bullet"],
+.zen-void-editor .ql-editor li[data-list="bullet"],
+.test-lab-editor .ql-editor li[data-list="bullet"] {
+  padding-left: 1em !important;
+}
+
+/* Ordered lists - keep consistent */
+.wabi-grid-editor .ql-editor li[data-list="ordered"],
+.zen-void-editor .ql-editor li[data-list="ordered"],
+.test-lab-editor .ql-editor li[data-list="ordered"] {
+  padding-left: 1em !important;
+}
+
+/* ========================================
+   Custom Checkbox/Todo List Styling
+   - Custom checkbox boxes with rounded corners
+   - Custom SVG checkmark (white/gray, no colors)
+   - Strikethrough on completed items
+   - Theme-aware fonts and colors for text
+   ======================================== */
+
+/* Reset default Quill checkbox styling */
+.wabi-grid-editor .ql-editor ul[data-checked]>li::before,
+.zen-void-editor .ql-editor ul[data-checked]>li::before,
+.test-lab-editor .ql-editor ul[data-checked]>li::before {
+  /* Override Quill's default checkbox character */
+  content: '' !important;
+  display: inline-block !important;
+  width: 14px !important;
+  height: 14px !important;
+  margin-right: 8px !important;
+  margin-top: 2px !important;
+  vertical-align: middle !important;
+  border-radius: 3px !important;
+  border: 1.5px solid rgba(255, 255, 255, 0.4) !important;
+  background-color: transparent !important;
+  flex-shrink: 0 !important;
+  cursor: pointer !important;
+  transition: all 0.15s ease !important;
+}
+
+/* Unchecked checkbox - subtle white border */
+.wabi-grid-editor .ql-editor ul[data-checked="false"]>li::before {
+  border-color: rgba(220, 220, 210, 0.45) !important;
+}
+
+.zen-void-editor .ql-editor ul[data-checked="false"]>li::before {
+  border-color: rgba(255, 255, 255, 0.35) !important;
+}
+
+.test-lab-editor .ql-editor ul[data-checked="false"]>li::before {
+  border-color: rgba(255, 255, 255, 0.4) !important;
+}
+
+/* Checked checkbox - bright white bg with black tick */
+.wabi-grid-editor .ql-editor ul[data-checked="true"]>li::before,
+.zen-void-editor .ql-editor ul[data-checked="true"]>li::before,
+.test-lab-editor .ql-editor ul[data-checked="true"]>li::before {
+  border-color: rgba(255, 255, 255, 0.9) !important;
+  background-color: rgba(255, 255, 255, 0.85) !important;
+  /* SVG checkmark - black tick on white bg */
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23111111' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12l5 5L20 7'/%3E%3C/svg%3E") !important;
+  background-size: 10px 10px !important;
+  background-position: center !important;
+  background-repeat: no-repeat !important;
+}
+
+/* Checkbox list item text - inherit theme fonts */
+.wabi-grid-editor .ql-editor ul[data-checked]>li {
+  font-family: 'JetBrains Mono', monospace !important;
+  color: var(--wabi-text) !important;
+}
+
+.zen-void-editor .ql-editor ul[data-checked]>li {
+  font-family: 'Inter', system-ui, sans-serif !important;
+  color: var(--void-text-muted) !important;
+}
+
+.test-lab-editor .ql-editor ul[data-checked]>li {
+  font-family: 'Arimo', system-ui, sans-serif !important;
+  color: var(--lab-text) !important;
+}
+
+/* Completed items - strikethrough (brighter text) */
+.wabi-grid-editor .ql-editor ul[data-checked="true"]>li {
+  color: rgba(220, 220, 210, 0.55) !important;
+  text-decoration: line-through !important;
+  text-decoration-color: rgba(220, 220, 210, 0.4) !important;
+}
+
+.zen-void-editor .ql-editor ul[data-checked="true"]>li {
+  color: rgba(255, 255, 255, 0.45) !important;
+  text-decoration: line-through !important;
+  text-decoration-color: rgba(255, 255, 255, 0.35) !important;
+}
+
+.test-lab-editor .ql-editor ul[data-checked="true"]>li {
+  color: rgba(224, 224, 224, 0.5) !important;
+  text-decoration: line-through !important;
+  text-decoration-color: rgba(224, 224, 224, 0.4) !important;
+}
+
+/* Hover effect on unchecked checkboxes */
+.wabi-grid-editor .ql-editor ul[data-checked="false"]>li::before:hover,
+.zen-void-editor .ql-editor ul[data-checked="false"]>li::before:hover,
+.test-lab-editor .ql-editor ul[data-checked="false"]>li::before:hover {
+  border-color: rgba(255, 255, 255, 0.6) !important;
+  background-color: rgba(255, 255, 255, 0.05) !important;
 }

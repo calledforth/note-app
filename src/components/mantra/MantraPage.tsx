@@ -98,7 +98,7 @@ export const MantraPage: React.FC<MantraPageProps> = ({
 
     return (
         <motion.div
-            className="fixed inset-0 z-[9999] bg-black overflow-hidden"
+            className="fixed inset-0 z-[9999] bg-[var(--app-bg)] overflow-hidden"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}

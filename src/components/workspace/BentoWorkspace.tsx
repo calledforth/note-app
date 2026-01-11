@@ -1,8 +1,8 @@
 import React, { useState, useCallback, useMemo } from "react"
 import { PanelGroup, Panel, PanelResizeHandle } from "react-resizable-panels"
 import { Split, Trash2, MoreHorizontal, Square, SquareDashed } from "lucide-react"
-import { DndContext, DragOverlay, useDraggable, useDroppable } from "@dnd-kit/core"
-import type { DragEndEvent, DragStartEvent } from "@dnd-kit/core"
+import { DndContext, DragOverlay, useDraggable, useDroppable, defaultDropAnimationSideEffects } from "@dnd-kit/core"
+import type { DragEndEvent, DragStartEvent, DropAnimation } from "@dnd-kit/core"
 import clsx from "clsx"
 import { RichTextEditor } from "../notes/RichTextEditor"
 import { useThemeStore } from "../../stores/themeStore"
@@ -34,7 +34,6 @@ const DraggableNote = ({
   onRemove?: () => void
   onToggleBorder?: () => void
 }) => {
-  const [isHeaderHovered, setIsHeaderHovered] = useState(false)
   const [isMenuExpanded, setIsMenuExpanded] = useState(false)
   const currentNoteStyle = useThemeStore((state) => state.currentNoteStyle)
 
@@ -56,13 +55,21 @@ const DraggableNote = ({
   }
 
   // Panel control buttons - expandable "..." menu
-  const PanelControls = () => (
-    !isOverlay && onSplit && onRemove ? (
+  // The "..." button is always visible, expanded controls appear on click
+  // When isOverlay (drag preview), render empty spacer to maintain header height
+  const PanelControls = () => {
+    // For overlay, render spacer to maintain consistent header height
+    if (isOverlay) {
+      return <div className="h-7" /> // Match the height of the controls area
+    }
+
+    if (!onSplit || !onRemove) {
+      return null
+    }
+
+    return (
       <div
-        className={clsx(
-          "flex items-center gap-0.5 pt-2 pr-2 transition-all duration-200",
-          isHeaderHovered || isMenuExpanded ? "opacity-100" : "opacity-0 pointer-events-none"
-        )}
+        className="flex items-center gap-0.5 pt-2 pr-2"
         onMouseLeave={() => setIsMenuExpanded(false)}
       >
         {/* Expanded controls - shown when menu is expanded */}
@@ -111,21 +118,21 @@ const DraggableNote = ({
           </button>
         </div>
 
-        {/* Menu trigger - always visible when header hovered */}
+        {/* Menu trigger - ALWAYS visible (not hidden on non-hover) */}
         <button
           onClick={(e) => { e.stopPropagation(); setIsMenuExpanded(!isMenuExpanded); }}
           onPointerDown={(e) => e.stopPropagation()}
           className={clsx(
             "p-1 rounded transition-all duration-150 hover:bg-white/10",
-            isMenuExpanded ? "text-white/90 bg-white/10" : "text-white/40 hover:text-white/70"
+            isMenuExpanded ? "text-white/90 bg-white/10" : "text-white/30 hover:text-white/60"
           )}
           title="Panel Options"
         >
           <MoreHorizontal className="w-3.5 h-3.5" />
         </button>
       </div>
-    ) : null
-  )
+    )
+  }
 
   // =============== ZEN VOID STYLE ===============
   if (currentNoteStyle === 'zen-void') {
@@ -147,8 +154,6 @@ const DraggableNote = ({
             "flex justify-end items-center relative z-20",
             !isOverlay && "cursor-grab active:cursor-grabbing"
           )}
-          onMouseEnter={() => setIsHeaderHovered(true)}
-          onMouseLeave={() => setIsHeaderHovered(false)}
         >
           <PanelControls />
         </div>
@@ -186,8 +191,6 @@ const DraggableNote = ({
             "flex justify-end items-center relative z-20",
             !isOverlay && "cursor-grab active:cursor-grabbing"
           )}
-          onMouseEnter={() => setIsHeaderHovered(true)}
-          onMouseLeave={() => setIsHeaderHovered(false)}
         >
           <PanelControls />
         </div>
@@ -224,8 +227,6 @@ const DraggableNote = ({
           "flex justify-end items-center relative z-20",
           !isOverlay && "cursor-grab active:cursor-grabbing"
         )}
-        onMouseEnter={() => setIsHeaderHovered(true)}
-        onMouseLeave={() => setIsHeaderHovered(false)}
       >
         <PanelControls />
       </div>
@@ -318,36 +319,37 @@ const PanelContent = ({
     return "border border-[var(--wabi-border)] hover:border-[var(--wabi-border-hover)] rounded-xs"
   }
 
-  // Get drop zone classes based on theme
+  // Get drop zone classes based on theme - dotted border + bright glow when dragging over
   const getDropZoneClasses = () => {
     if (!isOver) return ""
+    // Common: dotted border + bright highlight
     if (currentNoteStyle === 'zen-void') {
-      return "border-white/40 bg-white/8 ring-2 ring-white/20 ring-inset"
+      return "!border-dashed !border-white/60 bg-white/10 ring-2 ring-white/30 ring-inset"
     }
     if (currentNoteStyle === 'test-lab') {
-      return "border-[var(--lab-border-hover)] bg-[#111] ring-2 ring-[var(--lab-accent)]/30 ring-inset"
+      return "!border-dashed !border-white/50 bg-white/8 ring-2 ring-white/25 ring-inset"
     }
-    return "border-[var(--wabi-border-hover)] bg-[#1a1915] ring-2 ring-[var(--wabi-border-hover)]/40 ring-inset"
+    // Wabi Grid
+    return "!border-dashed !border-white/50 bg-white/8 ring-2 ring-white/25 ring-inset"
   }
 
-  // Get drop zone shadow based on theme
+  // Get drop zone shadow based on theme - brighter glow
   const getDropZoneShadow = () => {
     if (!isOver) return undefined
     if (currentNoteStyle === 'zen-void') {
-      return { boxShadow: 'inset 0 0 30px rgba(255, 255, 255, 0.08)' }
+      return { boxShadow: 'inset 0 0 40px rgba(255, 255, 255, 0.15)' }
     }
     if (currentNoteStyle === 'test-lab') {
-      return { boxShadow: 'inset 0 0 30px rgba(139, 92, 246, 0.1)' }
+      return { boxShadow: 'inset 0 0 40px rgba(255, 255, 255, 0.12)' }
     }
-    return { boxShadow: 'inset 0 0 30px rgba(196, 181, 140, 0.1)' }
+    return { boxShadow: 'inset 0 0 40px rgba(255, 255, 255, 0.12)' }
   }
 
   return (
     <div
       ref={setNodeRef}
       className={clsx(
-        "relative w-full h-full group bg-transparent",
-        currentNoteStyle === 'zen-void' ? "transition-all duration-200" : "transition-all duration-500",
+        "relative w-full h-full group bg-transparent transition-all duration-150",
         getBorderClasses(),
         getDropZoneClasses()
       )}
@@ -358,14 +360,16 @@ const PanelContent = ({
       {/* Content Area */}
       <div className="w-full h-full relative z-0">
         {note ? (
-          <DraggableNote
-            note={note}
-            showBorder={showBorder}
-            onContentChange={(content) => onNoteContentChange?.(note.id, content)}
-            onSplit={onSplit}
-            onRemove={onRemove}
-            onToggleBorder={onToggleBorder}
-          />
+          <div key={`${note.id}-${panelId}`} className="w-full h-full note-swap-animation">
+            <DraggableNote
+              note={note}
+              showBorder={showBorder}
+              onContentChange={(content) => onNoteContentChange?.(note.id, content)}
+              onSplit={onSplit}
+              onRemove={onRemove}
+              onToggleBorder={onToggleBorder}
+            />
+          </div>
         ) : (
           <>
             <EmptyPanelControls />
@@ -566,16 +570,23 @@ export const BentoWorkspace = ({ spaceId: _spaceId }: BentoWorkspaceProps) => {
 
     if (!over) return
 
-    const note = active.data.current?.note as BentoNote
+    const draggedNote = active.data.current?.note as BentoNote
     const targetPanelId = over.id as string
+    const sourcePanelId = draggedNote.panelId
 
-    // If the target panel already has a note, don't swap (for now)
-    if (notesByPanel[targetPanelId] && notesByPanel[targetPanelId].id !== note.id) {
-      return
+    // Don't do anything if dropped on same panel
+    if (sourcePanelId === targetPanelId) return
+
+    const targetNote = notesByPanel[targetPanelId]
+
+    if (targetNote) {
+      // Swap notes: target note goes to source panel, dragged note goes to target panel
+      updateNotePanelId(targetNote.id, sourcePanelId!)
+      updateNotePanelId(draggedNote.id, targetPanelId)
+    } else {
+      // Move to empty panel
+      updateNotePanelId(draggedNote.id, targetPanelId)
     }
-
-    // Update note's panelId
-    updateNotePanelId(note.id, targetPanelId)
   }
 
   // Content change handler
@@ -640,8 +651,18 @@ export const BentoWorkspace = ({ spaceId: _spaceId }: BentoWorkspaceProps) => {
           />
         </div>
 
-        {/* Drag Overlay - dropAnimation null prevents snap-back animation */}
-        <DragOverlay dropAnimation={null}>{draggedNote ? <DraggableNote note={draggedNote} isOverlay /> : null}</DragOverlay>
+        {/* Drag Overlay - with smooth fade drop animation */}
+        <DragOverlay
+          dropAnimation={{
+            duration: 200,
+            easing: 'ease-out',
+            sideEffects: defaultDropAnimationSideEffects({
+              styles: { active: { opacity: '0.5' } }
+            })
+          } as DropAnimation}
+        >
+          {draggedNote ? <DraggableNote note={draggedNote} isOverlay /> : null}
+        </DragOverlay>
       </div>
     </DndContext>
   )
