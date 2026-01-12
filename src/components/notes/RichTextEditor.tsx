@@ -1,29 +1,30 @@
 import { useMemo, useRef, useEffect, useState } from 'react';
 import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.bubble.css';
-import { useNotesStore } from '../../stores/notesStore';
+import { useBentoStore } from '../../stores/bentoStore';
 
 interface RichTextEditorProps {
   noteId: string;
-  content: string;
-  onContentChange?: (content: string) => void;
 }
 
-export function RichTextEditor({ noteId, content, onContentChange }: RichTextEditorProps) {
+export function RichTextEditor({ noteId }: RichTextEditorProps) {
   const quillRef = useRef<ReactQuill>(null);
-  const theme = useNotesStore((state) => state.theme);
 
-  // Local state buffer to prevent stale props from resetting the editor
+  const content = useBentoStore((state) =>
+    state.notes.find(n => n.id === noteId)?.content ?? ''
+  );
+  const updateNoteContent = useBentoStore((state) => state.updateNoteContent);
+
   const [localContent, setLocalContent] = useState(content);
   const isInternalChange = useRef(false);
 
-  // Sync local state with props ONLY when props change externally (not from our own edits)
   useEffect(() => {
     if (!isInternalChange.current && content !== localContent) {
       setLocalContent(content);
     }
     isInternalChange.current = false;
   }, [content]); // eslint-disable-line react-hooks/exhaustive-deps
+
 
   // Configure Quill without toolbar - users type directly
   const modules = useMemo(
@@ -136,28 +137,10 @@ export function RichTextEditor({ noteId, content, onContentChange }: RichTextEdi
   ];
 
   const handleChange = (value: string) => {
-    // Mark this as an internal change so the useEffect doesn't reset our state
     isInternalChange.current = true;
-    setLocalContent(value); // Update local state immediately
-
-    // Then propagate to parent (which will trigger async store update)
-    if (onContentChange) {
-      onContentChange(value);
-    } else {
-      useNotesStore.getState().updateNote(noteId, { content: value });
-    }
+    setLocalContent(value);
+    updateNoteContent(noteId, value);
   };
-
-  // Apply theme font to editor
-  useEffect(() => {
-    const editor = quillRef.current?.getEditor();
-    if (editor) {
-      const editorElement = editor.root;
-      if (editorElement) {
-        editorElement.style.fontFamily = theme.fontFamily;
-      }
-    }
-  }, [theme.fontFamily]);
 
   return (
     <div className="w-full h-full flex flex-col min-h-0 [&_.ql-container]:border-none [&_.ql-container]:bg-transparent [&_.ql-editor]:text-white [&_.ql-editor]:p-0 [&_.ql-editor.ql-blank::before]:text-neutral-400 [&_.ql-editor.ql-blank::before]:not-italic [&_.ql-toolbar]:hidden">

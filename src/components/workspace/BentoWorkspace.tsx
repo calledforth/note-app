@@ -12,24 +12,19 @@ import { computeBorderVisibility } from "../../types/bento"
 
 // ============================================================================
 // DRAGGABLE NOTE COMPONENT
-// - Supports Wabi Grid and Zen Void styles
-// - Persistent "..." menu that expands to show controls
-// - Drag only from header area
 // ============================================================================
 
 const DraggableNote = ({
-  note,
+  noteId,
   isOverlay = false,
   showBorder = true,
-  onContentChange,
   onSplit,
   onRemove,
   onToggleBorder,
 }: {
-  note: BentoNote
+  noteId: string
   isOverlay?: boolean
   showBorder?: boolean
-  onContentChange?: (content: string) => void
   onSplit?: (direction: "horizontal" | "vertical") => void
   onRemove?: () => void
   onToggleBorder?: () => void
@@ -37,18 +32,19 @@ const DraggableNote = ({
   const [isMenuExpanded, setIsMenuExpanded] = useState(false)
   const currentNoteStyle = useThemeStore((state) => state.currentNoteStyle)
 
+  const note = useBentoStore((state) => state.notes.find(n => n.id === noteId))
+
   const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
-    id: note.id,
+    id: noteId,
     data: { note },
     disabled: false,
   })
 
   // Get container padding - minimal and uniform for all panels
   // Note: Horizontal content padding is handled via CSS (clamp-based responsive padding in .ql-editor)
-  const getContentPadding = () => {
-    // Uniform minimal container padding - no special treatment for borderless panels
-    return "pl-3 pb-3 pr-1"
-  }
+  const getContentPadding = () => "pl-3 pb-3 pr-1"
+
+  if (!note) return null
 
   if (isDragging && !isOverlay) {
     return <div ref={setNodeRef} className="opacity-0 w-full h-full" />
@@ -164,7 +160,7 @@ const DraggableNote = ({
             className="flex-1 min-h-0 zen-void-editor"
             onPointerDown={(e) => e.stopPropagation()}
           >
-            <RichTextEditor noteId={note.id} content={note.content} onContentChange={onContentChange} />
+            <RichTextEditor noteId={noteId} />
           </div>
         </div>
       </div>
@@ -201,7 +197,7 @@ const DraggableNote = ({
             className="flex-1 min-h-0 test-lab-editor"
             onPointerDown={(e) => e.stopPropagation()}
           >
-            <RichTextEditor noteId={note.id} content={note.content} onContentChange={onContentChange} />
+            <RichTextEditor noteId={noteId} />
           </div>
         </div>
       </div>
@@ -237,7 +233,7 @@ const DraggableNote = ({
           className="flex-1 min-h-0 wabi-grid-editor"
           onPointerDown={(e) => e.stopPropagation()}
         >
-          <RichTextEditor noteId={note.id} content={note.content} onContentChange={onContentChange} />
+          <RichTextEditor noteId={noteId} />
         </div>
       </div>
     </div>
@@ -250,20 +246,16 @@ const DraggableNote = ({
 
 const PanelContent = ({
   panelId,
-  note,
-  showBorder,
+  defaultShowBorder,
   onSplit,
   onRemove,
-  onNoteContentChange,
   onToggleBorder,
 }: {
   panelId: string
-  note: BentoNote | null
-  showBorder: boolean
+  defaultShowBorder: boolean
   onSplit: (direction: "horizontal" | "vertical") => void
   onRemove: () => void
-  onNoteContentChange?: (noteId: string, content: string) => void
-  onToggleBorder?: () => void
+  onToggleBorder?: (noteId: string) => void
 }) => {
   const currentNoteStyle = useThemeStore((state) => state.currentNoteStyle)
   const [isPanelHovered, setIsPanelHovered] = useState(false)
@@ -271,7 +263,16 @@ const PanelContent = ({
     id: panelId,
   })
 
-  // Panel controls for empty panels - shown on hover
+  const noteId = useBentoStore((state) =>
+    state.notes.find(n => n.panelId === panelId)?.id
+  )
+
+  const borderHidden = useBentoStore((state) =>
+    state.notes.find(n => n.panelId === panelId)?.borderHidden ?? false
+  )
+
+  const showBorder = borderHidden ? false : defaultShowBorder
+
   const EmptyPanelControls = () => (
     isPanelHovered ? (
       <div className="absolute top-4 right-4 z-20 flex items-center gap-1">
@@ -303,13 +304,10 @@ const PanelContent = ({
     ) : null
   )
 
-  // Get border classes based on theme and showBorder flag
   const getBorderClasses = () => {
-    // Borderless panels blend into the background
     if (!showBorder) {
       return "border border-transparent"
     }
-    // Bordered panels (sharing space with siblings)
     if (currentNoteStyle === 'zen-void') {
       return "border border-[var(--void-border)] hover:border-[var(--void-border-hover)]"
     }
@@ -319,21 +317,17 @@ const PanelContent = ({
     return "border border-[var(--wabi-border)] hover:border-[var(--wabi-border-hover)] rounded-xs"
   }
 
-  // Get drop zone classes based on theme - dotted border + bright glow when dragging over
   const getDropZoneClasses = () => {
     if (!isOver) return ""
-    // Common: dotted border + bright highlight
     if (currentNoteStyle === 'zen-void') {
       return "!border-dashed !border-white/60 bg-white/10 ring-2 ring-white/30 ring-inset"
     }
     if (currentNoteStyle === 'test-lab') {
       return "!border-dashed !border-white/50 bg-white/8 ring-2 ring-white/25 ring-inset"
     }
-    // Wabi Grid
     return "!border-dashed !border-white/50 bg-white/8 ring-2 ring-white/25 ring-inset"
   }
 
-  // Get drop zone shadow based on theme - brighter glow
   const getDropZoneShadow = () => {
     if (!isOver) return undefined
     if (currentNoteStyle === 'zen-void') {
@@ -357,23 +351,20 @@ const PanelContent = ({
       onMouseEnter={() => setIsPanelHovered(true)}
       onMouseLeave={() => setIsPanelHovered(false)}
     >
-      {/* Content Area */}
       <div className="w-full h-full relative z-0">
-        {note ? (
-          <div key={`${note.id}-${panelId}`} className="w-full h-full note-swap-animation">
+        {noteId ? (
+          <div key={`${noteId}-${panelId}`} className="w-full h-full note-swap-animation">
             <DraggableNote
-              note={note}
+              noteId={noteId}
               showBorder={showBorder}
-              onContentChange={(content) => onNoteContentChange?.(note.id, content)}
               onSplit={onSplit}
               onRemove={onRemove}
-              onToggleBorder={onToggleBorder}
+              onToggleBorder={() => onToggleBorder?.(noteId)}
             />
           </div>
         ) : (
           <>
             <EmptyPanelControls />
-            {/* Only show drop hint for bordered panels, keep borderless clean */}
             {showBorder && (
               <div className={clsx(
                 "w-full h-full flex items-center justify-center text-xs pointer-events-none",
@@ -398,37 +389,26 @@ const PanelContent = ({
 
 const LayoutRenderer = ({
   node,
-  notesByPanel,
   borderVisibilityMap,
   onSplit,
   onRemove,
-  isDragging,
-  onNoteContentChange,
   onToggleBorder,
 }: {
   node: LayoutNode
-  notesByPanel: Record<string, BentoNote>
   borderVisibilityMap: Set<string>
   onSplit: (panelId: string, direction: "horizontal" | "vertical") => void
   onRemove: (panelId: string) => void
-  isDragging: boolean
-  onNoteContentChange?: (noteId: string, content: string) => void
   onToggleBorder?: (noteId: string) => void
 }) => {
   if (node.type === "pane") {
-    const note = node.panelId ? notesByPanel[node.panelId] : null
-    // Compute effective showBorder: default behavior, unless user has overridden with borderHidden
     const defaultShowBorder = node.panelId ? borderVisibilityMap.has(node.panelId) : false
-    const showBorder = note?.borderHidden ? false : defaultShowBorder
     return (
       <PanelContent
         panelId={node.panelId!}
-        note={note || null}
-        showBorder={showBorder}
+        defaultShowBorder={defaultShowBorder}
         onSplit={(dir) => onSplit(node.id, dir)}
         onRemove={() => onRemove(node.id)}
-        onNoteContentChange={onNoteContentChange}
-        onToggleBorder={note ? () => onToggleBorder?.(note.id) : undefined}
+        onToggleBorder={onToggleBorder}
       />
     )
   }
@@ -440,12 +420,9 @@ const LayoutRenderer = ({
           <Panel id={child.id} order={index} defaultSize={child.defaultSize} minSize={4}>
             <LayoutRenderer
               node={child}
-              notesByPanel={notesByPanel}
               borderVisibilityMap={borderVisibilityMap}
               onSplit={onSplit}
               onRemove={onRemove}
-              isDragging={isDragging}
-              onNoteContentChange={onNoteContentChange}
               onToggleBorder={onToggleBorder}
             />
           </Panel>
@@ -462,6 +439,7 @@ const LayoutRenderer = ({
     </PanelGroup>
   )
 }
+
 
 // ============================================================================
 // TREE MANIPULATION HELPERS
@@ -527,46 +505,30 @@ interface BentoWorkspaceProps {
 }
 
 export const BentoWorkspace = ({ spaceId: _spaceId }: BentoWorkspaceProps) => {
-  const [draggedNote, setDraggedNote] = useState<BentoNote | null>(null)
+  const [draggedNoteId, setDraggedNoteId] = useState<string | null>(null)
 
-  // Get data from store
-  const notes = useBentoStore((state) => state.notes)
   const currentWorkspace = useBentoStore((state) => state.currentWorkspace())
   const updateWorkspaceLayout = useBentoStore((state) => state.updateWorkspaceLayout)
-  const updateNoteContent = useBentoStore((state) => state.updateNoteContent)
   const updateNotePanelId = useBentoStore((state) => state.updateNotePanelId)
   const deleteNote = useBentoStore((state) => state.deleteNote)
   const toggleNoteBorder = useBentoStore((state) => state.toggleNoteBorder)
 
-  // Get layout from current workspace
   const layout = currentWorkspace?.layout
 
-  // Create notesByPanel lookup for O(1) access
-  const notesByPanel = useMemo(() => {
-    const map: Record<string, BentoNote> = {}
-    for (const note of notes) {
-      if (note.panelId) {
-        map[note.panelId] = note
-      }
-    }
-    return map
-  }, [notes])
-
-  // Pre-compute which panels should show borders (optimized - runs once per layout change)
   const borderVisibilityMap = useMemo(() => {
     if (!layout) return new Set<string>()
     return computeBorderVisibility(layout)
   }, [layout])
 
-  // Drag handlers
   const handleDragStart = (event: DragStartEvent) => {
     const { active } = event
-    setDraggedNote(active.data.current?.note as BentoNote)
+    const note = active.data.current?.note as BentoNote | undefined
+    setDraggedNoteId(note?.id ?? null)
   }
 
   const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event
-    setDraggedNote(null)
+    setDraggedNoteId(null)
 
     if (!over) return
 
@@ -574,27 +536,19 @@ export const BentoWorkspace = ({ spaceId: _spaceId }: BentoWorkspaceProps) => {
     const targetPanelId = over.id as string
     const sourcePanelId = draggedNote.panelId
 
-    // Don't do anything if dropped on same panel
     if (sourcePanelId === targetPanelId) return
 
-    const targetNote = notesByPanel[targetPanelId]
+    const notes = useBentoStore.getState().notes
+    const targetNote = notes.find(n => n.panelId === targetPanelId)
 
     if (targetNote) {
-      // Swap notes: target note goes to source panel, dragged note goes to target panel
       updateNotePanelId(targetNote.id, sourcePanelId!)
       updateNotePanelId(draggedNote.id, targetPanelId)
     } else {
-      // Move to empty panel
       updateNotePanelId(draggedNote.id, targetPanelId)
     }
   }
 
-  // Content change handler
-  const handleNoteContentChange = useCallback((noteId: string, content: string) => {
-    updateNoteContent(noteId, content)
-  }, [updateNoteContent])
-
-  // Layout manipulation
   const onSplit = useCallback((nodeId: string, direction: "horizontal" | "vertical") => {
     if (!currentWorkspace || !layout) return
     const newLayout = splitNodeInTree(layout, nodeId, direction)
@@ -609,12 +563,18 @@ export const BentoWorkspace = ({ spaceId: _spaceId }: BentoWorkspaceProps) => {
     }
   }, [currentWorkspace, layout, updateWorkspaceLayout])
 
-  // Handle note deletion (also removes from panel)
-  const handleDeleteNote = useCallback((noteId: string) => {
-    deleteNote(noteId)
-  }, [deleteNote])
+  const handleRemoveWithDelete = useCallback((nodeId: string) => {
+    const paneNode = findPaneById(layout!, nodeId)
+    if (paneNode?.panelId) {
+      const notes = useBentoStore.getState().notes
+      const note = notes.find(n => n.panelId === paneNode.panelId)
+      if (note) {
+        deleteNote(note.id)
+      }
+    }
+    onRemove(nodeId)
+  }, [layout, deleteNote, onRemove])
 
-  // Handle border toggle for a note
   const handleToggleBorder = useCallback((noteId: string) => {
     toggleNoteBorder(noteId)
   }, [toggleNoteBorder])
@@ -630,28 +590,16 @@ export const BentoWorkspace = ({ spaceId: _spaceId }: BentoWorkspaceProps) => {
   return (
     <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
       <div className="h-full w-full bg-[var(--app-bg)] text-[var(--text-primary)] overflow-hidden flex flex-col font-sans">
-        {/* Workspace Area */}
         <div className="flex-1 overflow-hidden relative p-2">
           <LayoutRenderer
             node={layout}
-            notesByPanel={notesByPanel}
             borderVisibilityMap={borderVisibilityMap}
             onSplit={onSplit}
-            onRemove={(nodeId) => {
-              // Find and delete any note in this panel before removing it
-              const paneNode = findPaneById(layout, nodeId)
-              if (paneNode?.panelId && notesByPanel[paneNode.panelId]) {
-                handleDeleteNote(notesByPanel[paneNode.panelId].id)
-              }
-              onRemove(nodeId)
-            }}
-            isDragging={!!draggedNote}
-            onNoteContentChange={handleNoteContentChange}
+            onRemove={handleRemoveWithDelete}
             onToggleBorder={handleToggleBorder}
           />
         </div>
 
-        {/* Drag Overlay - with smooth fade drop animation */}
         <DragOverlay
           dropAnimation={{
             duration: 200,
@@ -661,7 +609,7 @@ export const BentoWorkspace = ({ spaceId: _spaceId }: BentoWorkspaceProps) => {
             })
           } as DropAnimation}
         >
-          {draggedNote ? <DraggableNote note={draggedNote} isOverlay /> : null}
+          {draggedNoteId ? <DraggableNote noteId={draggedNoteId} isOverlay /> : null}
         </DragOverlay>
       </div>
     </DndContext>
