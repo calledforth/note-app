@@ -31,6 +31,7 @@ const DraggableNote = ({
 }) => {
   const [isMenuExpanded, setIsMenuExpanded] = useState(false)
   const currentNoteStyle = useThemeStore((state) => state.currentNoteStyle)
+  const currentEditorFont = useThemeStore((state) => state.currentEditorFont)
 
   const note = useBentoStore((state) => state.notes.find(n => n.id === noteId))
 
@@ -230,7 +231,10 @@ const DraggableNote = ({
       {/* Content Area */}
       <div className={clsx("flex-1 flex flex-col min-h-0", getContentPadding())}>
         <div
-          className="flex-1 min-h-0 wabi-grid-editor"
+          className={clsx(
+            "flex-1 min-h-0 wabi-grid-editor",
+            `font-${currentEditorFont}`
+          )}
           onPointerDown={(e) => e.stopPropagation()}
         >
           <RichTextEditor noteId={noteId} />

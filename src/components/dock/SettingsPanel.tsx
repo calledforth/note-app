@@ -1,5 +1,4 @@
-import { useNotesStore } from "../../stores/notesStore";
-import { useThemeStore, type ThemeKey } from "../../stores/themeStore";
+import { useThemeStore, type ThemeKey, EDITOR_FONTS } from "../../stores/themeStore";
 import { X, Check, Type, Palette } from "lucide-react";
 import clsx from "clsx";
 
@@ -9,26 +8,15 @@ interface SettingsPanelProps {
 }
 
 export function SettingsPanel({ spaceId: _spaceId, onClose }: SettingsPanelProps) {
-  const theme = useNotesStore((state) => state.theme);
-  const updateTheme = useNotesStore((state) => state.updateTheme);
   const currentTheme = useThemeStore((state) => state.currentTheme);
   const setTheme = useThemeStore((state) => state.setTheme);
-
-  const handleFontChange = (fontFamily: string) => {
-    updateTheme(fontFamily);
-  };
+  const currentEditorFont = useThemeStore((state) => state.currentEditorFont);
+  const setEditorFont = useThemeStore((state) => state.setEditorFont);
 
   const themes: { key: ThemeKey; label: string; color: string }[] = [
     { key: "neutral", label: "Neutral", color: "#171717" },
     { key: "black", label: "Midnight", color: "#000000" },
     { key: "white", label: "Clean", color: "#ffffff" },
-  ];
-
-  const fonts = [
-    { name: "Inter", label: "Inter" },
-    { name: "system-ui", label: "System UI" },
-    { name: "Arial", label: "Arial" },
-    { name: "Helvetica", label: "Helvetica" },
   ];
 
   return (
@@ -116,21 +104,22 @@ export function SettingsPanel({ spaceId: _spaceId, onClose }: SettingsPanelProps
             </div>
 
             <div className="flex flex-wrap gap-2">
-              {fonts.map((f) => {
-                const isSelected = theme.fontFamily === f.name;
+              {EDITOR_FONTS.map((f) => {
+                const isSelected = currentEditorFont === f.key;
                 return (
                   <button
-                    key={f.name}
-                    onClick={() => handleFontChange(f.name)}
+                    key={f.key}
+                    onClick={() => setEditorFont(f.key)}
                     className={clsx(
-                      "px-3 py-1.5 rounded-full text-[11px] font-medium border transition-all duration-200 flex items-center gap-1.5",
+                      "px-4 py-2 rounded-full text-sm font-medium border transition-all duration-200 flex items-center gap-2",
                       isSelected
                         ? "bg-[var(--text-primary)] text-[var(--app-bg)] border-[var(--text-primary)]"
                         : "bg-transparent border-[var(--border-subtle)] text-[var(--text-secondary)] hover:border-[var(--text-secondary)]"
                     )}
                   >
-                    <span style={{ fontFamily: f.name }}>{f.label}</span>
-                    {isSelected && <Check className="w-2.5 h-2.5" />}
+                    <span style={{ fontFamily: f.fontFamily }}>{f.name}</span>
+                    <span className="text-xs opacity-60">{f.description}</span>
+                    {isSelected && <Check className="w-3 h-3" />}
                   </button>
                 )
               })}

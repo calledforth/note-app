@@ -1,0 +1,778 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Learning Workspace — Prototype</title>
+
+    <!-- Match your app's fonts -->
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&display=swap"
+        rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
+
+    <style>
+        :root {
+            /* Wabi Grid palette */
+            --bg: #0c0c0c;
+            --surface: #111111;
+            --surface-hover: #161616;
+            --border: rgba(255, 255, 255, 0.08);
+            --border-hover: rgba(255, 255, 255, 0.12);
+            --text: #dbdbdb;
+            --text-muted: rgba(211, 211, 211, 0.5);
+            --text-dim: rgba(211, 211, 211, 0.35);
+            --accent: rgba(168, 205, 130, 0.8);
+            --accent-dim: rgba(168, 205, 130, 0.4);
+            --shimmer-base: rgba(255, 255, 255, 0.03);
+            --shimmer-highlight: rgba(255, 255, 255, 0.08);
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'JetBrains Mono', monospace;
+            min-height: 100vh;
+            padding: 40px 60px;
+            line-height: 1.6;
+        }
+
+        /* Header */
+        .header {
+            margin-bottom: 48px;
+        }
+
+        .header h1 {
+            font-size: 0.75rem;
+            font-weight: 500;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--text-muted);
+            margin-bottom: 6px;
+        }
+
+        .header p {
+            font-size: 0.72rem;
+            color: var(--text-dim);
+        }
+
+        /* Input Area */
+        .input-area {
+            margin-bottom: 40px;
+        }
+
+        .input-wrapper {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 16px 20px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            transition: border-color 0.2s ease, background 0.2s ease;
+        }
+
+        .input-wrapper:focus-within {
+            border-color: var(--border-hover);
+            background: var(--surface-hover);
+        }
+
+        .input-icon {
+            width: 16px;
+            height: 16px;
+            opacity: 0.4;
+        }
+
+        .idea-input {
+            flex: 1;
+            background: transparent;
+            border: none;
+            outline: none;
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.82rem;
+            color: var(--text);
+            letter-spacing: 0.02em;
+        }
+
+        .idea-input::placeholder {
+            color: var(--text-muted);
+        }
+
+        .input-hint {
+            font-size: 0.65rem;
+            color: var(--text-dim);
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+
+        .input-wrapper:focus-within .input-hint {
+            opacity: 1;
+        }
+
+        /* Ideas List */
+        .ideas-list {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        /* Idea Item */
+        .idea-item {
+            position: relative;
+            padding: 16px 20px;
+            background: transparent;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.15s ease;
+        }
+
+        .idea-item:hover {
+            background: var(--surface);
+        }
+
+        .idea-item.expanded {
+            background: var(--surface);
+        }
+
+        .idea-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 14px;
+        }
+
+        /* Status Icon */
+        .status-icon {
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            flex-shrink: 0;
+            margin-top: 2px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+        }
+
+        /* Shimmer loading state */
+        .status-icon.loading {
+            background: linear-gradient(90deg,
+                    var(--shimmer-base) 0%,
+                    var(--shimmer-highlight) 50%,
+                    var(--shimmer-base) 100%);
+            background-size: 200% 100%;
+            animation: shimmer 1.5s infinite ease-in-out;
+        }
+
+        @keyframes shimmer {
+            0% {
+                background-position: 200% 0;
+            }
+
+            100% {
+                background-position: -200% 0;
+            }
+        }
+
+        /* Ready state */
+        .status-icon.ready {
+            background: var(--accent-dim);
+        }
+
+        .status-icon.ready::after {
+            content: '';
+            width: 6px;
+            height: 6px;
+            border-radius: 50%;
+            background: var(--accent);
+        }
+
+        /* Idea Content */
+        .idea-content {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .idea-text {
+            font-size: 0.82rem;
+            font-weight: 400;
+            color: var(--text);
+            margin-bottom: 4px;
+            line-height: 1.5;
+        }
+
+        .idea-original {
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            font-style: italic;
+            margin-bottom: 8px;
+            display: none;
+        }
+
+        .idea-item.expanded .idea-original {
+            display: block;
+        }
+
+        .idea-meta {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 0.68rem;
+            color: var(--text-dim);
+        }
+
+        /* Favicon Stack - collapsed view */
+        .favicon-stack {
+            display: flex;
+            align-items: center;
+        }
+
+        .favicon {
+            width: 16px;
+            height: 16px;
+            border-radius: 3px;
+            background: var(--surface-hover);
+            border: 1px solid var(--border);
+            margin-left: -6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.55rem;
+            color: var(--text-muted);
+            transition: transform 0.15s ease;
+        }
+
+        .favicon:first-child {
+            margin-left: 0;
+        }
+
+        .idea-item:hover .favicon {
+            transform: translateY(-1px);
+        }
+
+        .favicon img {
+            width: 12px;
+            height: 12px;
+            border-radius: 2px;
+        }
+
+        .favicon-count {
+            margin-left: 6px;
+            font-size: 0.65rem;
+            color: var(--text-dim);
+        }
+
+        /* Expanded Links Area */
+        .links-area {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease, opacity 0.2s ease;
+            opacity: 0;
+        }
+
+        .idea-item.expanded .links-area {
+            max-height: 400px;
+            opacity: 1;
+            margin-top: 16px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+        }
+
+        .link-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            margin: 0 -12px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: background 0.15s ease;
+        }
+
+        .link-item:hover {
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .link-favicon {
+            width: 20px;
+            height: 20px;
+            border-radius: 4px;
+            background: var(--surface-hover);
+            border: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .link-favicon img {
+            width: 14px;
+            height: 14px;
+        }
+
+        .link-details {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .link-title {
+            font-size: 0.78rem;
+            color: var(--text);
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            margin-bottom: 2px;
+        }
+
+        .link-domain {
+            font-size: 0.65rem;
+            color: var(--text-muted);
+        }
+
+        .link-date {
+            font-size: 0.65rem;
+            color: var(--text-dim);
+            flex-shrink: 0;
+        }
+
+        /* Thread Extension */
+        .thread-container {
+            margin-left: 32px;
+            padding-left: 16px;
+            border-left: 1px solid var(--border);
+        }
+
+        .thread-line {
+            position: absolute;
+            left: 28px;
+            top: 36px;
+            bottom: 0;
+            width: 1px;
+            background: var(--border);
+        }
+
+        /* Add Thread Button */
+        .add-thread-btn {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px 12px;
+            margin-top: 8px;
+            margin-left: -12px;
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            background: transparent;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-family: 'JetBrains Mono', monospace;
+            transition: color 0.15s ease, background 0.15s ease;
+        }
+
+        .add-thread-btn:hover {
+            color: var(--text-muted);
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        .add-thread-btn svg {
+            width: 12px;
+            height: 12px;
+            opacity: 0.5;
+        }
+
+        /* Depth indicator */
+        .depth-indicator {
+            display: inline-flex;
+            gap: 3px;
+            margin-left: auto;
+        }
+
+        .depth-dot {
+            width: 4px;
+            height: 4px;
+            border-radius: 50%;
+            background: var(--border-hover);
+        }
+
+        .depth-dot.active {
+            background: var(--accent-dim);
+        }
+
+        /* Animation for new items */
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateY(-8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .idea-item.new {
+            animation: slideIn 0.3s ease-out;
+        }
+
+        /* Empty state */
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: var(--text-dim);
+        }
+
+        .empty-icon {
+            font-size: 2rem;
+            margin-bottom: 12px;
+            opacity: 0.3;
+        }
+
+        .empty-text {
+            font-size: 0.75rem;
+        }
+
+        /* Keyboard hints */
+        kbd {
+            display: inline-block;
+            padding: 2px 6px;
+            font-size: 0.65rem;
+            font-family: 'JetBrains Mono', monospace;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 3px;
+            color: var(--text-muted);
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="header">
+        <h1>Learning Workspace</h1>
+        <p>capture ideas • AI fetches resources • explore deeper</p>
+    </div>
+
+    <div class="input-area">
+        <div class="input-wrapper">
+            <svg class="input-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <circle cx="11" cy="11" r="8" />
+                <path d="m21 21-4.35-4.35" />
+            </svg>
+            <input type="text" class="idea-input" placeholder="type a learning idea, question, or topic..."
+                id="ideaInput">
+            <span class="input-hint"><kbd>↵</kbd> to add</span>
+        </div>
+    </div>
+
+    <div class="ideas-list" id="ideasList">
+
+        <!-- Idea 1: Ready state with links -->
+        <div class="idea-item" onclick="this.classList.toggle('expanded')">
+            <div class="idea-header">
+                <div class="status-icon ready"></div>
+                <div class="idea-content">
+                    <div class="idea-text">State Space Models: Relationship to Transformers & Mamba Architecture</div>
+                    <div class="idea-original">Original: "world models state space models how they relate to
+                        transformers maybe mamba stuff"</div>
+                    <div class="idea-meta">
+                        <div class="favicon-stack">
+                            <div class="favicon"><img src="https://www.google.com/s2/favicons?domain=arxiv.org&sz=32"
+                                    alt=""></div>
+                            <div class="favicon"><img
+                                    src="https://www.google.com/s2/favicons?domain=huggingface.co&sz=32" alt=""></div>
+                            <div class="favicon"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=32"
+                                    alt=""></div>
+                            <span class="favicon-count">+2</span>
+                        </div>
+                        <span>2 days ago</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="links-area">
+                <div class="link-item">
+                    <div class="link-favicon"><img src="https://www.google.com/s2/favicons?domain=arxiv.org&sz=32"
+                            alt=""></div>
+                    <div class="link-details">
+                        <div class="link-title">Mamba: Linear-Time Sequence Modeling with Selective State Spaces</div>
+                        <div class="link-domain">arxiv.org</div>
+                    </div>
+                    <div class="link-date">Dec 2023</div>
+                </div>
+                <div class="link-item">
+                    <div class="link-favicon"><img src="https://www.google.com/s2/favicons?domain=huggingface.co&sz=32"
+                            alt=""></div>
+                    <div class="link-details">
+                        <div class="link-title">State Space Models: A Modern Approach to Sequence Modeling</div>
+                        <div class="link-domain">huggingface.co/blog</div>
+                    </div>
+                    <div class="link-date">Jan 2024</div>
+                </div>
+                <div class="link-item">
+                    <div class="link-favicon"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=32"
+                            alt=""></div>
+                    <div class="link-details">
+                        <div class="link-title">state-spaces/mamba — Official Mamba Implementation</div>
+                        <div class="link-domain">github.com</div>
+                    </div>
+                    <div class="link-date">Nov 2023</div>
+                </div>
+                <div class="link-item">
+                    <div class="link-favicon"><img src="https://www.google.com/s2/favicons?domain=youtube.com&sz=32"
+                            alt=""></div>
+                    <div class="link-details">
+                        <div class="link-title">Mamba Explained: The New Rival to Transformers</div>
+                        <div class="link-domain">youtube.com</div>
+                    </div>
+                    <div class="link-date">Dec 2023</div>
+                </div>
+                <div class="link-item">
+                    <div class="link-favicon"><img src="https://www.google.com/s2/favicons?domain=thegradient.pub&sz=32"
+                            alt=""></div>
+                    <div class="link-details">
+                        <div class="link-title">From S4 to Mamba: The Evolution of State Space Models</div>
+                        <div class="link-domain">thegradient.pub</div>
+                    </div>
+                    <div class="link-date">Jan 2024</div>
+                </div>
+
+                <button class="add-thread-btn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 5v14M5 12h14" />
+                    </svg>
+                    go deeper on this idea
+                </button>
+            </div>
+        </div>
+
+        <!-- Thread Extension Example -->
+        <div class="thread-container">
+            <div class="idea-item" onclick="this.classList.toggle('expanded')">
+                <div class="idea-header">
+                    <div class="status-icon ready"></div>
+                    <div class="idea-content">
+                        <div class="idea-text">Mamba vs Transformers: Computational Complexity & Linear Scaling</div>
+                        <div class="idea-meta">
+                            <div class="favicon-stack">
+                                <div class="favicon"><img
+                                        src="https://www.google.com/s2/favicons?domain=arxiv.org&sz=32" alt=""></div>
+                                <div class="favicon"><img
+                                        src="https://www.google.com/s2/favicons?domain=medium.com&sz=32" alt=""></div>
+                                <span class="favicon-count">+1</span>
+                            </div>
+                            <span>1 day ago</span>
+                            <div class="depth-indicator">
+                                <div class="depth-dot active"></div>
+                                <div class="depth-dot active"></div>
+                                <div class="depth-dot"></div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="links-area">
+                    <div class="link-item">
+                        <div class="link-favicon"><img src="https://www.google.com/s2/favicons?domain=arxiv.org&sz=32"
+                                alt=""></div>
+                        <div class="link-details">
+                            <div class="link-title">An Empirical Study of Mamba-based Language Models</div>
+                            <div class="link-domain">arxiv.org</div>
+                        </div>
+                        <div class="link-date">Jan 2024</div>
+                    </div>
+                    <div class="link-item">
+                        <div class="link-favicon"><img src="https://www.google.com/s2/favicons?domain=medium.com&sz=32"
+                                alt=""></div>
+                        <div class="link-details">
+                            <div class="link-title">Why Mamba Could Dethrone Transformers for Long Sequences</div>
+                            <div class="link-domain">towardsdatascience.com</div>
+                        </div>
+                        <div class="link-date">Dec 2023</div>
+                    </div>
+
+                    <button class="add-thread-btn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 5v14M5 12h14" />
+                        </svg>
+                        go deeper on this idea
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Idea 2: Currently loading -->
+        <div class="idea-item">
+            <div class="idea-header">
+                <div class="status-icon loading"></div>
+                <div class="idea-content">
+                    <div class="idea-text">How to Build High-Performance Electron Applications</div>
+                    <div class="idea-meta">
+                        <span style="color: var(--text-dim); font-style: italic;">finding resources...</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Idea 3: Ready -->
+        <div class="idea-item" onclick="this.classList.toggle('expanded')">
+            <div class="idea-header">
+                <div class="status-icon ready"></div>
+                <div class="idea-content">
+                    <div class="idea-text">Understanding WebGPU for Machine Learning Inference</div>
+                    <div class="idea-meta">
+                        <div class="favicon-stack">
+                            <div class="favicon"><img
+                                    src="https://www.google.com/s2/favicons?domain=developer.chrome.com&sz=32" alt="">
+                            </div>
+                            <div class="favicon"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=32"
+                                    alt=""></div>
+                            <div class="favicon"><img src="https://www.google.com/s2/favicons?domain=web.dev&sz=32"
+                                    alt=""></div>
+                        </div>
+                        <span>4 days ago</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="links-area">
+                <div class="link-item">
+                    <div class="link-favicon"><img
+                            src="https://www.google.com/s2/favicons?domain=developer.chrome.com&sz=32" alt=""></div>
+                    <div class="link-details">
+                        <div class="link-title">WebGPU: Unlocking modern GPU access in the browser</div>
+                        <div class="link-domain">developer.chrome.com</div>
+                    </div>
+                    <div class="link-date">2024</div>
+                </div>
+                <div class="link-item">
+                    <div class="link-favicon"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=32"
+                            alt=""></div>
+                    <div class="link-details">
+                        <div class="link-title">xenova/transformers.js — Run Transformers in browser</div>
+                        <div class="link-domain">github.com</div>
+                    </div>
+                    <div class="link-date">2024</div>
+                </div>
+
+                <button class="add-thread-btn">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M12 5v14M5 12h14" />
+                    </svg>
+                    go deeper on this idea
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <script>
+        // Simulate adding new ideas
+        const input = document.getElementById('ideaInput');
+        const list = document.getElementById('ideasList');
+
+        const sampleLinks = [
+            { domain: 'arxiv.org', title: 'Sample Research Paper on Topic' },
+            { domain: 'github.com', title: 'Related Open Source Project' },
+            { domain: 'medium.com', title: 'Deep Dive Article' },
+        ];
+
+        input.addEventListener('keydown', (e) => {
+            if (e.key === 'Enter' && input.value.trim()) {
+                const rawText = input.value.trim();
+
+                // Create new idea with loading state
+                const ideaItem = document.createElement('div');
+                ideaItem.className = 'idea-item new';
+                ideaItem.innerHTML = `
+          <div class="idea-header">
+            <div class="status-icon loading"></div>
+            <div class="idea-content">
+              <div class="idea-text">${rawText}</div>
+              <div class="idea-meta">
+                <span style="color: var(--text-dim); font-style: italic;">finding resources...</span>
+              </div>
+            </div>
+          </div>
+        `;
+
+                list.insertBefore(ideaItem, list.firstChild);
+                input.value = '';
+
+                // Simulate AI cleanup and link fetching
+                setTimeout(() => {
+                    // "Clean up" the idea text (simulated)
+                    const cleanedText = rawText.charAt(0).toUpperCase() + rawText.slice(1);
+
+                    ideaItem.innerHTML = `
+            <div class="idea-header">
+              <div class="status-icon ready"></div>
+              <div class="idea-content">
+                <div class="idea-text">${cleanedText}</div>
+                <div class="idea-original">Original: "${rawText}"</div>
+                <div class="idea-meta">
+                  <div class="favicon-stack">
+                    <div class="favicon"><img src="https://www.google.com/s2/favicons?domain=arxiv.org&sz=32" alt=""></div>
+                    <div class="favicon"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=32" alt=""></div>
+                    <div class="favicon"><img src="https://www.google.com/s2/favicons?domain=medium.com&sz=32" alt=""></div>
+                  </div>
+                  <span>just now</span>
+                </div>
+              </div>
+            </div>
+            <div class="links-area">
+              <div class="link-item">
+                <div class="link-favicon"><img src="https://www.google.com/s2/favicons?domain=arxiv.org&sz=32" alt=""></div>
+                <div class="link-details">
+                  <div class="link-title">Research Paper: Deep Exploration of ${cleanedText}</div>
+                  <div class="link-domain">arxiv.org</div>
+                </div>
+                <div class="link-date">2024</div>
+              </div>
+              <div class="link-item">
+                <div class="link-favicon"><img src="https://www.google.com/s2/favicons?domain=github.com&sz=32" alt=""></div>
+                <div class="link-details">
+                  <div class="link-title">Open Source Implementation & Examples</div>
+                  <div class="link-domain">github.com</div>
+                </div>
+                <div class="link-date">2024</div>
+              </div>
+              <div class="link-item">
+                <div class="link-favicon"><img src="https://www.google.com/s2/favicons?domain=medium.com&sz=32" alt=""></div>
+                <div class="link-details">
+                  <div class="link-title">A Practical Guide to Understanding ${cleanedText}</div>
+                  <div class="link-domain">medium.com</div>
+                </div>
+                <div class="link-date">2024</div>
+              </div>
+              
+              <button class="add-thread-btn">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M12 5v14M5 12h14"/>
+                </svg>
+                go deeper on this idea
+              </button>
+            </div>
+          `;
+
+                    ideaItem.onclick = () => ideaItem.classList.toggle('expanded');
+
+                }, 2500); // Simulate 2.5s fetch time
+            }
+        });
+
+        // Keyboard shortcut hint
+        console.log('📚 Learning Workspace Prototype');
+        console.log('• Type an idea and press Enter');
+        console.log('• Click on ideas to expand links');
+        console.log('• Note the shimmer loading state');
+    </script>
+
+</body>
+
+</html>

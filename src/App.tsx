@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { AnimatePresence } from 'framer-motion';
-import { useThemeStore, type NoteStyle } from './stores/themeStore';
+import { useThemeStore, type NoteStyle, type EditorFont } from './stores/themeStore';
 import { useBentoStore } from './stores/bentoStore';
 import { useMantraStore } from './stores/mantraStore';
 import { ThemeManager } from './components/theme/ThemeManager';
@@ -27,6 +27,8 @@ function App() {
   // Theme actions
   const cycleNoteStyle = useThemeStore((state) => state.cycleNoteStyle);
   const setNoteStyle = useThemeStore((state) => state.setNoteStyle);
+  const cycleEditorFont = useThemeStore((state) => state.cycleEditorFont);
+  const setEditorFont = useThemeStore((state) => state.setEditorFont);
 
   // Mantra store
   const shouldShowMantraOnStartup = useMantraStore((state) => state.shouldShowMantraOnStartup);
@@ -75,6 +77,13 @@ function App() {
       return;
     }
 
+    // Handle font setting (dynamic commands)
+    if (commandId.startsWith('font-')) {
+      const fontKey = commandId.replace('font-', '') as EditorFont;
+      setEditorFont(fontKey);
+      return;
+    }
+
     // Handle static commands
     switch (commandId) {
       case 'new-note':
@@ -90,6 +99,10 @@ function App() {
 
       case 'toggle-style':
         cycleNoteStyle();
+        break;
+
+      case 'toggle-font':
+        cycleEditorFont();
         break;
 
       case 'open-settings':
@@ -115,7 +128,7 @@ function App() {
       default:
         console.log('Unknown command:', commandId);
     }
-  }, [switchWorkspace, setNoteStyle, createNote, createWorkspace, cycleNoteStyle]);
+  }, [switchWorkspace, setNoteStyle, setEditorFont, createNote, createWorkspace, cycleNoteStyle, cycleEditorFont]);
 
   // Global keyboard shortcuts - use capture phase to intercept before editors consume events
   useEffect(() => {
@@ -146,6 +159,14 @@ function App() {
         return;
       }
 
+      // Ctrl/Cmd + Shift + F -> cycle editor font
+      if ((event.ctrlKey || event.metaKey) && event.shiftKey && key === 'f') {
+        event.preventDefault();
+        event.stopPropagation();
+        cycleEditorFont();
+        return;
+      }
+
       // Ctrl/Cmd + N -> new note
       if ((event.ctrlKey || event.metaKey) && key === 'n') {
         event.preventDefault();
@@ -158,7 +179,7 @@ function App() {
     // Use capture phase to intercept events before they reach the editor
     window.addEventListener('keydown', handleKeyDown, { capture: true });
     return () => window.removeEventListener('keydown', handleKeyDown, { capture: true });
-  }, [cycleNoteStyle, createNote]);
+  }, [cycleNoteStyle, cycleEditorFont, createNote]);
 
   const currentWorkspace = workspaces.find((s) => s.id === currentWorkspaceId);
 

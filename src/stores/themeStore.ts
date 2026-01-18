@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware';
 
 export type ThemeKey = 'neutral' | 'black' | 'white';
 export type NoteStyle = 'wabi-grid' | 'zen-void' | 'test-lab';
+export type EditorFont = 'mono' | 'geist' | 'hanken' | 'sen';
 
 interface ThemeTokens {
   appBg: string;
@@ -65,25 +66,38 @@ export const NOTE_STYLES: { key: NoteStyle; name: string; description: string }[
   { key: 'test-lab', name: 'Test Lab', description: 'Experimental playground theme' },
 ];
 
+// Editor font definitions
+export const EDITOR_FONTS: { key: EditorFont; name: string; description: string; fontFamily: string }[] = [
+  { key: 'mono', name: 'Mono', description: 'JetBrains Mono', fontFamily: "'JetBrains Mono', monospace" },
+  { key: 'geist', name: 'Geist', description: 'Clean sans-serif', fontFamily: "'Geist', system-ui, sans-serif" },
+  { key: 'hanken', name: 'Hanken', description: 'Hanken Grotesk', fontFamily: "'Hanken Grotesk', system-ui, sans-serif" },
+  { key: 'sen', name: 'Sen', description: 'Geohumanist sans', fontFamily: "'Sen', system-ui, sans-serif" },
+];
+
 interface ThemeStore {
   currentTheme: ThemeKey;
   currentNoteStyle: NoteStyle;
+  currentEditorFont: EditorFont;
   themes: Record<ThemeKey, ThemeTokens>;
   setTheme: (theme: ThemeKey) => void;
   cycleTheme: () => void;
   getCurrentThemeTokens: () => ThemeTokens;
   setNoteStyle: (style: NoteStyle) => void;
   cycleNoteStyle: () => void;
+  setEditorFont: (font: EditorFont) => void;
+  cycleEditorFont: () => void;
 }
 
 const THEME_ORDER: ThemeKey[] = ['neutral', 'black', 'white'];
 const NOTE_STYLE_ORDER: NoteStyle[] = ['wabi-grid', 'zen-void', 'test-lab'];
+const EDITOR_FONT_ORDER: EditorFont[] = ['mono', 'geist', 'hanken', 'sen'];
 
 export const useThemeStore = create<ThemeStore>()(
   persist(
     (set, get) => ({
       currentTheme: 'neutral',
       currentNoteStyle: 'wabi-grid',
+      currentEditorFont: 'geist',
       themes: THEMES,
       setTheme: (theme) => set({ currentTheme: theme }),
       cycleTheme: () => {
@@ -104,6 +118,14 @@ export const useThemeStore = create<ThemeStore>()(
         const safeIndex = currentIndex === -1 ? 0 : currentIndex;
         const nextIndex = (safeIndex + 1) % NOTE_STYLE_ORDER.length;
         set({ currentNoteStyle: NOTE_STYLE_ORDER[nextIndex] });
+      },
+      setEditorFont: (font) => set({ currentEditorFont: font }),
+      cycleEditorFont: () => {
+        const current = get().currentEditorFont;
+        const currentIndex = EDITOR_FONT_ORDER.indexOf(current);
+        const safeIndex = currentIndex === -1 ? 0 : currentIndex;
+        const nextIndex = (safeIndex + 1) % EDITOR_FONT_ORDER.length;
+        set({ currentEditorFont: EDITOR_FONT_ORDER[nextIndex] });
       },
     }),
     {

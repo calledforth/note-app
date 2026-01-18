@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react'
-import { useThemeStore, NOTE_STYLES } from '../../stores/themeStore'
+import { useThemeStore, NOTE_STYLES, EDITOR_FONTS } from '../../stores/themeStore'
 import { useBentoStore } from '../../stores/bentoStore'
 import {
     Palette,
@@ -16,7 +16,8 @@ import {
     Sparkles,
     Info,
     Settings2,
-    Sunrise
+    Sunrise,
+    Type
 } from 'lucide-react'
 
 // Get app version from package.json (injected at build time via Vite)
@@ -56,6 +57,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose,
 
     // Store access
     const currentNoteStyle = useThemeStore((state) => state.currentNoteStyle)
+    const currentEditorFont = useThemeStore((state) => state.currentEditorFont)
     const workspaces = useBentoStore((state) => state.workspaces)
 
     // Build commands list dynamically
@@ -115,6 +117,28 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose,
             })
         })
 
+        // Toggle font (cycles through fonts)
+        commands.push({
+            id: 'toggle-font',
+            label: 'Toggle Editor Font',
+            description: 'Cycle between Mono and Geist',
+            icon: <Type className="w-4 h-4" />,
+            shortcut: 'Ctrl+Shift+F',
+            category: 'Appearance'
+        })
+
+        // Individual font commands
+        EDITOR_FONTS.forEach((font) => {
+            commands.push({
+                id: `font-${font.key}`,
+                label: `Set ${font.name} Font`,
+                description: font.description,
+                icon: <Type className="w-4 h-4" />,
+                category: 'Appearance',
+                isActive: currentEditorFont === font.key
+            })
+        })
+
         // === RITUALS ===
         commands.push({
             id: 'show-mantra',
@@ -166,7 +190,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose,
         })
 
         return commands
-    }, [workspaces, currentNoteStyle])
+    }, [workspaces, currentNoteStyle, currentEditorFont])
 
     // Filter commands based on search
     const filteredCommands = useMemo(() => {

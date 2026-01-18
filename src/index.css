@@ -3,6 +3,9 @@
 @import url('https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@300;400;500;600&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap');
 @import url('https://fonts.googleapis.com/css2?family=Arimo:ital,wght@0,400;0,500;0,600;0,700;1,400&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Hanken+Grotesk:wght@300;400;500;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Sen:wght@400;500;600;700;800&display=swap');
 
 @import "tailwindcss";
 
@@ -369,12 +372,13 @@
   bottom: 0;
   /* Default: percentage-based padding for small panes, caps at 25px */
   padding: 0 clamp(1px, 5%, 25px) 0 clamp(1px, 5%, 25px) !important;
-  font-family: 'JetBrains Mono', monospace !important;
+  /* Font set via CSS variable, defaults to Geist */
+  font-family: var(--editor-font, 'Geist', system-ui, sans-serif) !important;
   font-style: normal !important;
   font-weight: 400 !important;
-  font-size: 0.82rem !important;
-  line-height: 1.7 !important;
-  letter-spacing: 0.02em !important;
+  font-size: var(--editor-font-size, 0.9rem) !important;
+  line-height: var(--editor-line-height, 1.8) !important;
+  letter-spacing: var(--editor-letter-spacing, 0.01em) !important;
   color: var(--wabi-text) !important;
   overflow-y: auto !important;
   -webkit-overflow-scrolling: touch;
@@ -443,10 +447,82 @@
 
 /* Placeholder styling for Wabi Grid */
 .wabi-grid-editor .ql-editor.ql-blank::before {
-  font-family: 'JetBrains Mono', monospace !important;
+  font-family: var(--editor-font, 'Geist', system-ui, sans-serif) !important;
   font-style: italic !important;
   font-weight: 400 !important;
   color: var(--wabi-text-muted) !important;
+  /* Match dynamic padding - default uses clamp */
+  left: clamp(1px, 5%, 25px) !important;
+}
+
+@container (min-width: 400px) {
+  .wabi-grid-editor .ql-editor.ql-blank::before {
+    left: 25px !important;
+  }
+}
+
+@container (min-width: 600px) {
+  .wabi-grid-editor .ql-editor.ql-blank::before {
+    left: 40px !important;
+  }
+}
+
+@container (min-width: 800px) {
+  .wabi-grid-editor .ql-editor.ql-blank::before {
+    left: 60px !important;
+  }
+}
+
+@container (min-width: 1000px) {
+  .wabi-grid-editor .ql-editor.ql-blank::before {
+    left: 90px !important;
+  }
+}
+
+@container (min-width: 1200px) {
+  .wabi-grid-editor .ql-editor.ql-blank::before {
+    left: 130px !important;
+  }
+}
+
+@container (min-width: 1500px) {
+  .wabi-grid-editor .ql-editor.ql-blank::before {
+    left: 180px !important;
+  }
+}
+
+/* ===== Font Modifier Classes for Wabi Grid ===== */
+
+/* Mono font variant */
+.wabi-grid-editor.font-mono {
+  --editor-font: 'JetBrains Mono', monospace;
+  --editor-font-size: 0.82rem;
+  --editor-line-height: 1.7;
+  --editor-letter-spacing: 0.02em;
+}
+
+/* Geist font variant (default, explicit) */
+.wabi-grid-editor.font-geist {
+  --editor-font: 'Geist', system-ui, sans-serif;
+  --editor-font-size: 0.9rem;
+  --editor-line-height: 1.8;
+  --editor-letter-spacing: 0.01em;
+}
+
+/* Hanken Grotesk font variant - classic grotesque */
+.wabi-grid-editor.font-hanken {
+  --editor-font: 'Hanken Grotesk', system-ui, sans-serif;
+  --editor-font-size: 0.9rem;
+  --editor-line-height: 1.85;
+  --editor-letter-spacing: 0.005em;
+}
+
+/* Sen font variant - geohumanist, friendly geometric */
+.wabi-grid-editor.font-sen {
+  --editor-font: 'Sen', system-ui, sans-serif;
+  --editor-font-size: 0.88rem;
+  --editor-line-height: 1.9;
+  --editor-letter-spacing: 0.01em;
 }
 
 /* Bold text styling for Wabi Grid - subtle but visible */
@@ -596,6 +672,44 @@
   font-family: 'Inter', system-ui, sans-serif !important;
   font-weight: 300 !important;
   color: var(--void-text-muted) !important;
+  /* Match dynamic padding - default uses clamp */
+  left: clamp(1px, 5%, 25px) !important;
+}
+
+@container (min-width: 400px) {
+  .zen-void-editor .ql-editor.ql-blank::before {
+    left: 25px !important;
+  }
+}
+
+@container (min-width: 600px) {
+  .zen-void-editor .ql-editor.ql-blank::before {
+    left: 40px !important;
+  }
+}
+
+@container (min-width: 800px) {
+  .zen-void-editor .ql-editor.ql-blank::before {
+    left: 60px !important;
+  }
+}
+
+@container (min-width: 1000px) {
+  .zen-void-editor .ql-editor.ql-blank::before {
+    left: 90px !important;
+  }
+}
+
+@container (min-width: 1200px) {
+  .zen-void-editor .ql-editor.ql-blank::before {
+    left: 130px !important;
+  }
+}
+
+@container (min-width: 1500px) {
+  .zen-void-editor .ql-editor.ql-blank::before {
+    left: 180px !important;
+  }
 }
 
 /* Bold text styling for Zen Void - subtle but visible */
@@ -745,6 +859,44 @@
   font-family: 'Arimo', system-ui, sans-serif !important;
   font-weight: 400 !important;
   color: var(--lab-text-muted) !important;
+  /* Match dynamic padding - default uses clamp */
+  left: clamp(1px, 5%, 25px) !important;
+}
+
+@container (min-width: 400px) {
+  .test-lab-editor .ql-editor.ql-blank::before {
+    left: 25px !important;
+  }
+}
+
+@container (min-width: 600px) {
+  .test-lab-editor .ql-editor.ql-blank::before {
+    left: 40px !important;
+  }
+}
+
+@container (min-width: 800px) {
+  .test-lab-editor .ql-editor.ql-blank::before {
+    left: 60px !important;
+  }
+}
+
+@container (min-width: 1000px) {
+  .test-lab-editor .ql-editor.ql-blank::before {
+    left: 90px !important;
+  }
+}
+
+@container (min-width: 1200px) {
+  .test-lab-editor .ql-editor.ql-blank::before {
+    left: 130px !important;
+  }
+}
+
+@container (min-width: 1500px) {
+  .test-lab-editor .ql-editor.ql-blank::before {
+    left: 180px !important;
+  }
 }
 
 /* Bold text styling for Test Lab */
@@ -866,7 +1018,7 @@
 
 /* Checkbox list item text - inherit theme fonts */
 .wabi-grid-editor .ql-editor ul[data-checked]>li {
-  font-family: 'JetBrains Mono', monospace !important;
+  font-family: var(--editor-font, 'Geist', system-ui, sans-serif) !important;
   color: var(--wabi-text) !important;
 }
 
