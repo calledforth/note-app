@@ -1,7 +1,7 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useBentoStore } from '../../stores/bentoStore';
-import { useThemeStore } from '../../stores/themeStore';
+import { useThemeStore, EDITOR_FONTS } from '../../stores/themeStore';
 import { SettingsPanel } from '../dock/SettingsPanel';
 import {
   ChevronDown,
@@ -29,8 +29,14 @@ export function TitleBar() {
   const deleteWorkspace = useBentoStore((state) => state.deleteWorkspace);
   const updateWorkspaceName = useBentoStore((state) => state.updateWorkspaceName);
 
-  // Theme store for styling
-  const currentNoteStyle = useThemeStore((state) => state.currentNoteStyle);
+  // Theme store for fonts
+  const currentEditorFont = useThemeStore((state) => state.currentEditorFont);
+
+  // Get the font family string for the current editor font
+  const currentFontFamily = useMemo(() => {
+    const font = EDITOR_FONTS.find(f => f.key === currentEditorFont);
+    return font?.fontFamily || "'Geist', system-ui, sans-serif";
+  }, [currentEditorFont]);
 
   const [showSettings, setShowSettings] = useState(false);
   const [workspaceMenuOpen, setWorkspaceMenuOpen] = useState(false);
@@ -127,8 +133,6 @@ export function TitleBar() {
     }
   };
 
-  // Styling based on current note style
-  const isZenVoid = currentNoteStyle === 'zen-void';
 
   return (
     <>
@@ -160,9 +164,13 @@ export function TitleBar() {
                 onKeyDown={handleKeyDown}
                 onClick={(e) => e.stopPropagation()}
                 className="bg-transparent text-xs font-medium focus:outline-none min-w-[60px] w-auto text-[#bbb]"
+                style={{ fontFamily: currentFontFamily }}
               />
             ) : (
-              <span className="text-xs font-medium text-[#bbb]">
+              <span
+                className="text-xs font-medium text-[#bbb]"
+                style={{ fontFamily: currentFontFamily }}
+              >
                 {currentWorkspace?.name || 'Select workspace'}
               </span>
             )}
@@ -173,56 +181,37 @@ export function TitleBar() {
             )} />
           </button>
 
-          {/* Animated Dropdown Menu - Theme-aware styling */}
+          {/* Minimalist Dropdown Menu - Wabi Grid theme */}
           <AnimatePresence>
             {workspaceMenuOpen && (
               <motion.div
-                initial={{ opacity: 0, y: -8, scale: 0.96 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: -8, scale: 0.96 }}
-                transition={{ duration: 0.15, ease: "easeOut" }}
-                className={clsx(
-                  "absolute top-full left-1/2 -translate-x-1/2 mt-1 w-[220px] shadow-[0_8px_24px_rgba(0,0,0,0.35)] z-50 overflow-hidden",
-                  isZenVoid
-                    ? "bg-[var(--void-bg)] border border-[var(--void-border)] rounded-md"
-                    : "bg-[var(--wabi-bg)] border border-[var(--wabi-border)] rounded-xs"
-                )}
+                initial={{ opacity: 0, y: -4 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: -4 }}
+                transition={{ duration: 0.1, ease: "easeOut" }}
+                className="absolute top-full left-1/2 -translate-x-1/2 mt-1 w-[200px] z-[200] overflow-hidden cursor-default bg-[var(--wabi-bg)] border border-[var(--wabi-border)] rounded-md shadow-2xl"
+                style={{ cursor: 'default', fontFamily: currentFontFamily }}
               >
-                <div className="py-1">
-                  {workspaces.map((space, index) => {
+                {/* Workspace list */}
+                <div className="py-1 max-h-[200px] overflow-y-auto">
+                  {workspaces.map((space) => {
                     const isEditingThisSpace = editingDropdownSpaceId === space.id;
                     const isSelected = space.id === currentWorkspaceId;
 
                     return (
-                      <motion.div
+                      <div
                         key={space.id}
-                        initial={{ opacity: 0, x: -12 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: index * 0.03, duration: 0.2 }}
                         className={clsx(
-                          "relative w-full text-left px-2.5 py-1.5 text-xs flex items-center gap-2 group/item cursor-pointer transition-colors",
-                          isZenVoid
-                            ? "hover:bg-white/5"
-                            : "hover:bg-[var(--surface-bg)]",
-                          isSelected && (isZenVoid ? "bg-white/5" : "bg-[var(--surface-bg)]")
+                          "relative w-full text-left px-3 py-2 text-xs flex items-center gap-2 group/item cursor-default transition-colors",
+                          "hover:bg-white/5",
+                          isSelected && "bg-white/5"
                         )}
                       >
-                        {/* Mode icon with themed background */}
-                        <div
-                          className={clsx(
-                            "w-5 h-5 rounded flex items-center justify-center flex-shrink-0",
-                            isSelected
-                              ? (isZenVoid ? "bg-white/10" : "bg-[var(--text-secondary)]/20")
-                              : (isZenVoid ? "bg-white/5" : "bg-[var(--surface-bg)]")
-                          )}
-                        >
-                          <LayoutTemplate className={clsx(
-                            "w-3 h-3",
-                            isSelected
-                              ? (isZenVoid ? "text-white/80" : "text-[var(--text-primary)]")
-                              : (isZenVoid ? "text-white/40" : "text-[var(--text-secondary)]")
-                          )} />
-                        </div>
+                        {/* Simple icon */}
+                        <LayoutTemplate className={clsx(
+                          "w-4 h-4 flex-shrink-0",
+                          isSelected ? "text-[var(--wabi-text)]" : "text-[var(--wabi-text-muted)]"
+                        )} />
 
                         {/* Workspace name - show input if editing */}
                         {isEditingThisSpace ? (
@@ -248,20 +237,14 @@ export function TitleBar() {
                               setEditingDropdownSpaceId(null);
                             }}
                             onClick={(e) => e.stopPropagation()}
-                            className={clsx(
-                              "flex-1 bg-transparent text-xs focus:outline-none border-b",
-                              isZenVoid
-                                ? "text-white/80 border-white/30"
-                                : "text-[var(--text-primary)] border-[var(--text-secondary)]/50"
-                            )}
+                            className="flex-1 bg-transparent text-xs text-[var(--wabi-text)] focus:outline-none border-b border-[var(--wabi-border)]"
+                            style={{ fontFamily: currentFontFamily }}
                           />
                         ) : (
                           <span
                             className={clsx(
-                              "truncate flex-1 cursor-pointer transition-colors",
-                              isSelected
-                                ? (isZenVoid ? "text-white/90" : "text-[var(--text-primary)]")
-                                : (isZenVoid ? "text-white/50" : "text-[var(--text-secondary)]")
+                              "truncate flex-1 cursor-pointer",
+                              isSelected ? "text-[var(--wabi-text)]" : "text-[var(--wabi-text-muted)]"
                             )}
                             onClick={async () => {
                               await switchWorkspace(space.id);
@@ -273,88 +256,54 @@ export function TitleBar() {
                           </span>
                         )}
 
-                        {/* Edit & Delete - on hover (hide when editing) */}
+                        {/* Edit & Delete - minimal, on hover */}
                         {!isEditingThisSpace && (
                           <div className="flex items-center gap-1 opacity-0 group-hover/item:opacity-100 transition-opacity flex-shrink-0">
-                            <motion.div
+                            <button
                               onClick={(e) => {
                                 e.stopPropagation();
                                 setEditingDropdownName(space.name);
                                 setEditingDropdownSpaceId(space.id);
                               }}
-                              className={clsx(
-                                "p-0.5 cursor-pointer",
-                                isZenVoid
-                                  ? "text-white/30 hover:text-white/60"
-                                  : "text-[var(--text-secondary)] hover:text-[var(--text-primary)]"
-                              )}
-                              whileHover={{ scale: 1.15 }}
-                              whileTap={{ scale: 0.95 }}
+                              className="p-0.5 text-[var(--wabi-text-muted)] hover:text-[var(--wabi-text)] transition-colors"
                             >
                               <Pencil className="w-3 h-3" />
-                            </motion.div>
-                            <motion.div
+                            </button>
+                            <button
                               onClick={async (e) => {
                                 e.stopPropagation();
                                 if (confirm('Delete workspace?')) {
                                   await deleteWorkspace(space.id);
                                 }
                               }}
-                              className={clsx(
-                                "p-0.5 cursor-pointer",
-                                isZenVoid
-                                  ? "text-white/30 hover:text-red-400"
-                                  : "text-[var(--text-secondary)] hover:text-red-400"
-                              )}
-                              whileHover={{ scale: 1.15 }}
-                              whileTap={{ scale: 0.95 }}
+                              className="p-0.5 text-[var(--wabi-text-muted)] hover:text-red-400 transition-colors"
                             >
                               <Trash2 className="w-3 h-3" />
-                            </motion.div>
+                            </button>
                           </div>
                         )}
-                      </motion.div>
+                      </div>
                     );
                   })}
                 </div>
 
-                {/* Create New */}
-                <div className={clsx(
-                  "border-t p-1.5",
-                  isZenVoid ? "border-[var(--void-border)]" : "border-[var(--wabi-border)]"
-                )}>
+                {/* Create New - simplified */}
+                <div className="border-t border-[var(--wabi-border)] p-1">
                   {!showCreateSpace ? (
-                    <motion.button
-                      initial={{ opacity: 0 }}
-                      animate={{ opacity: 1 }}
-                      transition={{ delay: workspaces.length * 0.03 + 0.1 }}
+                    <button
                       onClick={() => setShowCreateSpace(true)}
-                      className={clsx(
-                        "w-full flex items-center gap-1.5 px-2 py-1 rounded transition-colors text-xs",
-                        isZenVoid
-                          ? "text-white/40 hover:text-white/70 hover:bg-white/5"
-                          : "text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--surface-bg)]"
-                      )}
+                      className="w-full flex items-center gap-2 px-3 py-2 text-xs text-[var(--wabi-text-muted)] hover:text-[var(--wabi-text)] hover:bg-white/5 rounded transition-colors cursor-pointer"
                     >
-                      <Plus className="w-3.5 h-3.5" />
+                      <Plus className="w-4 h-4" />
                       <span>New Workspace</span>
-                    </motion.button>
+                    </button>
                   ) : (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: "auto" }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className="flex flex-col gap-2 p-1"
-                    >
+                    <div className="flex flex-col gap-1.5 p-1.5">
                       <input
                         autoFocus
                         placeholder="Workspace name..."
-                        className={clsx(
-                          "w-full rounded px-2 py-1 text-xs focus:outline-none",
-                          isZenVoid
-                            ? "bg-white/5 border border-white/10 text-white/80 placeholder:text-white/30"
-                            : "bg-[var(--app-bg)] border border-[var(--border-subtle)] text-[var(--text-primary)] placeholder:text-[var(--text-secondary)]"
-                        )}
+                        className="w-full bg-transparent border border-[var(--wabi-border)] rounded px-2 py-1.5 text-xs text-[var(--wabi-text)] placeholder:text-[var(--wabi-text-muted)] focus:outline-none focus:border-[var(--wabi-text-muted)]"
+                        style={{ fontFamily: currentFontFamily }}
                         value={newSpaceName}
                         onChange={(e) => setNewSpaceName(e.target.value)}
                         onKeyDown={(e) => {
@@ -362,21 +311,21 @@ export function TitleBar() {
                           if (e.key === 'Escape') setShowCreateSpace(false);
                         }}
                       />
-
-                      <motion.button
-                        onClick={handleCreateSpace}
-                        className={clsx(
-                          "w-full text-[10px] font-semibold py-1 rounded transition-opacity hover:opacity-90",
-                          isZenVoid
-                            ? "bg-white/10 text-white/80"
-                            : "bg-[var(--text-primary)] text-[var(--app-bg)]"
-                        )}
-                        whileHover={{ scale: 1.01 }}
-                        whileTap={{ scale: 0.98 }}
-                      >
-                        Create
-                      </motion.button>
-                    </motion.div>
+                      <div className="flex gap-1">
+                        <button
+                          onClick={() => setShowCreateSpace(false)}
+                          className="flex-1 text-[10px] text-[var(--wabi-text-muted)] py-1 rounded hover:bg-white/5 transition-colors"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          onClick={handleCreateSpace}
+                          className="flex-1 text-[10px] text-[var(--wabi-text)] py-1 rounded bg-white/10 hover:bg-white/15 transition-colors"
+                        >
+                          Create
+                        </button>
+                      </div>
+                    </div>
                   )}
                 </div>
               </motion.div>

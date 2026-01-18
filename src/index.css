@@ -178,7 +178,7 @@
 @keyframes slide-down {
   from {
     opacity: 0;
-    transform: translateY(-20px) scale(0.98);
+    transform: translateY(-12px) scale(0.99);
   }
 
   to {
@@ -188,15 +188,15 @@
 }
 
 .animate-fade-in {
-  animation: fade-in 0.15s ease-out forwards;
+  animation: fade-in 0.1s ease-out forwards;
 }
 
 .animate-slide-down {
-  animation: slide-down 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: slide-down 0.12s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 .animate-command-palette-in {
-  animation: slide-down 0.2s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+  animation: slide-down 0.12s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
 /* Note swap animation - subtle fade in when note lands in new panel */

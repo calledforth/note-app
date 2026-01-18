@@ -60,6 +60,12 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose,
     const currentEditorFont = useThemeStore((state) => state.currentEditorFont)
     const workspaces = useBentoStore((state) => state.workspaces)
 
+    // Get the font family string for the current editor font
+    const currentFontFamily = useMemo(() => {
+        const font = EDITOR_FONTS.find(f => f.key === currentEditorFont)
+        return font?.fontFamily || "'Geist', system-ui, sans-serif"
+    }, [currentEditorFont])
+
     // Build commands list dynamically
     const allCommands = useMemo((): CommandItem[] => {
         const commands: CommandItem[] = []
@@ -69,7 +75,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose,
             id: 'new-note',
             label: 'New Note',
             description: 'Create a new sticky note',
-            icon: <Plus className="w-4 h-4" />,
+            icon: <Plus className="w-[18px] h-[18px]" />,
             shortcut: 'Ctrl+N',
             category: 'Notes'
         })
@@ -79,7 +85,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose,
             id: 'new-workspace',
             label: 'New Workspace',
             description: 'Create a new workspace',
-            icon: <Layers className="w-4 h-4" />,
+            icon: <Layers className="w-[18px] h-[18px]" />,
             category: 'Workspaces'
         })
 
@@ -89,7 +95,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose,
                 id: `workspace-${workspace.id}`,
                 label: workspace.name,
                 description: `Switch to ${workspace.name}`,
-                icon: <Grid3X3 className="w-4 h-4" />,
+                icon: <Grid3X3 className="w-[18px] h-[18px]" />,
                 category: 'Workspaces'
             })
         })
@@ -100,7 +106,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose,
             id: 'toggle-style',
             label: 'Toggle Note Style',
             description: 'Cycle between available styles',
-            icon: <Sparkles className="w-4 h-4" />,
+            icon: <Sparkles className="w-[18px] h-[18px]" />,
             shortcut: 'Ctrl+Shift+T',
             category: 'Appearance'
         })
@@ -111,7 +117,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose,
                 id: `style-${style.key}`,
                 label: `Set ${style.name}`,
                 description: style.description,
-                icon: <Palette className="w-4 h-4" />,
+                icon: <Palette className="w-[18px] h-[18px]" />,
                 category: 'Appearance',
                 isActive: currentNoteStyle === style.key
             })
@@ -122,7 +128,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose,
             id: 'toggle-font',
             label: 'Toggle Editor Font',
             description: 'Cycle between Mono and Geist',
-            icon: <Type className="w-4 h-4" />,
+            icon: <Type className="w-[18px] h-[18px]" />,
             shortcut: 'Ctrl+Shift+F',
             category: 'Appearance'
         })
@@ -133,7 +139,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose,
                 id: `font-${font.key}`,
                 label: `Set ${font.name} Font`,
                 description: font.description,
-                icon: <Type className="w-4 h-4" />,
+                icon: <Type className="w-[18px] h-[18px]" />,
                 category: 'Appearance',
                 isActive: currentEditorFont === font.key
             })
@@ -144,7 +150,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose,
             id: 'show-mantra',
             label: 'Mantra',
             description: 'Open morning mantra ritual',
-            icon: <Sunrise className="w-4 h-4" />,
+            icon: <Sunrise className="w-[18px] h-[18px]" />,
             category: 'Rituals'
         })
 
@@ -153,7 +159,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose,
             id: 'open-settings',
             label: 'Settings',
             description: 'Open application settings',
-            icon: <Settings2 className="w-4 h-4" />,
+            icon: <Settings2 className="w-[18px] h-[18px]" />,
             category: 'Settings'
         })
 
@@ -162,21 +168,21 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose,
             id: 'window-minimize',
             label: 'Minimize Window',
             description: 'Minimize the application',
-            icon: <Minus className="w-4 h-4" />,
+            icon: <Minus className="w-[18px] h-[18px]" />,
             category: 'Window'
         })
         commands.push({
             id: 'window-maximize',
             label: 'Maximize Window',
             description: 'Maximize or restore the window',
-            icon: <Maximize2 className="w-4 h-4" />,
+            icon: <Maximize2 className="w-[18px] h-[18px]" />,
             category: 'Window'
         })
         commands.push({
             id: 'window-close',
             label: 'Close Window',
             description: 'Close the application',
-            icon: <XCircle className="w-4 h-4" />,
+            icon: <XCircle className="w-[18px] h-[18px]" />,
             category: 'Window'
         })
 
@@ -185,7 +191,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose,
             id: 'about-version',
             label: `Version ${APP_VERSION}`,
             description: 'Current application version',
-            icon: <Info className="w-4 h-4" />,
+            icon: <Info className="w-[18px] h-[18px]" />,
             category: 'About'
         })
 
@@ -340,7 +346,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose,
                             ? "bg-[#000000] border border-[var(--void-border)] rounded-md"
                             : currentNoteStyle === 'test-lab'
                                 ? "bg-[#0a0a0a] border border-[var(--lab-border)] rounded-md"
-                                : "bg-[#050505] border border-[var(--wabi-border)] rounded-md"
+                                : "bg-[var(--wabi-bg)] border border-[var(--wabi-border)] rounded-md"
                     )}>
                         {/* Search Input */}
                         <div className={clsx(
@@ -365,20 +371,20 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose,
                                             : "text-[#555] hover:text-[#888] hover:bg-white/5"
                                     )}
                                 >
-                                    <ArrowLeft className="w-4 h-4" />
+                                    <ArrowLeft className="w-[18px] h-[18px]" />
                                 </button>
                             )}
 
                             {mode === 'commands' && (
                                 <Search className={clsx(
-                                    "w-4 h-4",
+                                    "w-[18px] h-[18px]",
                                     currentNoteStyle === 'zen-void' ? "text-white/30" : "text-[var(--wabi-text-muted)]"
                                 )} />
                             )}
 
                             {mode === 'new-workspace' && (
                                 <Layers className={clsx(
-                                    "w-4 h-4",
+                                    "w-[18px] h-[18px]",
                                     currentNoteStyle === 'zen-void' ? "text-white/50" : "text-[var(--wabi-text)]"
                                 )} />
                             )}
@@ -396,7 +402,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose,
                                 style={{
                                     fontFamily: currentNoteStyle === 'zen-void'
                                         ? "'Inter', sans-serif"
-                                        : "'JetBrains Mono', monospace"
+                                        : currentFontFamily
                                 }}
                             />
                             <button
@@ -408,7 +414,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose,
                                         : "text-[#555] hover:text-[#888] hover:bg-white/5"
                                 )}
                             >
-                                <X className="w-4 h-4" />
+                                <X className="w-[18px] h-[18px]" />
                             </button>
                         </div>
 
@@ -434,7 +440,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose,
                                                         ? "text-white/40 text-xs font-light italic tracking-wide"
                                                         : "text-[var(--wabi-title)] text-[10px] uppercase tracking-[0.15em]"
                                                 )}
-                                                    style={{ fontFamily: currentNoteStyle === 'zen-void' ? "'Inter', sans-serif" : "'JetBrains Mono', monospace" }}
+                                                    style={{ fontFamily: currentNoteStyle === 'zen-void' ? "'Inter', sans-serif" : currentFontFamily }}
                                                 >
                                                     {category}
                                                 </div>
@@ -449,24 +455,13 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose,
                                                             key={cmd.id}
                                                             className={clsx(
                                                                 "w-full flex items-center gap-2 px-3 py-2 transition-colors text-left",
-                                                                currentNoteStyle === 'zen-void'
-                                                                    ? [
-                                                                        isSelected ? "bg-white/5" : "bg-transparent",
-                                                                        "hover:bg-white/5"
-                                                                    ]
-                                                                    : [
-                                                                        isSelected ? "bg-[#0c0c0b]" : "bg-transparent",
-                                                                        "hover:bg-[#0c0c0b]"
-                                                                    ]
+                                                                isSelected ? "bg-white/5" : "bg-transparent",
+                                                                "hover:bg-white/5"
                                                             )}
                                                             onClick={() => executeCommand(cmd)}
                                                         >
                                                             {/* Icon */}
-                                                            <span className={clsx(
-                                                                currentNoteStyle === 'zen-void'
-                                                                    ? "text-white/40"
-                                                                    : "text-[#666]"
-                                                            )}>
+                                                            <span className="text-white/40">
                                                                 {cmd.icon}
                                                             </span>
 
@@ -476,12 +471,12 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose,
                                                                     "truncate",
                                                                     currentNoteStyle === 'zen-void'
                                                                         ? "text-sm text-[var(--void-title)] font-light"
-                                                                        : "text-xs text-[var(--wabi-text)]"
+                                                                        : "text-sm text-[var(--wabi-text)]"
                                                                 )}
                                                                     style={{
                                                                         fontFamily: currentNoteStyle === 'zen-void'
                                                                             ? "'Inter', sans-serif"
-                                                                            : "'JetBrains Mono', monospace"
+                                                                            : currentFontFamily
                                                                     }}
                                                                 >
                                                                     {cmd.label}
@@ -491,9 +486,9 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose,
                                                                         "truncate mt-0.5",
                                                                         currentNoteStyle === 'zen-void'
                                                                             ? "text-xs text-white/25"
-                                                                            : "text-[10px] text-[var(--wabi-text-muted)]"
+                                                                            : "text-xs text-[var(--wabi-text-muted)]"
                                                                     )}
-                                                                        style={{ fontFamily: currentNoteStyle === 'zen-void' ? "'Inter', sans-serif" : "'JetBrains Mono', monospace" }}
+                                                                        style={{ fontFamily: currentNoteStyle === 'zen-void' ? "'Inter', sans-serif" : currentFontFamily }}
                                                                     >
                                                                         {cmd.description}
                                                                     </div>
@@ -502,36 +497,19 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose,
 
                                                             {/* Active indicator (for current style) */}
                                                             {cmd.isActive && (
-                                                                <Check className={clsx(
-                                                                    "w-4 h-4",
-                                                                    currentNoteStyle === 'zen-void'
-                                                                        ? "text-white/60"
-                                                                        : "text-[#888]"
-                                                                )} />
+                                                                <Check className="w-[18px] h-[18px] text-white/60" />
                                                             )}
 
-                                                            {/* Shortcut */}
+                                                            {/* Shortcut - Keyboard style keys */}
                                                             {cmd.shortcut && (
-                                                                <div className={clsx(
-                                                                    "flex items-center gap-1 text-[10px]",
-                                                                    currentNoteStyle === 'zen-void'
-                                                                        ? "text-white/20"
-                                                                        : "text-[#444]"
-                                                                )}
-                                                                    style={{ fontFamily: "'JetBrains Mono', monospace" }}
-                                                                >
+                                                                <div className="flex items-center gap-1">
                                                                     {cmd.shortcut.split('+').map((key, i) => (
-                                                                        <React.Fragment key={key}>
-                                                                            {i > 0 && <span>+</span>}
-                                                                            <kbd className={clsx(
-                                                                                "px-1.5 py-0.5 rounded",
-                                                                                currentNoteStyle === 'zen-void'
-                                                                                    ? "bg-white/5 border border-white/10"
-                                                                                    : "bg-[#111] border border-[#222]"
-                                                                            )}>
-                                                                                {key}
-                                                                            </kbd>
-                                                                        </React.Fragment>
+                                                                        <kbd
+                                                                            key={i}
+                                                                            className="px-1.5 py-0.5 text-[10px] text-white/50 bg-black/40 border border-white/10 rounded shadow-[0_1px_0_0_rgba(255,255,255,0.05)]"
+                                                                        >
+                                                                            {key}
+                                                                        </kbd>
                                                                     ))}
                                                                 </div>
                                                             )}
@@ -551,27 +529,19 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose,
                                         "text-xs mb-3",
                                         currentNoteStyle === 'zen-void' ? "text-white/40" : "text-[var(--wabi-text-muted)]"
                                     )}
-                                        style={{ fontFamily: currentNoteStyle === 'zen-void' ? "'Inter', sans-serif" : "'JetBrains Mono', monospace" }}
+                                        style={{ fontFamily: currentNoteStyle === 'zen-void' ? "'Inter', sans-serif" : currentFontFamily }}
                                     >
                                         Enter a name for your new workspace and press Enter
                                     </div>
-                                    <div className={clsx(
-                                        "flex items-center gap-2 px-3 py-2 rounded",
-                                        currentNoteStyle === 'zen-void'
-                                            ? "bg-white/5 border border-white/10"
-                                            : "bg-[#0c0c0b] border border-[#222]"
-                                    )}>
-                                        <Grid3X3 className={clsx(
-                                            "w-4 h-4",
-                                            currentNoteStyle === 'zen-void' ? "text-white/40" : "text-[#666]"
-                                        )} />
+                                    <div className="flex items-center gap-2 px-3 py-2 rounded bg-white/5 border border-white/10">
+                                        <Grid3X3 className="w-[18px] h-[18px] text-white/40" />
                                         <span className={clsx(
                                             "text-sm",
                                             currentNoteStyle === 'zen-void'
                                                 ? "text-[var(--void-title)] font-light"
                                                 : "text-[var(--wabi-text)]"
                                         )}
-                                            style={{ fontFamily: currentNoteStyle === 'zen-void' ? "'Inter', sans-serif" : "'JetBrains Mono', monospace" }}
+                                            style={{ fontFamily: currentNoteStyle === 'zen-void' ? "'Inter', sans-serif" : currentFontFamily }}
                                         >
                                             {newWorkspaceName || 'New Workspace'}
                                         </span>
@@ -580,57 +550,35 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose,
                             )}
                         </div>
 
-                        {/* Footer - Simplified */}
-                        <div className={clsx(
-                            "flex items-center justify-center gap-6 px-3 py-2 text-[10px]",
-                            currentNoteStyle === 'zen-void'
-                                ? "border-t border-[var(--void-border)] text-white/30"
-                                : currentNoteStyle === 'test-lab'
-                                    ? "border-t border-[var(--lab-border)] text-[var(--lab-text-muted)]"
-                                    : "border-t border-[var(--wabi-border)] text-[var(--wabi-text-muted)]"
-                        )}
-                            style={{ fontFamily: currentNoteStyle === 'zen-void' ? "'Inter', sans-serif" : currentNoteStyle === 'test-lab' ? "'Arimo', sans-serif" : "'JetBrains Mono', monospace" }}
-                        >
+                        {/* Footer - Modern Arc-style */}
+                        <div className="flex items-center justify-between px-4 py-2.5 border-t border-white/5 text-[11px] text-white/40">
                             {mode === 'commands' && (
                                 <>
+                                    <div className="flex items-center gap-4">
+                                        <span className="flex items-center gap-1.5">
+                                            <span className="text-white/50">↑↓</span>
+                                            <span>Navigate</span>
+                                        </span>
+                                        <span className="flex items-center gap-1.5">
+                                            <span className="text-white/50">↵</span>
+                                            <span>Select</span>
+                                        </span>
+                                    </div>
                                     <span className="flex items-center gap-1.5">
-                                        <span className={clsx(
-                                            "opacity-60",
-                                            currentNoteStyle === 'zen-void' ? "text-white/50" : "text-[var(--wabi-text)]"
-                                        )}>↑↓</span>
-                                        navigate
-                                    </span>
-                                    <span className="flex items-center gap-1.5">
-                                        <span className={clsx(
-                                            "opacity-60",
-                                            currentNoteStyle === 'zen-void' ? "text-white/50" : "text-[var(--wabi-text)]"
-                                        )}>↵</span>
-                                        select
-                                    </span>
-                                    <span className="flex items-center gap-1.5">
-                                        <span className={clsx(
-                                            "opacity-60",
-                                            currentNoteStyle === 'zen-void' ? "text-white/50" : "text-[var(--wabi-text)]"
-                                        )}>esc</span>
-                                        close
+                                        <span className="text-white/50">Esc</span>
+                                        <span>Close</span>
                                     </span>
                                 </>
                             )}
                             {mode === 'new-workspace' && (
                                 <>
                                     <span className="flex items-center gap-1.5">
-                                        <span className={clsx(
-                                            "opacity-60",
-                                            currentNoteStyle === 'zen-void' ? "text-white/50" : "text-[var(--wabi-text)]"
-                                        )}>↵</span>
-                                        create
+                                        <span className="text-white/50">↵</span>
+                                        <span>Create</span>
                                     </span>
                                     <span className="flex items-center gap-1.5">
-                                        <span className={clsx(
-                                            "opacity-60",
-                                            currentNoteStyle === 'zen-void' ? "text-white/50" : "text-[var(--wabi-text)]"
-                                        )}>esc</span>
-                                        back
+                                        <span className="text-white/50">Esc</span>
+                                        <span>Back</span>
                                     </span>
                                 </>
                             )}
