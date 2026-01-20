@@ -111,6 +111,14 @@ ipcMain.handle('updater-download', () => {
 });
 
 ipcMain.handle('updater-quit-and-install', () => {
+  // Save window dimensions BEFORE quitAndInstall triggers shutdown
+  // This prevents the race condition where 'before-quit' closes the database
+  // before the window 'close' event can save dimensions
+  if (mainWindow) {
+    const [width, height] = mainWindow.getSize();
+    database.setSetting('windowWidth', width.toString());
+    database.setSetting('windowHeight', height.toString());
+  }
   autoUpdater.quitAndInstall(true, true);
 });
 
