@@ -11,6 +11,33 @@ const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
 // ============================================================================
 
 let mainWindow: BrowserWindow | null = null;
+let windowStateSaveTimer: NodeJS.Timeout | null = null;
+
+const saveWindowBounds = (immediate = false): void => {
+  if (!mainWindow) return;
+
+  const doSave = () => {
+    if (!mainWindow) return;
+    const [width, height] = mainWindow.getSize();
+    database.setSetting('windowWidth', width.toString());
+    database.setSetting('windowHeight', height.toString());
+  };
+
+  if (immediate) {
+    if (windowStateSaveTimer) {
+      clearTimeout(windowStateSaveTimer);
+      windowStateSaveTimer = null;
+    }
+    doSave();
+    return;
+  }
+
+  if (windowStateSaveTimer) clearTimeout(windowStateSaveTimer);
+  windowStateSaveTimer = setTimeout(() => {
+    windowStateSaveTimer = null;
+    doSave();
+  }, 300);
+};
 
 const createWindow = (): void => {
   // Read saved window dimensions from database (defaults: 1000x700)
@@ -44,11 +71,15 @@ const createWindow = (): void => {
 
   // Save window dimensions when closing
   mainWindow.on('close', () => {
-    if (mainWindow) {
-      const [width, height] = mainWindow.getSize();
-      database.setSetting('windowWidth', width.toString());
-      database.setSetting('windowHeight', height.toString());
-    }
+    saveWindowBounds(true);
+  });
+
+  mainWindow.on('resize', () => {
+    saveWindowBounds();
+  });
+
+  mainWindow.on('move', () => {
+    saveWindowBounds();
   });
 
   mainWindow.on('closed', () => {
@@ -114,11 +145,7 @@ ipcMain.handle('updater-quit-and-install', () => {
   // Save window dimensions BEFORE quitAndInstall triggers shutdown
   // This prevents the race condition where 'before-quit' closes the database
   // before the window 'close' event can save dimensions
-  if (mainWindow) {
-    const [width, height] = mainWindow.getSize();
-    database.setSetting('windowWidth', width.toString());
-    database.setSetting('windowHeight', height.toString());
-  }
+  saveWindowBounds(true);
   autoUpdater.quitAndInstall(true, true);
 });
 
@@ -223,7 +250,6 @@ app.on('ready', () => {
 
 app.on('window-all-closed', () => {
   if (process.platform !== 'darwin') {
-    database.close();
     app.quit();
   }
 });
@@ -234,6 +260,6 @@ app.on('activate', () => {
   }
 });
 
-app.on('before-quit', () => {
+app.on('will-quit', () => {
   database.close();
 });
