@@ -45,6 +45,7 @@ const createWindow = (): void => {
   const savedHeight = database.getSetting('windowHeight');
   const windowWidth = savedWidth ? parseInt(savedWidth, 10) : 1000;
   const windowHeight = savedHeight ? parseInt(savedHeight, 10) : 700;
+  const devIconPath = path.join(app.getAppPath(), 'src/assets/icon.ico');
 
   mainWindow = new BrowserWindow({
     height: windowHeight,
@@ -52,6 +53,7 @@ const createWindow = (): void => {
     backgroundColor: '#171717',
     frame: false,
     titleBarStyle: 'hidden',
+    icon: isDev ? devIconPath : undefined,
     webPreferences: {
       preload: path.join(__dirname, '../preload/preload.js'),
       nodeIntegration: false,
