@@ -1,5 +1,5 @@
-import { useThemeStore, type ThemeKey, EDITOR_FONTS } from "../../stores/themeStore";
-import { X, Check, Type, Palette } from "lucide-react";
+import { useThemeStore, type NoteStyle, NOTE_STYLES, EDITOR_FONTS } from "../../stores/themeStore";
+import { X } from "lucide-react";
 import clsx from "clsx";
 
 interface SettingsPanelProps {
@@ -8,126 +8,171 @@ interface SettingsPanelProps {
 }
 
 export function SettingsPanel({ spaceId: _spaceId, onClose }: SettingsPanelProps) {
-  const currentTheme = useThemeStore((state) => state.currentTheme);
-  const setTheme = useThemeStore((state) => state.setTheme);
+  const currentNoteStyle = useThemeStore((state) => state.currentNoteStyle);
+  const setNoteStyle = useThemeStore((state) => state.setNoteStyle);
   const currentEditorFont = useThemeStore((state) => state.currentEditorFont);
   const setEditorFont = useThemeStore((state) => state.setEditorFont);
 
-  const themes: { key: ThemeKey; label: string; color: string }[] = [
-    { key: "neutral", label: "Neutral", color: "#171717" },
-    { key: "black", label: "Midnight", color: "#000000" },
-    { key: "white", label: "Clean", color: "#ffffff" },
-  ];
+  // Theme-specific styling (match command palette)
+  const isZenVoid = currentNoteStyle === 'zen-void';
+  const isTestLab = currentNoteStyle === 'test-lab';
+
+  // Get background color based on theme
+  const getBgColor = () => {
+    if (isZenVoid) return '#000000';
+    if (isTestLab) return '#0a0a0a';
+    return 'var(--wabi-bg)';
+  };
+
+  const getBorderColor = () => {
+    if (isZenVoid) return 'var(--void-border)';
+    if (isTestLab) return 'var(--lab-border)';
+    return 'var(--wabi-border)';
+  };
+
+  // Short display names for themes
+  const getThemeDisplayName = (key: NoteStyle) => {
+    switch (key) {
+      case 'wabi-grid': return 'Wabi';
+      case 'zen-void': return 'Zen';
+      case 'test-lab': return 'Lab';
+      default: return key;
+    }
+  };
 
   return (
-    <div
-      className="fixed inset-0 z-[1000] flex items-center justify-center bg-black/40 backdrop-blur-sm p-4 transition-all"
-      onClick={onClose}
-    >
+    <>
+      {/* Backdrop */}
       <div
-        className="w-[460px] bg-[var(--surface-bg)] rounded-3xl shadow-2xl border border-[var(--border-subtle)]/50 overflow-hidden flex flex-col max-h-[90vh]"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Header */}
-        <header className="px-7 pt-7 pb-2 flex items-start justify-between">
-          <div>
-            <h1 className="text-lg font-semibold text-[var(--text-primary)] tracking-tight">
-              Settings
-            </h1>
-            <p className="text-xs text-[var(--text-secondary)] mt-0.5">
-              Customize your space
-            </p>
-          </div>
-          <button
-            onClick={onClose}
-            className="p-1.5 -mr-1.5 -mt-1.5 rounded-full text-[var(--text-secondary)] hover:bg-[var(--app-bg)] hover:text-[var(--text-primary)] transition-colors"
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] animate-fade-in"
+        onClick={onClose}
+      />
+
+      {/* Panel Centering Wrapper */}
+      <div className="fixed inset-0 z-[101] flex items-start justify-center pt-[15vh] px-4 pointer-events-none">
+        <div
+          className="w-full max-w-md pointer-events-auto animate-command-palette-in overflow-hidden shadow-2xl rounded-md"
+          style={{
+            backgroundColor: getBgColor(),
+            border: `1px solid ${getBorderColor()}`,
+            fontFamily: isZenVoid ? "'Inter', sans-serif" : "'JetBrains Mono', monospace",
+          }}
+        >
+          {/* Header */}
+          <header
+            className="flex items-center justify-between px-5 py-4"
+            style={{ borderBottom: `1px solid ${getBorderColor()}` }}
           >
-            <X className="w-4 h-4" />
-          </button>
-        </header>
-
-        {/* Content */}
-        <div className="px-7 pb-7 space-y-7 overflow-y-auto">
-
-          {/* Appearance Section */}
-          <section>
-            <div className="flex items-center gap-2 mb-3 text-[var(--text-primary)]">
-              <Palette className="w-3.5 h-3.5" />
-              <h3 className="text-xs font-medium uppercase tracking-wide opacity-80">Appearance</h3>
+            <div>
+              <h1 className={clsx(
+                "text-base",
+                isZenVoid ? "text-[var(--void-title)] font-light" : "text-[var(--wabi-text)]"
+              )}>
+                Settings
+              </h1>
             </div>
+            <button
+              onClick={onClose}
+              className={clsx(
+                "p-1 rounded transition-colors",
+                isZenVoid
+                  ? "text-white/30 hover:text-white/60 hover:bg-white/5"
+                  : "text-[#555] hover:text-[#888] hover:bg-white/5"
+              )}
+            >
+              <X size={16} strokeWidth={2} />
+            </button>
+          </header>
 
-            <div className="flex gap-3">
-              {themes.map((t) => {
-                const isActive = currentTheme === t.key;
-                return (
-                  <button
-                    key={t.key}
-                    onClick={() => setTheme(t.key)}
-                    className={clsx(
-                      "flex-1 relative group h-14 rounded-xl transition-all duration-300 ease-out overflow-hidden border",
-                      isActive
-                        ? "border-[var(--text-primary)] ring-2 ring-[var(--text-primary)] ring-offset-2 ring-offset-[var(--surface-bg)]"
-                        : "border-[var(--border-subtle)] hover:border-[var(--text-secondary)]"
-                    )}
-                  >
-                    <div
-                      className="absolute inset-0 transition-transform duration-500"
-                      style={{ backgroundColor: t.color }}
-                    />
+          {/* Content */}
+          <div className="px-5 py-6 space-y-8">
 
-                    {/* Content overlay */}
-                    <div className="absolute inset-0 flex flex-col items-center justify-center z-10">
-                      {isActive && (
-                        <div className="w-5 h-5 rounded-full bg-white/20 backdrop-blur-md flex items-center justify-center mb-0.5 animate-in zoom-in duration-200">
-                          <Check className={clsx("w-3 h-3", t.key === 'white' ? 'text-black' : 'text-white')} />
-                        </div>
+            {/* Theme Section */}
+            <section>
+              <div className="flex items-center justify-between">
+                <span className={clsx(
+                  "text-sm",
+                  isZenVoid ? "text-[var(--void-text)] font-light" : "text-[var(--wabi-text)]"
+                )}>
+                  Theme
+                </span>
+
+                {/* Pill toggle for themes */}
+                <div className="flex bg-white/5 rounded-full p-0.5">
+                  {NOTE_STYLES.map((style) => {
+                    const isActive = currentNoteStyle === style.key;
+                    return (
+                      <button
+                        key={style.key}
+                        onClick={() => setNoteStyle(style.key)}
+                        className={clsx(
+                          "px-4 py-1.5 text-xs rounded-full transition-all duration-200",
+                          isActive
+                            ? "bg-white/15 text-white/90"
+                            : "text-white/40 hover:text-white/60"
+                        )}
+                      >
+                        {getThemeDisplayName(style.key)}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </section>
+
+            {/* Divider */}
+            <div style={{ borderTop: `1px solid ${getBorderColor()}` }} />
+
+            {/* Font Section */}
+            <section>
+              <span className={clsx(
+                "text-sm block mb-5",
+                isZenVoid ? "text-[var(--void-text)] font-light" : "text-[var(--wabi-text)]"
+              )}>
+                Font
+              </span>
+
+              {/* Font Cards Grid */}
+              <div className="grid grid-cols-4 gap-3">
+                {EDITOR_FONTS.map((font) => {
+                  const isActive = currentEditorFont === font.key;
+                  return (
+                    <button
+                      key={font.key}
+                      onClick={() => setEditorFont(font.key)}
+                      className={clsx(
+                        "flex flex-col items-center py-4 px-2 rounded-lg transition-all duration-200 border",
+                        isActive
+                          ? "bg-white/5 border-white/20"
+                          : "bg-transparent border-transparent hover:bg-white/5 hover:border-white/10"
                       )}
-                      <span className={clsx(
-                        "text-[9px] font-bold tracking-wider uppercase transition-all",
-                        t.key === 'white' ? 'text-black/70' : 'text-white/70',
-                        isActive ? 'translate-y-0 opacity-100' : 'translate-y-2 opacity-0 group-hover:translate-y-0 group-hover:opacity-100'
-                      )}>
-                        {t.label}
+                    >
+                      {/* Ag Preview */}
+                      <span
+                        className={clsx(
+                          "text-2xl mb-2",
+                          isActive ? "text-white/90" : "text-white/50"
+                        )}
+                        style={{ fontFamily: font.fontFamily }}
+                      >
+                        Ag
                       </span>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </section>
+                      {/* Font Name */}
+                      <span className={clsx(
+                        "text-[10px]",
+                        isActive ? "text-white/70" : "text-white/40"
+                      )}>
+                        {font.name}
+                      </span>
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
 
-          {/* Typography Section */}
-          <section>
-            <div className="flex items-center gap-2 mb-3 text-[var(--text-primary)]">
-              <Type className="w-3.5 h-3.5" />
-              <h3 className="text-xs font-medium uppercase tracking-wide opacity-80">Typography</h3>
-            </div>
-
-            <div className="flex flex-wrap gap-2">
-              {EDITOR_FONTS.map((f) => {
-                const isSelected = currentEditorFont === f.key;
-                return (
-                  <button
-                    key={f.key}
-                    onClick={() => setEditorFont(f.key)}
-                    className={clsx(
-                      "px-4 py-2 rounded-full text-sm font-medium border transition-all duration-200 flex items-center gap-2",
-                      isSelected
-                        ? "bg-[var(--text-primary)] text-[var(--app-bg)] border-[var(--text-primary)]"
-                        : "bg-transparent border-[var(--border-subtle)] text-[var(--text-secondary)] hover:border-[var(--text-secondary)]"
-                    )}
-                  >
-                    <span style={{ fontFamily: f.fontFamily }}>{f.name}</span>
-                    <span className="text-xs opacity-60">{f.description}</span>
-                    {isSelected && <Check className="w-3 h-3" />}
-                  </button>
-                )
-              })}
-            </div>
-          </section>
-
+          </div>
         </div>
       </div>
-    </div>
+    </>
   );
 }

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Download, X, RefreshCw, AlertCircle } from 'lucide-react';
+import { X, } from 'lucide-react';
 import { useThemeStore } from '../../stores/themeStore';
 import clsx from 'clsx';
 
@@ -25,6 +25,37 @@ export const UpdateToast: React.FC<UpdateToastProps> = () => {
 
     const currentNoteStyle = useThemeStore((state) => state.currentNoteStyle);
     const isZenVoid = currentNoteStyle === 'zen-void';
+
+    // DEBUG: Keyboard shortcut to test toast (Ctrl+Shift+U)
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (e.ctrlKey && e.shiftKey && e.key === 'U') {
+                e.preventDefault();
+                setDismissed(false);
+                setStatus((prev) => {
+                    const states: UpdateStatus[] = ['available', 'downloading', 'downloaded', 'error', 'idle'];
+                    const currentIndex = states.indexOf(prev);
+                    const nextIndex = (currentIndex + 1) % states.length;
+                    const nextState = states[nextIndex];
+
+                    // Set mock data for each state
+                    if (nextState === 'available') {
+                        setUpdateInfo({ version: '2.4.0' });
+                    } else if (nextState === 'downloading') {
+                        setDownloadProgress(45);
+                    } else if (nextState === 'error') {
+                        setErrorMessage('Network connection failed');
+                    }
+
+                    console.log('[UpdateToast] Debug: Switching to', nextState);
+                    return nextState;
+                });
+            }
+        };
+
+        window.addEventListener('keydown', handleKeyDown);
+        return () => window.removeEventListener('keydown', handleKeyDown);
+    }, []);
 
     // Listen for IPC messages from main process
     useEffect(() => {
@@ -93,179 +124,121 @@ export const UpdateToast: React.FC<UpdateToastProps> = () => {
         return null;
     }
 
-    // Font family based on theme
-    const fontFamily = isZenVoid
-        ? "'Inter', sans-serif"
-        : "'JetBrains Mono', monospace";
+    // Determine content based on status
+    const getTitle = () => {
+        switch (status) {
+            case 'available': return 'Update available';
+            case 'downloading': return 'Downloading update';
+            case 'downloaded': return 'Ready to install';
+            case 'error': return 'Update failed';
+            default: return '';
+        }
+    };
+
+    const getSubtitle = () => {
+        switch (status) {
+            case 'available': return `Version ${updateInfo?.version} is ready`;
+            case 'downloading': return `${Math.round(downloadProgress)}% complete`;
+            case 'downloaded': return `Version ${updateInfo?.version} downloaded`;
+            case 'error': return errorMessage?.slice(0, 50) || 'An error occurred';
+            default: return '';
+        }
+    };
+
+    const getActionText = () => {
+        switch (status) {
+            case 'available': return 'Install now';
+            case 'downloaded': return 'Restart now';
+            default: return null;
+        }
+    };
+
+    const handleAction = () => {
+        if (status === 'available') {
+            handleDownload();
+        } else if (status === 'downloaded') {
+            handleInstall();
+        }
+    };
+
+    const actionText = getActionText();
+
+    // Theme-specific colors
+    const bgColor = isZenVoid ? 'var(--void-bg)' : 'var(--wabi-bg)';
+    const borderColor = isZenVoid ? 'var(--void-border)' : 'var(--wabi-border)';
 
     return (
         <AnimatePresence>
             <motion.div
-                initial={{ opacity: 0, y: 20, scale: 0.98 }}
-                animate={{ opacity: 1, y: 0, scale: 1 }}
-                exit={{ opacity: 0, y: 20, scale: 0.98 }}
-                transition={{ duration: 0.2, ease: [0.16, 1, 0.3, 1] }}
-                className={clsx(
-                    "fixed bottom-5 right-5 z-[9999]",
-                    "w-[280px] overflow-hidden",
-                    isZenVoid
-                        ? "bg-[var(--void-bg)] border border-[var(--void-border)] rounded-md"
-                        : "bg-[var(--wabi-bg)] border border-[var(--wabi-border)] rounded-xs"
-                )}
-                style={{ fontFamily }}
+                initial={{ opacity: 0, y: 8 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0, y: 8 }}
+                transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
+                className="fixed bottom-4 right-4 z-[9999] w-60 p-3 rounded-lg"
+                style={{
+                    fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
+                    backgroundColor: bgColor,
+                    border: `1px solid ${borderColor}`,
+                }}
             >
-                {/* Header */}
-                <div className={clsx(
-                    "px-3 py-2 flex items-center justify-between",
-                    isZenVoid
-                        ? "border-b border-[var(--void-border)]"
-                        : "border-b border-[var(--wabi-border)]"
-                )}>
-                    <div className="flex items-center gap-2">
-                        {status === 'error' ? (
-                            <AlertCircle className={clsx(
-                                "w-3.5 h-3.5",
-                                "text-red-400/70"
-                            )} />
-                        ) : status === 'downloaded' ? (
-                            <RefreshCw className={clsx(
-                                "w-3.5 h-3.5",
-                                isZenVoid ? "text-white/50" : "text-[#666]"
-                            )} />
-                        ) : (
-                            <Download className={clsx(
-                                "w-3.5 h-3.5",
-                                isZenVoid ? "text-white/50" : "text-[#666]"
-                            )} />
-                        )}
-                        <span className={clsx(
-                            isZenVoid
-                                ? "text-xs text-white/40 font-light tracking-wide"
-                                : "text-[10px] text-[var(--wabi-title)] uppercase tracking-[0.1em]"
+                {/* Header row: title + close button */}
+                <div className="flex items-start justify-between gap-2">
+                    <div className="flex-1">
+                        <p className={clsx(
+                            "text-[13px] mb-0.5",
+                            isZenVoid ? "text-[var(--void-title)]" : "text-[var(--wabi-text)]"
                         )}>
-                            {status === 'available' && 'Update'}
-                            {status === 'downloading' && 'Downloading'}
-                            {status === 'downloaded' && 'Ready'}
-                            {status === 'error' && 'Error'}
-                        </span>
+                            {getTitle()}
+                        </p>
+                        <p className={clsx(
+                            "text-[11px]",
+                            isZenVoid ? "text-[var(--void-text)]" : "text-[var(--wabi-text-muted)]"
+                        )}>
+                            {getSubtitle()}
+                        </p>
                     </div>
                     <button
                         onClick={handleDismiss}
-                        className={clsx(
-                            "p-0.5 rounded transition-colors",
-                            isZenVoid
-                                ? "text-white/30 hover:text-white/60 hover:bg-white/5"
-                                : "text-[#555] hover:text-[#888] hover:bg-white/5"
-                        )}
+                        className="text-white/70 hover:text-white/90 transition-colors"
                     >
-                        <X className="w-3.5 h-3.5" />
+                        <X size={13} strokeWidth={2} />
                     </button>
                 </div>
 
-                {/* Content */}
-                <div className="px-3 py-2.5">
-                    {status === 'available' && (
-                        <div className="space-y-2.5">
-                            <p className={clsx(
-                                isZenVoid
-                                    ? "text-sm text-[var(--void-title)] font-light"
-                                    : "text-xs text-[var(--wabi-text)]"
-                            )}>
-                                v{updateInfo?.version} available
-                            </p>
-                            <button
-                                onClick={handleDownload}
-                                className={clsx(
-                                    "w-full py-1.5 px-3 text-xs",
-                                    "flex items-center justify-center gap-1.5",
-                                    "transition-colors duration-150",
-                                    isZenVoid
-                                        ? "bg-white/5 hover:bg-white/10 text-white/70 border border-[var(--void-border)] rounded"
-                                        : "bg-[#0c0c0b] hover:bg-[#111] text-[var(--wabi-text)] border border-[var(--wabi-border)] rounded-xs"
-                                )}
-                            >
-                                <Download className="w-3 h-3" />
-                                Download
-                            </button>
-                        </div>
-                    )}
-
-                    {status === 'downloading' && (
-                        <div className="space-y-2">
-                            <div className="flex justify-between text-[10px]">
-                                <span className={isZenVoid ? "text-white/40" : "text-[var(--wabi-text-muted)]"}>
-                                    Progress
-                                </span>
-                                <span className={isZenVoid ? "text-white/60" : "text-[var(--wabi-text)]"}>
-                                    {Math.round(downloadProgress)}%
-                                </span>
-                            </div>
-                            <div className={clsx(
-                                "h-1 rounded-full overflow-hidden",
-                                isZenVoid ? "bg-white/5" : "bg-[#111]"
-                            )}>
-                                <motion.div
-                                    className={clsx(
-                                        "h-full rounded-full",
-                                        isZenVoid ? "bg-white/30" : "bg-[#444]"
-                                    )}
-                                    initial={{ width: 0 }}
-                                    animate={{ width: `${downloadProgress}%` }}
-                                    transition={{ duration: 0.2 }}
-                                />
-                            </div>
-                        </div>
-                    )}
-
-                    {status === 'downloaded' && (
-                        <div className="space-y-2.5">
-                            <p className={clsx(
-                                isZenVoid
-                                    ? "text-sm text-[var(--void-title)] font-light"
-                                    : "text-xs text-[var(--wabi-text)]"
-                            )}>
-                                Restart to apply update
-                            </p>
-                            <button
-                                onClick={handleInstall}
-                                className={clsx(
-                                    "w-full py-1.5 px-3 text-xs",
-                                    "flex items-center justify-center gap-1.5",
-                                    "transition-colors duration-150",
-                                    isZenVoid
-                                        ? "bg-white/10 hover:bg-white/15 text-white/90 border border-[var(--void-border)] rounded"
-                                        : "bg-[#111] hover:bg-[#1a1a1a] text-[var(--wabi-text)] border border-[var(--wabi-border)] rounded-xs"
-                                )}
-                            >
-                                <RefreshCw className="w-3 h-3" />
-                                Restart Now
-                            </button>
-                        </div>
-                    )}
-
-                    {status === 'error' && (
-                        <div className="space-y-1.5">
-                            <p className={clsx(
-                                "text-xs text-red-400/80"
-                            )}>
-                                Update failed
-                            </p>
-                            {errorMessage && (
-                                <p className={clsx(
-                                    "text-[10px] p-1.5 rounded overflow-hidden text-ellipsis",
-                                    isZenVoid
-                                        ? "bg-white/5 text-white/40 border border-[var(--void-border)]"
-                                        : "bg-[#0c0c0b] text-[var(--wabi-text-muted)] border border-[var(--wabi-border)]"
-                                )}
-                                    style={{ fontFamily: "'JetBrains Mono', monospace" }}
-                                >
-                                    {errorMessage.slice(0, 80)}{errorMessage.length > 80 ? '...' : ''}
-                                </p>
+                {/* Progress bar for downloading state */}
+                {status === 'downloading' && (
+                    <div className={clsx(
+                        "mt-2.5 h-0.5 rounded-full overflow-hidden",
+                        isZenVoid ? "bg-white/5" : "bg-white/10"
+                    )}>
+                        <motion.div
+                            className={clsx(
+                                "h-full rounded-full",
+                                isZenVoid ? "bg-white/30" : "bg-[var(--wabi-text-muted)]"
                             )}
-                        </div>
-                    )}
-                </div>
+                            initial={{ width: 0 }}
+                            animate={{ width: `${downloadProgress}%` }}
+                            transition={{ duration: 0.2 }}
+                        />
+                    </div>
+                )}
+
+                {/* Action button */}
+                {actionText && (
+                    <button
+                        onClick={handleAction}
+                        className={clsx(
+                            "mt-2.5 text-[11px] transition-colors",
+                            isZenVoid
+                                ? "text-[var(--void-title)] hover:text-white"
+                                : "text-[var(--wabi-text)] hover:text-white"
+                        )}
+                    >
+                        {actionText}
+                    </button>
+                )}
             </motion.div>
         </AnimatePresence>
     );
 };
+
