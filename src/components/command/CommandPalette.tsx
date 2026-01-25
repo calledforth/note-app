@@ -2,22 +2,21 @@ import React, { useState, useEffect, useRef, useMemo } from 'react'
 import { useThemeStore, NOTE_STYLES, EDITOR_FONTS } from '../../stores/themeStore'
 import { useBentoStore } from '../../stores/bentoStore'
 import {
-    Palette,
-    Plus,
-    Search,
-    Layers,
-    X,
-    Minus,
-    Maximize2,
-    XCircle,
-    ArrowLeft,
     Check,
-    Grid3X3,
-    Sparkles,
     Info,
+    Layers,
+    LayersPlus,
+    Maximize2,
+    Minus,
+    NotebookPen,
+    Palette,
+    Pencil,
+    Search,
     Settings2,
     Sunrise,
-    Type
+    Trash2,
+    Type,
+    XCircle
 } from 'lucide-react'
 
 // Get app version from package.json (injected at build time via Vite)
@@ -39,26 +38,41 @@ interface CommandItem {
 // Command execution handler type
 export type CommandHandler = (commandId: string, payload?: unknown) => void
 
+export type CommandPaletteVariant = 'all' | 'spaces'
+
 interface CommandPaletteProps {
     isOpen: boolean
     onClose: () => void
     onExecuteCommand: CommandHandler
+    variant?: CommandPaletteVariant
 }
 
 // Mode for input states
-type PaletteMode = 'commands' | 'new-workspace' | 'style-select'
+type PaletteMode = 'commands' | 'new-workspace' | 'rename-workspace' | 'confirm-delete' | 'font' | 'theme'
 
-export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose, onExecuteCommand }) => {
+export const CommandPalette: React.FC<CommandPaletteProps> = ({
+    isOpen,
+    onClose,
+    onExecuteCommand,
+    variant = 'all',
+}) => {
     const [searchQuery, setSearchQuery] = useState('')
     const [selectedIndex, setSelectedIndex] = useState(0)
     const [mode, setMode] = useState<PaletteMode>('commands')
     const [newWorkspaceName, setNewWorkspaceName] = useState('')
-    const inputRef = useRef<HTMLInputElement>(null)
+    const [renameWorkspaceName, setRenameWorkspaceName] = useState('')
+    const searchInputRef = useRef<HTMLInputElement>(null)
+    const workspaceInputRef = useRef<HTMLInputElement>(null)
 
     // Store access
     const currentNoteStyle = useThemeStore((state) => state.currentNoteStyle)
     const currentEditorFont = useThemeStore((state) => state.currentEditorFont)
     const workspaces = useBentoStore((state) => state.workspaces)
+    const currentWorkspaceId = useBentoStore((state) => state.currentWorkspaceId)
+    const currentWorkspace = useMemo(
+        () => workspaces.find((w) => w.id === currentWorkspaceId) || null,
+        [workspaces, currentWorkspaceId]
+    )
 
     // Get the font family string for the current editor font
     const currentFontFamily = useMemo(() => {
@@ -70,97 +84,116 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose,
     const allCommands = useMemo((): CommandItem[] => {
         const commands: CommandItem[] = []
 
-        // === NOTES ===
-        commands.push({
-            id: 'new-note',
-            label: 'New Note',
-            description: 'Create a new sticky note',
-            icon: <Plus className="w-[18px] h-[18px]" />,
-            shortcut: 'Ctrl+N',
-            category: 'Notes'
-        })
+        // Spaces picker variant: only show create + spaces destinations
+        if (variant === 'spaces') {
+            commands.push({
+                id: 'new-workspace',
+                label: 'Create new workspace',
+                description: 'Create a fresh workspace for notes',
+                icon: <LayersPlus className="w-4 h-4" />,
+                category: '__top__',
+            })
 
-        // === WORKSPACES ===
-        commands.push({
-            id: 'new-workspace',
-            label: 'New Workspace',
-            description: 'Create a new workspace',
-            icon: <Layers className="w-[18px] h-[18px]" />,
-            category: 'Workspaces'
-        })
+            if (currentWorkspaceId) {
+                commands.push({
+                    id: 'rename-workspace',
+                    label: 'Rename workspace',
+                    description: 'Edit the current workspace name',
+                    icon: <Pencil className="w-4 h-4" />,
+                    category: '__top__',
+                })
+                commands.push({
+                    id: 'delete-workspace',
+                    label: 'Delete workspace',
+                    description: 'Remove the current workspace',
+                    icon: <Trash2 className="w-4 h-4" />,
+                    category: '__top__',
+                })
+            }
 
-        // Add all existing workspaces as switchable commands
+            workspaces.forEach((workspace) => {
+                commands.push({
+                    id: `workspace-${workspace.id}`,
+                    label: workspace.name,
+                    description: `Switch to ${workspace.name}`,
+                    icon: <Layers className="w-4 h-4" />,
+                    category: 'Spaces',
+                    isActive: workspace.id === currentWorkspaceId,
+                })
+            })
+            commands.push({
+                id: 'show-mantra',
+                label: 'Mantra',
+                description: 'Open morning mantra ritual',
+                icon: <Sunrise className="w-4 h-4" />,
+                category: 'Spaces',
+            })
+            commands.push({
+                id: 'open-settings',
+                label: 'Settings',
+                description: 'Open application settings',
+                icon: <Settings2 className="w-4 h-4" />,
+                category: 'Spaces',
+            })
+
+            return commands
+        }
+
+        // === SPACES (workspaces, mantra, settings - places you go to) ===
         workspaces.forEach((workspace) => {
             commands.push({
                 id: `workspace-${workspace.id}`,
                 label: workspace.name,
                 description: `Switch to ${workspace.name}`,
-                icon: <Grid3X3 className="w-[18px] h-[18px]" />,
-                category: 'Workspaces'
+                icon: <Layers className="w-4 h-4" />,
+                category: 'Spaces',
+                isActive: workspace.id === currentWorkspaceId
             })
         })
-
-        // === APPEARANCE ===
-        // Toggle (cycles through styles)
-        commands.push({
-            id: 'toggle-style',
-            label: 'Toggle Note Style',
-            description: 'Cycle between available styles',
-            icon: <Sparkles className="w-[18px] h-[18px]" />,
-            shortcut: 'Ctrl+Shift+T',
-            category: 'Appearance'
-        })
-
-        // Individual style commands
-        NOTE_STYLES.forEach((style) => {
-            commands.push({
-                id: `style-${style.key}`,
-                label: `Set ${style.name}`,
-                description: style.description,
-                icon: <Palette className="w-[18px] h-[18px]" />,
-                category: 'Appearance',
-                isActive: currentNoteStyle === style.key
-            })
-        })
-
-        // Toggle font (cycles through fonts)
-        commands.push({
-            id: 'toggle-font',
-            label: 'Toggle Editor Font',
-            description: 'Cycle between Mono and Geist',
-            icon: <Type className="w-[18px] h-[18px]" />,
-            shortcut: 'Ctrl+Shift+F',
-            category: 'Appearance'
-        })
-
-        // Individual font commands
-        EDITOR_FONTS.forEach((font) => {
-            commands.push({
-                id: `font-${font.key}`,
-                label: `Set ${font.name} Font`,
-                description: font.description,
-                icon: <Type className="w-[18px] h-[18px]" />,
-                category: 'Appearance',
-                isActive: currentEditorFont === font.key
-            })
-        })
-
-        // === RITUALS ===
         commands.push({
             id: 'show-mantra',
             label: 'Mantra',
             description: 'Open morning mantra ritual',
-            icon: <Sunrise className="w-[18px] h-[18px]" />,
-            category: 'Rituals'
+            icon: <Sunrise className="w-4 h-4" />,
+            category: 'Spaces'
         })
-
-        // === SETTINGS ===
         commands.push({
             id: 'open-settings',
             label: 'Settings',
             description: 'Open application settings',
-            icon: <Settings2 className="w-[18px] h-[18px]" />,
-            category: 'Settings'
+            icon: <Settings2 className="w-4 h-4" />,
+            category: 'Spaces'
+        })
+
+        // === ACTIONS (things you do) ===
+        commands.push({
+            id: 'new-workspace',
+            label: 'Create new workspace',
+            description: 'Create a fresh workspace for notes',
+            icon: <LayersPlus className="w-4 h-4" />,
+            category: 'Actions'
+        })
+        commands.push({
+            id: 'new-note',
+            label: 'New Note',
+            description: 'Create a new sticky note',
+            icon: <NotebookPen className="w-4 h-4" />,
+            shortcut: 'Ctrl+N',
+            category: 'Actions'
+        })
+        commands.push({
+            id: 'open-font',
+            label: 'Change font',
+            description: 'Choose editor font',
+            icon: <Type className="w-4 h-4" />,
+            category: 'Actions'
+        })
+        commands.push({
+            id: 'open-theme',
+            label: 'Change theme',
+            description: 'Switch note style',
+            icon: <Palette className="w-4 h-4" />,
+            category: 'Actions'
         })
 
         // === WINDOW ===
@@ -168,21 +201,21 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose,
             id: 'window-minimize',
             label: 'Minimize Window',
             description: 'Minimize the application',
-            icon: <Minus className="w-[18px] h-[18px]" />,
+            icon: <Minus className="w-4 h-4" />,
             category: 'Window'
         })
         commands.push({
             id: 'window-maximize',
             label: 'Maximize Window',
             description: 'Maximize or restore the window',
-            icon: <Maximize2 className="w-[18px] h-[18px]" />,
+            icon: <Maximize2 className="w-4 h-4" />,
             category: 'Window'
         })
         commands.push({
             id: 'window-close',
             label: 'Close Window',
             description: 'Close the application',
-            icon: <XCircle className="w-[18px] h-[18px]" />,
+            icon: <XCircle className="w-4 h-4" />,
             category: 'Window'
         })
 
@@ -191,23 +224,40 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose,
             id: 'about-version',
             label: `Version ${APP_VERSION}`,
             description: 'Current application version',
-            icon: <Info className="w-[18px] h-[18px]" />,
+            icon: <Info className="w-4 h-4" />,
             category: 'About'
         })
 
         return commands
-    }, [workspaces, currentNoteStyle, currentEditorFont])
+    }, [workspaces, currentWorkspaceId, variant])
 
     // Filter commands based on search
     const filteredCommands = useMemo(() => {
         if (mode !== 'commands') return []
 
-        return allCommands.filter(cmd =>
-            cmd.label.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            cmd.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-            cmd.category.toLowerCase().includes(searchQuery.toLowerCase())
+        const query = searchQuery.toLowerCase()
+
+        // For the spaces picker, keep pinned commands visible regardless of search.
+        if (variant === 'spaces') {
+            const pinned = allCommands.filter((cmd) => cmd.category === '__top__')
+            const rest = allCommands
+                .filter((cmd) => cmd.category !== '__top__')
+                .filter(
+                    (cmd) =>
+                        cmd.label.toLowerCase().includes(query) ||
+                        cmd.description?.toLowerCase().includes(query) ||
+                        cmd.category.toLowerCase().includes(query)
+                )
+            return [...pinned, ...rest]
+        }
+
+        return allCommands.filter(
+            (cmd) =>
+                cmd.label.toLowerCase().includes(query) ||
+                cmd.description?.toLowerCase().includes(query) ||
+                cmd.category.toLowerCase().includes(query)
         )
-    }, [allCommands, searchQuery, mode])
+    }, [allCommands, searchQuery, mode, variant])
 
     // Group commands by category
     const groupedCommands = useMemo(() => {
@@ -225,9 +275,15 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose,
             setSelectedIndex(0)
             setMode('commands')
             setNewWorkspaceName('')
-            setTimeout(() => inputRef.current?.focus(), 50)
+            setTimeout(() => searchInputRef.current?.focus(), 50)
         }
     }, [isOpen])
+
+    useEffect(() => {
+        if (mode === 'new-workspace') {
+            setTimeout(() => workspaceInputRef.current?.focus(), 50)
+        }
+    }, [mode])
 
     // Handle command execution
     const executeCommand = (cmd: CommandItem) => {
@@ -235,7 +291,23 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose,
             // Enter new workspace name mode
             setMode('new-workspace')
             setNewWorkspaceName('')
-            setTimeout(() => inputRef.current?.focus(), 50)
+            return
+        }
+        if (cmd.id === 'rename-workspace') {
+            setMode('rename-workspace')
+            setRenameWorkspaceName(currentWorkspace?.name || '')
+            return
+        }
+        if (cmd.id === 'delete-workspace') {
+            setMode('confirm-delete')
+            return
+        }
+        if (cmd.id === 'open-font') {
+            setMode('font')
+            return
+        }
+        if (cmd.id === 'open-theme') {
+            setMode('theme')
             return
         }
 
@@ -253,6 +325,21 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose,
         }
     }
 
+    const handleRenameWorkspace = () => {
+        const name = renameWorkspaceName.trim()
+        if (name && currentWorkspaceId) {
+            onExecuteCommand('rename-workspace', { id: currentWorkspaceId, name })
+            onClose()
+        }
+    }
+
+    const handleDeleteWorkspace = () => {
+        if (currentWorkspaceId) {
+            onExecuteCommand('delete-workspace', { id: currentWorkspaceId })
+            onClose()
+        }
+    }
+
     // Handle keyboard navigation
     useEffect(() => {
         if (!isOpen) return
@@ -264,7 +351,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose,
                     // Go back to commands mode
                     setMode('commands')
                     setSearchQuery('')
-                    setTimeout(() => inputRef.current?.focus(), 50)
+                    setTimeout(() => searchInputRef.current?.focus(), 50)
                 } else {
                     onClose()
                 }
@@ -278,6 +365,10 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose,
                 e.preventDefault()
                 if (mode === 'new-workspace') {
                     handleCreateWorkspace()
+                } else if (mode === 'rename-workspace') {
+                    handleRenameWorkspace()
+                } else if (mode === 'confirm-delete') {
+                    handleDeleteWorkspace()
                 } else if (mode === 'commands' && filteredCommands[selectedIndex]) {
                     executeCommand(filteredCommands[selectedIndex])
                 }
@@ -294,28 +385,19 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose,
     let flatIndex = 0
     const getFlatIndex = () => flatIndex++
 
-    // Get placeholder and input value based on mode
-    const getInputProps = () => {
-        switch (mode) {
-            case 'new-workspace':
-                return {
-                    value: newWorkspaceName,
-                    onChange: (e: React.ChangeEvent<HTMLInputElement>) => setNewWorkspaceName(e.target.value),
-                    placeholder: 'Enter workspace name...'
-                }
-            default:
-                return {
-                    value: searchQuery,
-                    onChange: (e: React.ChangeEvent<HTMLInputElement>) => {
-                        setSearchQuery(e.target.value)
-                        setSelectedIndex(0)
-                    },
-                    placeholder: 'Type a command or search...'
-                }
-        }
+    const styleSwatches: Record<string, string> = {
+        'wabi-grid': 'var(--wabi-bg)',
+        'zen-void': 'var(--void-bg)',
+        'test-lab': 'var(--lab-bg)'
     }
 
-    const inputProps = getInputProps()
+    const renderShortcut = (shortcut: string) => {
+        return shortcut.split('+').map((key, index) => (
+            <span key={`${shortcut}-${index}`} className="kbd">
+                {key}
+            </span>
+        ))
+    }
 
     return (
         <>
@@ -330,9 +412,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose,
                 {/* Command Palette Container */}
                 <div
                     className={clsx(
-                        "w-full max-w-lg pointer-events-auto",
-                        "animate-command-palette-in",
-                        // Style-specific container styling
+                        "w-full max-w-lg pointer-events-auto animate-command-open",
                         currentNoteStyle === 'zen-void'
                             ? "command-palette-zen-void"
                             : currentNoteStyle === 'test-lab'
@@ -340,177 +420,80 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose,
                                 : "command-palette-wabi-grid"
                     )}
                 >
-                    <div className={clsx(
-                        "overflow-hidden shadow-2xl",
-                        currentNoteStyle === 'zen-void'
-                            ? "bg-[#000000] border border-[var(--void-border)] rounded-md"
-                            : currentNoteStyle === 'test-lab'
-                                ? "bg-[#0a0a0a] border border-[var(--lab-border)] rounded-md"
-                                : "bg-[var(--wabi-bg)] border border-[var(--wabi-border)] rounded-md"
-                    )}>
-                        {/* Search Input */}
-                        <div className={clsx(
-                            "flex items-center gap-2 px-3 py-2",
-                            currentNoteStyle === 'zen-void'
-                                ? "border-b border-[var(--void-border)]"
-                                : currentNoteStyle === 'test-lab'
-                                    ? "border-b border-[var(--lab-border)]"
-                                    : "border-b border-[var(--wabi-border)]"
-                        )}>
-                            {/* Back button for sub-modes */}
-                            {mode !== 'commands' && (
-                                <button
-                                    onClick={() => {
-                                        setMode('commands')
-                                        setSearchQuery('')
-                                    }}
-                                    className={clsx(
-                                        "p-1 rounded transition-colors",
-                                        currentNoteStyle === 'zen-void'
-                                            ? "text-white/40 hover:text-white/60 hover:bg-white/5"
-                                            : "text-[#555] hover:text-[#888] hover:bg-white/5"
-                                    )}
-                                >
-                                    <ArrowLeft className="w-[18px] h-[18px]" />
-                                </button>
-                            )}
+                    <div className="overflow-hidden rounded-lg border border-[var(--cp-border)] bg-[var(--cp-bg)] text-[var(--cp-text)] shadow-2xl">
+                        {mode === 'commands' && (
+                            <>
+                                <div className="border-b border-[var(--cp-border)]">
+                                    <div className="flex items-center gap-2 px-3 py-2">
+                                        <Search className="h-4 w-4 text-[var(--cp-muted)]" />
+                                        <input
+                                            ref={searchInputRef}
+                                            type="text"
+                                            value={searchQuery}
+                                            onChange={(e) => {
+                                                setSearchQuery(e.target.value)
+                                                setSelectedIndex(0)
+                                            }}
+                                            placeholder={variant === 'spaces' ? 'Search spaces...' : 'Search workspaces or actions...'}
+                                            className="flex-1 bg-transparent border-none outline-none text-sm text-[var(--cp-text)] placeholder:text-[var(--cp-muted)]"
+                                            style={{ fontFamily: currentFontFamily }}
+                                        />
+                                    </div>
+                                </div>
 
-                            {mode === 'commands' && (
-                                <Search className={clsx(
-                                    "w-[18px] h-[18px]",
-                                    currentNoteStyle === 'zen-void' ? "text-white/30" : "text-[var(--wabi-text-muted)]"
-                                )} />
-                            )}
-
-                            {mode === 'new-workspace' && (
-                                <Layers className={clsx(
-                                    "w-[18px] h-[18px]",
-                                    currentNoteStyle === 'zen-void' ? "text-white/50" : "text-[var(--wabi-text)]"
-                                )} />
-                            )}
-
-                            <input
-                                ref={inputRef}
-                                type="text"
-                                {...inputProps}
-                                className={clsx(
-                                    "flex-1 bg-transparent border-none outline-none text-sm",
-                                    currentNoteStyle === 'zen-void'
-                                        ? "text-[var(--void-title)] placeholder:text-white/30 font-light"
-                                        : "text-[var(--wabi-text)] placeholder:text-[var(--wabi-text-muted)]"
-                                )}
-                                style={{
-                                    fontFamily: currentNoteStyle === 'zen-void'
-                                        ? "'Inter', sans-serif"
-                                        : currentFontFamily
-                                }}
-                            />
-                            <button
-                                onClick={onClose}
-                                className={clsx(
-                                    "p-1 rounded transition-colors",
-                                    currentNoteStyle === 'zen-void'
-                                        ? "text-white/30 hover:text-white/60 hover:bg-white/5"
-                                        : "text-[#555] hover:text-[#888] hover:bg-white/5"
-                                )}
-                            >
-                                <X className="w-[18px] h-[18px]" />
-                            </button>
-                        </div>
-
-                        {/* Content Area */}
-                        <div className="max-h-[325px] overflow-y-auto">
-                            {/* Commands Mode */}
-                            {mode === 'commands' && (
-                                <>
+                                <div className="max-h-80 overflow-y-auto pt-1.5 pb-2">
                                     {Object.keys(groupedCommands).length === 0 ? (
-                                        <div className={clsx(
-                                            "px-3 py-6 text-center text-xs",
-                                            currentNoteStyle === 'zen-void' ? "text-white/30" : "text-[var(--wabi-text-muted)]"
-                                        )}>
-                                            No commands found
+                                        <div className="py-6 text-center text-sm text-[var(--cp-muted)]">
+                                            No results found.
                                         </div>
                                     ) : (
-                                        Object.entries(groupedCommands).map(([category, commands]) => (
-                                            <div key={category} className="pt-2 first:pt-0">
-                                                {/* Category Header - Spotlight style (no background) */}
-                                                <div className={clsx(
-                                                    "px-3 pt-2 pb-1",
-                                                    currentNoteStyle === 'zen-void'
-                                                        ? "text-white/40 text-xs font-light italic tracking-wide"
-                                                        : "text-[var(--wabi-title)] text-[10px] uppercase tracking-[0.15em]"
+                                        Object.entries(groupedCommands).map(([category, commands], groupIndex) => (
+                                            <div key={category}>
+                                                {/* Separator between groups */}
+                                                {groupIndex > 0 && (
+                                                    <div className="h-px bg-[var(--cp-border)] mx-2 my-1.5" />
                                                 )}
-                                                    style={{ fontFamily: currentNoteStyle === 'zen-void' ? "'Inter', sans-serif" : currentFontFamily }}
-                                                >
-                                                    {category}
-                                                </div>
+                                                
+                                                {/* Category heading - normal case like reference */}
+                                                {category !== '__top__' && (
+                                                    <div className="px-3 py-1 text-xs text-[var(--cp-muted)]">
+                                                        {category}
+                                                    </div>
+                                                )}
 
-                                                {/* Commands */}
                                                 {commands.map((cmd) => {
                                                     const currentFlatIndex = getFlatIndex()
                                                     const isSelected = currentFlatIndex === selectedIndex
+                                                    // Show keyboard shortcut for first 9 workspace items
+                                                    const isWorkspaceItem = cmd.id.startsWith('workspace-')
+                                                    const workspaceIndex = isWorkspaceItem ? workspaces.findIndex(w => `workspace-${w.id}` === cmd.id) : -1
+                                                    const showShortcut = isWorkspaceItem && workspaceIndex >= 0 && workspaceIndex < 9
 
                                                     return (
                                                         <button
                                                             key={cmd.id}
                                                             className={clsx(
-                                                                "w-full flex items-center gap-2 px-3 py-2 transition-colors text-left",
-                                                                isSelected ? "bg-white/5" : "bg-transparent",
-                                                                "hover:bg-white/5"
+                                                                "w-full flex items-center gap-2 px-3 py-1.5 text-left transition-colors",
+                                                                "hover-glow press-effect",
+                                                                isSelected ? "bg-[var(--cp-glow-soft)]" : "bg-transparent"
                                                             )}
                                                             onClick={() => executeCommand(cmd)}
                                                         >
-                                                            {/* Icon */}
-                                                            <span className="text-white/40">
+                                                            <span className="text-[var(--cp-muted)]">
                                                                 {cmd.icon}
                                                             </span>
-
-                                                            {/* Label & Description */}
-                                                            <div className="flex-1 min-w-0">
-                                                                <div className={clsx(
-                                                                    "truncate",
-                                                                    currentNoteStyle === 'zen-void'
-                                                                        ? "text-sm text-[var(--void-title)] font-light"
-                                                                        : "text-sm text-[var(--wabi-text)]"
-                                                                )}
-                                                                    style={{
-                                                                        fontFamily: currentNoteStyle === 'zen-void'
-                                                                            ? "'Inter', sans-serif"
-                                                                            : currentFontFamily
-                                                                    }}
-                                                                >
-                                                                    {cmd.label}
-                                                                </div>
-                                                                {cmd.description && (
-                                                                    <div className={clsx(
-                                                                        "truncate mt-0.5",
-                                                                        currentNoteStyle === 'zen-void'
-                                                                            ? "text-xs text-white/25"
-                                                                            : "text-xs text-[var(--wabi-text-muted)]"
-                                                                    )}
-                                                                        style={{ fontFamily: currentNoteStyle === 'zen-void' ? "'Inter', sans-serif" : currentFontFamily }}
-                                                                    >
-                                                                        {cmd.description}
-                                                                    </div>
-                                                                )}
-                                                            </div>
-
-                                                            {/* Active indicator (for current style) */}
+                                                            <span className="flex-1 text-sm text-[var(--cp-text)] truncate">
+                                                                {cmd.label}
+                                                            </span>
                                                             {cmd.isActive && (
-                                                                <Check className="w-[18px] h-[18px] text-white/60" />
+                                                                <Check className="h-4 w-4 text-[var(--cp-muted)]" />
                                                             )}
-
-                                                            {/* Shortcut - Keyboard style keys */}
+                                                            {showShortcut && (
+                                                                <span className="kbd ml-2">⌘{workspaceIndex + 1}</span>
+                                                            )}
                                                             {cmd.shortcut && (
-                                                                <div className="flex items-center gap-1">
-                                                                    {cmd.shortcut.split('+').map((key, i) => (
-                                                                        <kbd
-                                                                            key={i}
-                                                                            className="px-1.5 py-0.5 text-[10px] text-white/50 bg-black/40 border border-white/10 rounded shadow-[0_1px_0_0_rgba(255,255,255,0.05)]"
-                                                                        >
-                                                                            {key}
-                                                                        </kbd>
-                                                                    ))}
+                                                                <div className="flex items-center gap-1 ml-2">
+                                                                    {renderShortcut(cmd.shortcut)}
                                                                 </div>
                                                             )}
                                                         </button>
@@ -519,70 +502,161 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({ isOpen, onClose,
                                             </div>
                                         ))
                                     )}
-                                </>
-                            )}
+                                </div>
+                            </>
+                        )}
 
-                            {/* New Workspace Mode */}
-                            {mode === 'new-workspace' && (
-                                <div className="px-3 py-4">
-                                    <div className={clsx(
-                                        "text-xs mb-3",
-                                        currentNoteStyle === 'zen-void' ? "text-white/40" : "text-[var(--wabi-text-muted)]"
-                                    )}
-                                        style={{ fontFamily: currentNoteStyle === 'zen-void' ? "'Inter', sans-serif" : currentFontFamily }}
-                                    >
-                                        Enter a name for your new workspace and press Enter
-                                    </div>
-                                    <div className="flex items-center gap-2 px-3 py-2 rounded bg-white/5 border border-white/10">
-                                        <Grid3X3 className="w-[18px] h-[18px] text-white/40" />
-                                        <span className={clsx(
-                                            "text-sm",
-                                            currentNoteStyle === 'zen-void'
-                                                ? "text-[var(--void-title)] font-light"
-                                                : "text-[var(--wabi-text)]"
-                                        )}
-                                            style={{ fontFamily: currentNoteStyle === 'zen-void' ? "'Inter', sans-serif" : currentFontFamily }}
-                                        >
-                                            {newWorkspaceName || 'New Workspace'}
-                                        </span>
+                        {mode === 'new-workspace' && (
+                            <div className="px-3 py-2">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[var(--cp-muted)]">
+                                        <LayersPlus className="h-4 w-4" />
+                                    </span>
+                                    <input
+                                        ref={workspaceInputRef}
+                                        type="text"
+                                        value={newWorkspaceName}
+                                        onChange={(e) => setNewWorkspaceName(e.target.value)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === "Enter") handleCreateWorkspace()
+                                            if (e.key === "Escape") setMode("commands")
+                                        }}
+                                        placeholder="New workspace name..."
+                                        className="flex-1 bg-transparent border-none outline-none text-sm text-[var(--cp-text)] placeholder:text-[var(--cp-muted)]"
+                                        style={{ fontFamily: currentFontFamily }}
+                                    />
+                                    <div className="flex items-center gap-2">
+                                        <span className="kbd">↵</span>
+                                        <span className="kbd">esc</span>
                                     </div>
                                 </div>
-                            )}
-                        </div>
+                            </div>
+                        )}
 
-                        {/* Footer - Modern Arc-style */}
-                        <div className="flex items-center justify-between px-4 py-2.5 border-t border-white/5 text-[11px] text-white/40">
-                            {mode === 'commands' && (
-                                <>
-                                    <div className="flex items-center gap-4">
-                                        <span className="flex items-center gap-1.5">
-                                            <span className="text-white/50">↑↓</span>
-                                            <span>Navigate</span>
-                                        </span>
-                                        <span className="flex items-center gap-1.5">
-                                            <span className="text-white/50">↵</span>
-                                            <span>Select</span>
-                                        </span>
+                        {mode === 'rename-workspace' && (
+                            <div className="px-3 py-2">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[var(--cp-muted)]">
+                                        <Pencil className="h-4 w-4" />
+                                    </span>
+                                    <input
+                                        ref={workspaceInputRef}
+                                        type="text"
+                                        value={renameWorkspaceName}
+                                        onChange={(e) => setRenameWorkspaceName(e.target.value)}
+                                        onKeyDown={(e) => {
+                                            if (e.key === "Enter") handleRenameWorkspace()
+                                            if (e.key === "Escape") setMode("commands")
+                                        }}
+                                        placeholder="Rename workspace..."
+                                        className="flex-1 bg-transparent border-none outline-none text-sm text-[var(--cp-text)] placeholder:text-[var(--cp-muted)]"
+                                        style={{ fontFamily: currentFontFamily }}
+                                    />
+                                    <div className="flex items-center gap-2">
+                                        <span className="kbd">↵</span>
+                                        <span className="kbd">esc</span>
                                     </div>
-                                    <span className="flex items-center gap-1.5">
-                                        <span className="text-white/50">Esc</span>
-                                        <span>Close</span>
+                                </div>
+                            </div>
+                        )}
+
+                        {mode === 'confirm-delete' && (
+                            <div className="px-3 py-2">
+                                <div className="flex items-center gap-2">
+                                    <span className="text-[var(--cp-muted)]">
+                                        <Trash2 className="h-4 w-4" />
                                     </span>
-                                </>
-                            )}
-                            {mode === 'new-workspace' && (
-                                <>
-                                    <span className="flex items-center gap-1.5">
-                                        <span className="text-white/50">↵</span>
-                                        <span>Create</span>
-                                    </span>
-                                    <span className="flex items-center gap-1.5">
-                                        <span className="text-white/50">Esc</span>
-                                        <span>Back</span>
-                                    </span>
-                                </>
-                            )}
-                        </div>
+                                    <div className="flex-1 min-w-0">
+                                        <div className="text-sm text-[var(--cp-text)] truncate">
+                                            Delete “{currentWorkspace?.name || 'workspace'}”?
+                                        </div>
+                                        <div className="text-xs text-[var(--cp-muted)]">
+                                            Press Enter to delete, Esc to cancel
+                                        </div>
+                                    </div>
+                                    <div className="flex items-center gap-2">
+                                        <span className="kbd">↵</span>
+                                        <span className="kbd">esc</span>
+                                    </div>
+                                </div>
+                            </div>
+                        )}
+
+                        {mode === 'font' && (
+                            <>
+                                <div className="flex items-center justify-between px-3 py-2 border-b border-[var(--cp-border)]">
+                                    <span className="text-xs text-[var(--cp-muted)]">Font</span>
+                                    <button
+                                        onClick={() => setMode('commands')}
+                                        className="text-xs text-[var(--cp-muted)] hover:text-[var(--cp-text)] transition-colors"
+                                    >
+                                        esc
+                                    </button>
+                                </div>
+                                <div className="max-h-80 overflow-y-auto">
+                                    {EDITOR_FONTS.map((font) => (
+                                        <button
+                                            key={font.key}
+                                            className={clsx(
+                                                "w-full flex items-center gap-2 px-3 py-1.5 text-left transition-colors",
+                                                "hover-glow press-effect",
+                                                font.key === currentEditorFont ? "bg-[var(--cp-glow-soft)]" : "bg-transparent"
+                                            )}
+                                            onClick={() => {
+                                                onExecuteCommand(`font-${font.key}`)
+                                                onClose()
+                                            }}
+                                            style={{ fontFamily: font.fontFamily }}
+                                        >
+                                            <span className="text-[var(--cp-muted)] text-sm">Aa</span>
+                                            <span className="flex-1 text-sm">{font.name}</span>
+                                            {currentEditorFont === font.key && (
+                                                <Check className="h-3 w-3 text-[var(--cp-muted)]" />
+                                            )}
+                                        </button>
+                                    ))}
+                                </div>
+                            </>
+                        )}
+
+                        {mode === 'theme' && (
+                            <>
+                                <div className="flex items-center justify-between px-3 py-2 border-b border-[var(--cp-border)]">
+                                    <span className="text-xs text-[var(--cp-muted)]">Theme</span>
+                                    <button
+                                        onClick={() => setMode('commands')}
+                                        className="text-xs text-[var(--cp-muted)] hover:text-[var(--cp-text)] transition-colors"
+                                    >
+                                        esc
+                                    </button>
+                                </div>
+                                <div className="max-h-80 overflow-y-auto">
+                                    {NOTE_STYLES.map((style) => (
+                                        <button
+                                            key={style.key}
+                                            className={clsx(
+                                                "w-full flex items-center gap-2 px-3 py-1.5 text-left transition-colors",
+                                                "hover-glow press-effect",
+                                                style.key === currentNoteStyle ? "bg-[var(--cp-glow-soft)]" : "bg-transparent"
+                                            )}
+                                            onClick={() => {
+                                                onExecuteCommand(`style-${style.key}`)
+                                                onClose()
+                                            }}
+                                        >
+                                            <div
+                                                className="w-2 h-2 rounded-full border border-[var(--cp-border-subtle)]"
+                                                style={{ background: styleSwatches[style.key] || 'var(--cp-bg)' }}
+                                            />
+                                            <span className="flex-1 text-sm">{style.name}</span>
+                                            {currentNoteStyle === style.key && (
+                                                <Check className="h-3 w-3 text-[var(--cp-muted)]" />
+                                            )}
+                                        </button>
+                                    ))}
+                                </div>
+                            </>
+                        )}
                     </div>
                 </div>
             </div>

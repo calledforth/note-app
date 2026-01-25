@@ -6,7 +6,7 @@ import { useMantraStore } from './stores/mantraStore';
 import { ThemeManager } from './components/theme/ThemeManager';
 import { BentoWorkspace } from './components/workspace/BentoWorkspace';
 import { TitleBar } from './components/titlebar/TitleBar';
-import { CommandPalette, type CommandHandler } from './components/command/CommandPalette';
+import { CommandPalette, type CommandHandler, type CommandPaletteVariant } from './components/command/CommandPalette';
 import { UpdateToast } from './components/updater/UpdateToast';
 import { SettingsPanel } from './components/dock/SettingsPanel';
 import { MantraPage } from './components/mantra/MantraPage';
@@ -23,6 +23,8 @@ function App() {
   const createWorkspace = useBentoStore((state) => state.createWorkspace);
   const switchWorkspace = useBentoStore((state) => state.switchWorkspace);
   const createNote = useBentoStore((state) => state.createNote);
+  const deleteWorkspace = useBentoStore((state) => state.deleteWorkspace);
+  const updateWorkspaceName = useBentoStore((state) => state.updateWorkspaceName);
 
   // Theme actions
   const cycleNoteStyle = useThemeStore((state) => state.cycleNoteStyle);
@@ -35,6 +37,7 @@ function App() {
 
   // Command Palette state
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+  const [commandPaletteVariant, setCommandPaletteVariant] = useState<CommandPaletteVariant>('all');
 
   // Settings Panel state (can be opened from command palette or title bar)
   const [isSettingsPanelOpen, setIsSettingsPanelOpen] = useState(false);
@@ -97,6 +100,20 @@ function App() {
         }
         break;
 
+      case 'rename-workspace':
+        if (payload && typeof payload === 'object' && 'id' in payload && 'name' in payload) {
+          const { id, name } = payload as { id: string; name: string };
+          await updateWorkspaceName(id, name);
+        }
+        break;
+
+      case 'delete-workspace':
+        if (payload && typeof payload === 'object' && 'id' in payload) {
+          const { id } = payload as { id: string };
+          await deleteWorkspace(id);
+        }
+        break;
+
       case 'toggle-style':
         cycleNoteStyle();
         break;
@@ -128,7 +145,7 @@ function App() {
       default:
         console.log('Unknown command:', commandId);
     }
-  }, [switchWorkspace, setNoteStyle, setEditorFont, createNote, createWorkspace, cycleNoteStyle, cycleEditorFont]);
+  }, [switchWorkspace, setNoteStyle, setEditorFont, createNote, createWorkspace, updateWorkspaceName, deleteWorkspace, cycleNoteStyle, cycleEditorFont]);
 
   // Global keyboard shortcuts - use capture phase to intercept before editors consume events
   useEffect(() => {
@@ -139,6 +156,7 @@ function App() {
       if ((event.ctrlKey || event.metaKey) && key === 'k') {
         event.preventDefault();
         event.stopPropagation();
+        setCommandPaletteVariant('all');
         setIsCommandPaletteOpen(true);
         return;
       }
@@ -147,6 +165,7 @@ function App() {
       if ((event.ctrlKey || event.metaKey) && event.shiftKey && key === 'p') {
         event.preventDefault();
         event.stopPropagation();
+        setCommandPaletteVariant('all');
         setIsCommandPaletteOpen(true);
         return;
       }
@@ -200,9 +219,15 @@ function App() {
         isOpen={isCommandPaletteOpen}
         onClose={() => setIsCommandPaletteOpen(false)}
         onExecuteCommand={handleExecuteCommand}
+        variant={commandPaletteVariant}
       />
       <div className="w-screen h-screen flex flex-col bg-[var(--app-bg)] text-[var(--text-primary)] overflow-hidden">
-        <TitleBar />
+        <TitleBar
+          onOpenSpacesPicker={() => {
+            setCommandPaletteVariant('spaces');
+            setIsCommandPaletteOpen(true);
+          }}
+        />
         <main className="flex-1 overflow-hidden flex flex-col">
           {currentWorkspace ? (
             <BentoWorkspace spaceId={currentWorkspace.id} />

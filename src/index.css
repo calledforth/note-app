@@ -199,6 +199,21 @@
   animation: slide-down 0.12s cubic-bezier(0.16, 1, 0.3, 1) forwards;
 }
 
+@keyframes command-open {
+  0% {
+    opacity: 0;
+    transform: scale(0.96) translateY(-4px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-command-open {
+  animation: command-open 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
 /* Note swap animation - subtle fade in when note lands in new panel */
 @keyframes note-swap-in {
   from {
@@ -217,6 +232,39 @@
 }
 
 /* Command Palette Scrollbar Styling */
+.command-palette-wabi-grid,
+.command-palette-zen-void,
+.command-palette-test-lab {
+  --cp-accent: var(--badge-editing-bg);
+  --cp-accent-soft: rgba(37, 99, 235, 0.12);
+  --cp-accent-border: rgba(37, 99, 235, 0.35);
+  --cp-glow-soft: rgba(255, 255, 255, 0.03);
+  --cp-border-subtle: rgba(255, 255, 255, 0.08);
+  --cp-input-bg: rgba(255, 255, 255, 0.03);
+  --cp-input-bg-hover: rgba(255, 255, 255, 0.05);
+}
+
+.command-palette-wabi-grid {
+  --cp-bg: var(--wabi-bg);
+  --cp-border: var(--wabi-border);
+  --cp-text: var(--wabi-text);
+  --cp-muted: var(--wabi-text-muted);
+}
+
+.command-palette-zen-void {
+  --cp-bg: var(--void-bg);
+  --cp-border: var(--void-border);
+  --cp-text: var(--void-title);
+  --cp-muted: var(--void-text-muted);
+}
+
+.command-palette-test-lab {
+  --cp-bg: var(--lab-bg);
+  --cp-border: var(--lab-border);
+  --cp-text: var(--lab-text);
+  --cp-muted: var(--lab-text-muted);
+}
+
 .command-palette-zen-void ::-webkit-scrollbar {
   width: 4px;
 }
@@ -938,6 +986,37 @@
 .command-palette-test-lab ::-webkit-scrollbar-thumb {
   background: #333;
   border-radius: 2px;
+}
+
+@layer utilities {
+  .hover-glow {
+    transition: background 0.15s ease;
+  }
+
+  .hover-glow:hover {
+    background: var(--cp-glow-soft);
+  }
+
+  .press-effect {
+    transition: transform 0.1s ease;
+  }
+
+  .press-effect:active {
+    transform: scale(0.98);
+  }
+
+  .kbd {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 2px 6px;
+    font-size: 11px;
+    border-radius: 6px;
+    background: var(--cp-input-bg);
+    color: var(--cp-muted);
+    border: 1px solid var(--cp-border);
+    font-family: ui-monospace, monospace;
+  }
 }
 
 /* ========================================
