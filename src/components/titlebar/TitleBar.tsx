@@ -71,7 +71,7 @@ export function TitleBar({ onOpenSpacesPicker }: TitleBarProps) {
             title="Switch space"
           >
             <span
-              className="text-xs font-medium text-[#bbb]"
+              className="text-[13px] font-medium text-[#bbb]"
               style={{ fontFamily: currentFontFamily }}
             >
               {currentWorkspace?.name || 'Spaces'}

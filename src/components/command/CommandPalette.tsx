@@ -173,6 +173,22 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             icon: <LayersPlus className="w-4 h-4" />,
             category: 'Actions'
         })
+        if (currentWorkspaceId) {
+            commands.push({
+                id: 'rename-workspace',
+                label: 'Rename workspace',
+                description: 'Edit the current workspace name',
+                icon: <Pencil className="w-4 h-4" />,
+                category: 'Actions'
+            })
+            commands.push({
+                id: 'delete-workspace',
+                label: 'Delete workspace',
+                description: 'Remove the current workspace',
+                icon: <Trash2 className="w-4 h-4" />,
+                category: 'Actions'
+            })
+        }
         commands.push({
             id: 'new-note',
             label: 'New Note',
@@ -561,23 +577,25 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                         )}
 
                         {mode === 'confirm-delete' && (
-                            <div className="px-3 py-2">
-                                <div className="flex items-center gap-2">
-                                    <span className="text-[var(--cp-muted)]">
-                                        <Trash2 className="h-4 w-4" />
-                                    </span>
-                                    <div className="flex-1 min-w-0">
-                                        <div className="text-sm text-[var(--cp-text)] truncate">
-                                            Delete “{currentWorkspace?.name || 'workspace'}”?
-                                        </div>
-                                        <div className="text-xs text-[var(--cp-muted)]">
-                                            Press Enter to delete, Esc to cancel
-                                        </div>
+                            <div className="px-3 py-2.5">
+                                <div className="flex items-center gap-2 text-[var(--cp-text)]">
+                                    <div className="text-sm font-medium truncate">
+                                        Delete “{currentWorkspace?.name || 'workspace'}”?
                                     </div>
-                                    <div className="flex items-center gap-2">
-                                        <span className="kbd">↵</span>
-                                        <span className="kbd">esc</span>
-                                    </div>
+                                </div>
+                                <div className="mt-2 flex items-center justify-end gap-2">
+                                    <button
+                                        onClick={() => setMode('commands')}
+                                        className="rounded-md border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-[var(--cp-text)] transition-colors hover:bg-white/10"
+                                    >
+                                        Cancel
+                                    </button>
+                                    <button
+                                        onClick={handleDeleteWorkspace}
+                                        className="rounded-md bg-red-700 px-2.5 py-1 text-xs text-white transition-colors hover:bg-red-800"
+                                    >
+                                        Delete
+                                    </button>
                                 </div>
                             </div>
                         )}
