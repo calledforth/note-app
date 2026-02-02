@@ -98,7 +98,7 @@ export const MantraPage: React.FC<MantraPageProps> = ({
 
     return (
         <motion.div
-            className="fixed inset-0 z-[9999] bg-[var(--app-bg)] overflow-hidden"
+            className="fixed inset-0 z-9999 bg-(--app-bg) overflow-hidden"
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
@@ -107,7 +107,7 @@ export const MantraPage: React.FC<MantraPageProps> = ({
             {/* Exit button (only when accessed via command palette) */}
             {canExit && (
                 <motion.button
-                    className="absolute top-4 right-4 z-10 p-1.5 text-neutral-400 hover:text-white transition-colors"
+                    className="absolute top-4 right-4 z-10 p-1.5 text-(--text-secondary) hover:text-(--text-primary) transition-colors"
                     onClick={(e) => {
                         e.stopPropagation();
                         onExit?.();
@@ -149,7 +149,7 @@ export const MantraPage: React.FC<MantraPageProps> = ({
 
             {/* Subtle hint at bottom */}
             <motion.div
-                className="absolute bottom-6 left-1/2 -translate-x-1/2 text-white/15 text-[10px] tracking-widest uppercase"
+                className="absolute bottom-6 left-1/2 -translate-x-1/2 text-(--text-secondary) opacity-40 text-[10px] tracking-widest uppercase"
                 initial={{ opacity: 0 }}
                 animate={{ opacity: 1 }}
                 transition={{ delay: 2 }}

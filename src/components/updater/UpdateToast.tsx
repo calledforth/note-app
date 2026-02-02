@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { X, } from 'lucide-react';
-import { useThemeStore } from '../../stores/themeStore';
 import clsx from 'clsx';
 
 // Types for update info
@@ -22,9 +21,6 @@ export const UpdateToast: React.FC<UpdateToastProps> = () => {
     const [downloadProgress, setDownloadProgress] = useState(0);
     const [dismissed, setDismissed] = useState(false);
     const [errorMessage, setErrorMessage] = useState<string | null>(null);
-
-    const currentNoteStyle = useThemeStore((state) => state.currentNoteStyle);
-    const isZenVoid = currentNoteStyle === 'zen-void';
 
     // DEBUG: Keyboard shortcut to test toast (Ctrl+Shift+U)
     useEffect(() => {
@@ -164,8 +160,8 @@ export const UpdateToast: React.FC<UpdateToastProps> = () => {
     const actionText = getActionText();
 
     // Theme-specific colors
-    const bgColor = isZenVoid ? 'var(--void-bg)' : 'var(--wabi-bg)';
-    const borderColor = isZenVoid ? 'var(--void-border)' : 'var(--wabi-border)';
+    const bgColor = 'var(--note-bg)';
+    const borderColor = 'var(--note-border)';
 
     return (
         <AnimatePresence>
@@ -174,7 +170,7 @@ export const UpdateToast: React.FC<UpdateToastProps> = () => {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 8 }}
                 transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-                className="fixed bottom-4 right-4 z-[9999] w-60 p-3 rounded-lg"
+                className="fixed bottom-4 right-4 z-9999 w-60 p-3 rounded-lg"
                 style={{
                     fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
                     backgroundColor: bgColor,
@@ -184,22 +180,16 @@ export const UpdateToast: React.FC<UpdateToastProps> = () => {
                 {/* Header row: title + close button */}
                 <div className="flex items-start justify-between gap-2">
                     <div className="flex-1">
-                        <p className={clsx(
-                            "text-[13px] mb-0.5",
-                            isZenVoid ? "text-[var(--void-title)]" : "text-[var(--wabi-text)]"
-                        )}>
+                        <p className="text-[13px] mb-0.5 text-(--note-title)">
                             {getTitle()}
                         </p>
-                        <p className={clsx(
-                            "text-[11px]",
-                            isZenVoid ? "text-[var(--void-text)]" : "text-[var(--wabi-text-muted)]"
-                        )}>
+                        <p className="text-[11px] text-(--note-text-muted)">
                             {getSubtitle()}
                         </p>
                     </div>
                     <button
                         onClick={handleDismiss}
-                        className="text-white/70 hover:text-white/90 transition-colors"
+                        className="text-(--note-control-muted) hover:text-(--note-control) transition-colors"
                     >
                         <X size={13} strokeWidth={2} />
                     </button>
@@ -207,15 +197,9 @@ export const UpdateToast: React.FC<UpdateToastProps> = () => {
 
                 {/* Progress bar for downloading state */}
                 {status === 'downloading' && (
-                    <div className={clsx(
-                        "mt-2.5 h-0.5 rounded-full overflow-hidden",
-                        isZenVoid ? "bg-white/5" : "bg-white/10"
-                    )}>
+                    <div className="mt-2.5 h-0.5 rounded-full overflow-hidden bg-(--note-control-bg-hover)">
                         <motion.div
-                            className={clsx(
-                                "h-full rounded-full",
-                                isZenVoid ? "bg-white/30" : "bg-[var(--wabi-text-muted)]"
-                            )}
+                            className="h-full rounded-full bg-(--note-control-bg-active)"
                             initial={{ width: 0 }}
                             animate={{ width: `${downloadProgress}%` }}
                             transition={{ duration: 0.2 }}
@@ -227,12 +211,7 @@ export const UpdateToast: React.FC<UpdateToastProps> = () => {
                 {actionText && (
                     <button
                         onClick={handleAction}
-                        className={clsx(
-                            "mt-2.5 text-[11px] transition-colors",
-                            isZenVoid
-                                ? "text-[var(--void-title)] hover:text-white"
-                                : "text-[var(--wabi-text)] hover:text-white"
-                        )}
+                        className="mt-2.5 text-[11px] text-(--note-title) transition-colors hover:text-(--note-control)"
                     >
                         {actionText}
                     </button>

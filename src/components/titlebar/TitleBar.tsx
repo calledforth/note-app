@@ -54,7 +54,7 @@ export function TitleBar({ onOpenSpacesPicker }: TitleBarProps) {
     <>
       {/* Title Bar - always visible */}
       <div
-        className="h-8 bg-[var(--app-bg)] flex items-center justify-between select-none pl-2 pr-0 relative"
+        className="h-8 bg-(--app-bg) flex items-center justify-between select-none pl-2 pr-0 relative"
         style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}
       >
         {/* Left spacer */}
@@ -71,7 +71,7 @@ export function TitleBar({ onOpenSpacesPicker }: TitleBarProps) {
             title="Switch space"
           >
             <span
-              className="text-[13px] font-medium text-[#bbb]"
+              className="text-[13px] font-medium text-(--text-secondary)"
               style={{ fontFamily: currentFontFamily }}
             >
               {currentWorkspace?.name || 'Spaces'}
@@ -87,28 +87,28 @@ export function TitleBar({ onOpenSpacesPicker }: TitleBarProps) {
           <div className="flex items-center">
             <button
               onClick={() => setShowSettings(true)}
-              className="w-10 h-8 flex items-center justify-center transition-colors text-[#888] hover:text-[#ccc] hover:bg-white/5"
+              className="w-10 h-8 flex items-center justify-center transition-colors text-(--note-control-muted) hover:text-(--note-control) hover:bg-(--note-control-bg-hover)"
               title="Settings"
             >
               <Settings2 className="w-4 h-4" />
             </button>
             <button
               onClick={handleMinimize}
-              className="w-10 h-8 flex items-center justify-center transition-colors text-[#888] hover:text-[#ccc] hover:bg-white/5"
+              className="w-10 h-8 flex items-center justify-center transition-colors text-(--note-control-muted) hover:text-(--note-control) hover:bg-(--note-control-bg-hover)"
               title="Minimize"
             >
               <Minus className="w-4 h-4" strokeWidth={1.5} />
             </button>
             <button
               onClick={handleMaximize}
-              className="w-10 h-8 flex items-center justify-center transition-colors text-[#888] hover:text-[#ccc] hover:bg-white/5"
+              className="w-10 h-8 flex items-center justify-center transition-colors text-(--note-control-muted) hover:text-(--note-control) hover:bg-(--note-control-bg-hover)"
               title="Maximize"
             >
               <Square className="w-3.5 h-3.5" strokeWidth={1.5} />
             </button>
             <button
               onClick={handleClose}
-              className="w-10 h-8 flex items-center justify-center transition-colors text-[#888] hover:bg-red-500 hover:text-white"
+              className="w-10 h-8 flex items-center justify-center transition-colors text-(--note-control-muted) hover:bg-(--note-danger-strong) hover:text-(--note-danger-text)"
               title="Close"
             >
               <X className="w-4 h-4" strokeWidth={1.5} />

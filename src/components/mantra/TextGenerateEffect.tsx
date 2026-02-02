@@ -14,14 +14,14 @@ interface TextGenerateEffectProps {
 // MINIMAL style configuration - compact sizes
 const styles = {
     container: "font-sans text-left font-light",
-    baseText: "text-neutral-400 font-light text-lg sm:text-xl leading-relaxed",
-    bold: "text-white font-normal",
-    italic: "text-neutral-600 font-light italic font-serif",
-    glow: "text-white drop-shadow-[0_0_8px_rgba(255,255,255,0.8)]",
-    header: "text-2xl font-light tracking-[0.15em] uppercase text-white",
-    quoteText: "text-xl sm:text-2xl font-light text-white leading-relaxed italic font-serif",
-    quoteMeta: "text-neutral-400 text-sm mt-6 tracking-wide",
-    checklistMarker: "w-1 h-1 bg-white rounded-full",
+    baseText: "text-(--text-secondary) font-light text-lg sm:text-xl leading-relaxed",
+    bold: "text-(--text-primary) font-normal",
+    italic: "text-(--text-secondary) font-light italic font-serif",
+    glow: "text-(--text-primary) drop-shadow-[0_0_8px_var(--text-primary)]",
+    header: "text-2xl font-light tracking-[0.15em] uppercase text-(--text-primary)",
+    quoteText: "text-xl sm:text-2xl font-light text-(--text-primary) leading-relaxed italic font-serif",
+    quoteMeta: "text-(--text-secondary) text-sm mt-6 tracking-wide",
+    checklistMarker: "w-1 h-1 bg-(--text-primary) rounded-full",
 };
 
 export const TextGenerateEffect: React.FC<TextGenerateEffectProps> = ({
@@ -143,7 +143,7 @@ export const TextGenerateEffect: React.FC<TextGenerateEffectProps> = ({
                                 {/* Minimal style: small white dot */}
                                 <motion.div
                                     className={clsx(
-                                        "opacity-0 word-span mt-3.5 flex-shrink-0",
+                                        "opacity-0 word-span mt-3.5 shrink-0",
                                         styles.checklistMarker
                                     )}
                                     style={{ filter: filter ? "blur(10px)" : "none" }}

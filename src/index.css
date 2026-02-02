@@ -37,7 +37,7 @@
   /* ===== Wabi Grid Style Variables ===== */
   --wabi-bg: #0c0c0c;
   /* Warm charcoal background */
-  --wabi-text: #dbdbdb;
+  --wabi-text: #dcdcdc;
   /* Cream/kinari text */
   --wabi-text-muted: rgba(211, 211, 211, 0.5);
   /* Muted cream for placeholder */
@@ -81,6 +81,134 @@
   /* Title color */
   --lab-accent: #8b5cf6;
   /* Accent color - violet */
+
+  /* ===== Current Note Style Tokens (defaults to Wabi Grid) ===== */
+  --note-bg: var(--wabi-bg);
+  --note-text: var(--wabi-text);
+  --note-text-muted: var(--wabi-text-muted);
+  --note-title: var(--wabi-text);
+  --note-border: var(--wabi-border);
+  --note-border-hover: var(--wabi-border-hover);
+  --note-heading: var(--wabi-text);
+  --note-bold: var(--wabi-text);
+  --note-link: var(--wabi-text);
+  --note-link-hover: var(--wabi-title);
+  --note-scrollbar: #333;
+  --note-scrollbar-hover: #555;
+  --note-control-muted: rgba(255, 255, 255, 0.6);
+  --note-control: rgba(255, 255, 255, 0.9);
+  --note-control-subtle: rgba(255, 255, 255, 0.3);
+  --note-control-bg-hover: rgba(255, 255, 255, 0.1);
+  --note-control-bg-active: rgba(255, 255, 255, 0.15);
+  --note-danger: #f87171;
+  --note-danger-strong: #ef4444;
+  --note-danger-text: #ffffff;
+  --note-warning: #fbbf24;
+  --note-drop-border: rgba(255, 255, 255, 0.5);
+  --note-drop-bg: rgba(255, 255, 255, 0.08);
+  --note-drop-ring: rgba(255, 255, 255, 0.25);
+  --note-drop-shadow: rgba(255, 255, 255, 0.12);
+  --note-overlay-ring: rgba(255, 255, 255, 0.2);
+  --note-panel-corner: rgba(255, 255, 255, 0.4);
+  --note-pattern-bg: var(--wabi-bg);
+  --note-grid-placeholder-bg: rgba(255, 255, 255, 0.08);
+  --note-grid-placeholder-shadow: rgba(0, 0, 0, 0.45);
+  --note-grid-drag-ring: rgba(255, 255, 255, 0.10);
+  --note-grid-drag-shadow: rgba(0, 0, 0, 0.55);
+  --note-checkbox-border: rgba(255, 255, 255, 0.4);
+  --note-checkbox-border-unchecked: rgba(220, 220, 210, 0.45);
+  --note-checkbox-checked-border: rgba(255, 255, 255, 0.9);
+  --note-checkbox-checked-bg: rgba(255, 255, 255, 0.85);
+  --note-checkbox-hover-border: rgba(255, 255, 255, 0.6);
+  --note-checkbox-hover-bg: rgba(255, 255, 255, 0.05);
+  --note-completed-text: rgba(220, 220, 210, 0.55);
+  --note-completed-line: rgba(220, 220, 210, 0.4);
+}
+
+:root[data-note-style="zen-void"] {
+  --note-bg: var(--void-bg);
+  --note-text: var(--void-text-muted);
+  --note-text-muted: var(--void-text-muted);
+  --note-title: var(--void-title);
+  --note-border: var(--void-border);
+  --note-border-hover: var(--void-border-hover);
+  --note-heading: var(--void-title);
+  --note-bold: rgba(255, 255, 255, 0.75);
+  --note-link: var(--void-title);
+  --note-link-hover: rgba(255, 255, 255, 0.85);
+  --note-scrollbar: rgba(255, 255, 255, 0.15);
+  --note-scrollbar-hover: rgba(255, 255, 255, 0.25);
+  --note-control-muted: rgba(255, 255, 255, 0.6);
+  --note-control: rgba(255, 255, 255, 0.9);
+  --note-control-subtle: rgba(255, 255, 255, 0.3);
+  --note-control-bg-hover: rgba(255, 255, 255, 0.1);
+  --note-control-bg-active: rgba(255, 255, 255, 0.15);
+  --note-danger: #f87171;
+  --note-danger-strong: #ef4444;
+  --note-danger-text: #ffffff;
+  --note-warning: #fbbf24;
+  --note-drop-border: rgba(255, 255, 255, 0.6);
+  --note-drop-bg: rgba(255, 255, 255, 0.10);
+  --note-drop-ring: rgba(255, 255, 255, 0.30);
+  --note-drop-shadow: rgba(255, 255, 255, 0.15);
+  --note-overlay-ring: rgba(255, 255, 255, 0.25);
+  --note-panel-corner: rgba(255, 255, 255, 0.4);
+  --note-pattern-bg: var(--void-bg);
+  --note-grid-placeholder-bg: rgba(255, 255, 255, 0.08);
+  --note-grid-placeholder-shadow: rgba(0, 0, 0, 0.45);
+  --note-grid-drag-ring: rgba(255, 255, 255, 0.10);
+  --note-grid-drag-shadow: rgba(0, 0, 0, 0.55);
+  --note-checkbox-border: rgba(255, 255, 255, 0.4);
+  --note-checkbox-border-unchecked: rgba(255, 255, 255, 0.35);
+  --note-checkbox-checked-border: rgba(255, 255, 255, 0.9);
+  --note-checkbox-checked-bg: rgba(255, 255, 255, 0.85);
+  --note-checkbox-hover-border: rgba(255, 255, 255, 0.6);
+  --note-checkbox-hover-bg: rgba(255, 255, 255, 0.05);
+  --note-completed-text: rgba(255, 255, 255, 0.45);
+  --note-completed-line: rgba(255, 255, 255, 0.35);
+}
+
+:root[data-note-style="test-lab"] {
+  --note-bg: var(--lab-bg);
+  --note-text: var(--lab-text);
+  --note-text-muted: var(--lab-text-muted);
+  --note-title: var(--lab-title);
+  --note-border: var(--lab-border);
+  --note-border-hover: var(--lab-border-hover);
+  --note-heading: var(--lab-text);
+  --note-bold: #ffffff;
+  --note-link: var(--lab-accent);
+  --note-link-hover: color-mix(in srgb, var(--lab-accent) 75%, white);
+  --note-scrollbar: #333;
+  --note-scrollbar-hover: #555;
+  --note-control-muted: rgba(255, 255, 255, 0.6);
+  --note-control: rgba(255, 255, 255, 0.9);
+  --note-control-subtle: rgba(255, 255, 255, 0.3);
+  --note-control-bg-hover: rgba(255, 255, 255, 0.1);
+  --note-control-bg-active: rgba(255, 255, 255, 0.15);
+  --note-danger: #f87171;
+  --note-danger-strong: #ef4444;
+  --note-danger-text: #ffffff;
+  --note-warning: #fbbf24;
+  --note-drop-border: rgba(255, 255, 255, 0.5);
+  --note-drop-bg: rgba(255, 255, 255, 0.08);
+  --note-drop-ring: rgba(255, 255, 255, 0.25);
+  --note-drop-shadow: rgba(255, 255, 255, 0.12);
+  --note-overlay-ring: color-mix(in srgb, var(--lab-accent) 30%, transparent);
+  --note-panel-corner: rgba(255, 255, 255, 0.4);
+  --note-pattern-bg: var(--lab-bg);
+  --note-grid-placeholder-bg: rgba(255, 255, 255, 0.08);
+  --note-grid-placeholder-shadow: rgba(0, 0, 0, 0.45);
+  --note-grid-drag-ring: rgba(255, 255, 255, 0.10);
+  --note-grid-drag-shadow: rgba(0, 0, 0, 0.55);
+  --note-checkbox-border: rgba(255, 255, 255, 0.4);
+  --note-checkbox-border-unchecked: rgba(255, 255, 255, 0.4);
+  --note-checkbox-checked-border: rgba(255, 255, 255, 0.9);
+  --note-checkbox-checked-bg: rgba(255, 255, 255, 0.85);
+  --note-checkbox-hover-border: rgba(255, 255, 255, 0.6);
+  --note-checkbox-hover-bg: rgba(255, 255, 255, 0.05);
+  --note-completed-text: rgba(224, 224, 224, 0.5);
+  --note-completed-line: rgba(224, 224, 224, 0.4);
 }
 
 @layer base {
@@ -113,32 +241,32 @@
   .panel-corners::before {
     top: 0;
     left: 0;
-    border-top: 1px solid RGB(255, 255, 255, 0.4);
-    border-left: 1px solid RGB(255, 255, 255, 0.4);
+    border-top: 1px solid var(--note-panel-corner);
+    border-left: 1px solid var(--note-panel-corner);
   }
 
   /* Top-right corner */
   .panel-corners::after {
     top: 0;
     right: 0;
-    border-top: 1px solid RGB(255, 255, 255, 0.4);
-    border-right: 1px solid RGB(255, 255, 255, 0.4);
+    border-top: 1px solid var(--note-panel-corner);
+    border-right: 1px solid var(--note-panel-corner);
   }
 
   /* Bottom-left corner (requires extra div) */
   .panel-corners>.corner-bl {
     bottom: 0;
     left: 0;
-    border-bottom: 1px solid RGB(255, 255, 255, 0.4);
-    border-left: 1px solid RGB(255, 255, 255, 0.4);
+    border-bottom: 1px solid var(--note-panel-corner);
+    border-left: 1px solid var(--note-panel-corner);
   }
 
   /* Bottom-right corner (requires extra div) */
   .panel-corners>.corner-br {
     bottom: 0;
     right: 0;
-    border-bottom: 1px solid RGB(255, 255, 255, 0.4);
-    border-right: 1px solid RGB(255, 255, 255, 0.4);
+    border-bottom: 1px solid var(--note-panel-corner);
+    border-right: 1px solid var(--note-panel-corner);
   }
 }
 
@@ -236,12 +364,17 @@
 .command-palette-zen-void,
 .command-palette-test-lab {
   --cp-accent: var(--badge-editing-bg);
-  --cp-accent-soft: rgba(37, 99, 235, 0.12);
-  --cp-accent-border: rgba(37, 99, 235, 0.35);
-  --cp-glow-soft: rgba(255, 255, 255, 0.03);
-  --cp-border-subtle: rgba(255, 255, 255, 0.08);
-  --cp-input-bg: rgba(255, 255, 255, 0.03);
-  --cp-input-bg-hover: rgba(255, 255, 255, 0.05);
+  --cp-accent-soft: color-mix(in srgb, var(--cp-accent) 18%, transparent);
+  --cp-accent-border: color-mix(in srgb, var(--cp-accent) 45%, transparent);
+  --cp-glow-soft: color-mix(in srgb, var(--cp-text) 6%, transparent);
+  --cp-border-subtle: color-mix(in srgb, var(--cp-text) 12%, transparent);
+  --cp-input-bg: color-mix(in srgb, var(--cp-text) 4%, transparent);
+  --cp-input-bg-hover: color-mix(in srgb, var(--cp-text) 6%, transparent);
+  --cp-scrollbar: var(--note-scrollbar);
+  --cp-scrollbar-hover: var(--note-scrollbar-hover);
+  --cp-danger: var(--note-danger-strong);
+  --cp-danger-hover: color-mix(in srgb, var(--cp-danger) 85%, black);
+  --cp-danger-text: var(--note-danger-text);
 }
 
 .command-palette-wabi-grid {
@@ -274,7 +407,7 @@
 }
 
 .command-palette-zen-void ::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.1);
+  background: var(--cp-scrollbar);
   border-radius: 2px;
 }
 
@@ -287,7 +420,7 @@
 }
 
 .command-palette-wabi-grid ::-webkit-scrollbar-thumb {
-  background: #222;
+  background: var(--cp-scrollbar);
   border-radius: 2px;
 }
 
@@ -295,20 +428,20 @@
 
   /* react-grid-layout overrides (avoid default red placeholder) */
   .react-grid-item.react-grid-placeholder {
-    background: rgba(255, 255, 255, 0.08) !important;
+    background: var(--note-grid-placeholder-bg) !important;
     opacity: 1 !important;
     border-radius: 0;
     border: none;
     box-shadow:
-      0 12px 28px rgba(0, 0, 0, 0.45);
+      0 12px 28px var(--note-grid-placeholder-shadow);
   }
 
   /* subtle neutral lift while dragging/resizing */
   .react-grid-item.react-draggable-dragging,
   .react-grid-item.resizing {
     box-shadow:
-      0 0 0 1px rgba(255, 255, 255, 0.10) inset,
-      0 14px 34px rgba(0, 0, 0, 0.55) !important;
+      0 0 0 1px var(--note-grid-drag-ring) inset,
+      0 14px 34px var(--note-grid-drag-shadow) !important;
   }
 }
 
@@ -319,7 +452,7 @@
 
 /* Stars Pattern - dense starfield */
 .note-pattern-noise {
-  background-color: #0a0a0a;
+  background-color: var(--note-pattern-bg);
   background-image:
     radial-gradient(circle at 5% 10%, rgba(255, 255, 255, 1) 0.5px, transparent 0.5px),
     radial-gradient(circle at 15% 35%, rgba(255, 255, 255, 0.9) 0.5px, transparent 0.5px),
@@ -352,21 +485,21 @@
 
 /* Cross/X Pattern - intersecting diagonal lines */
 .note-pattern-dots {
-  background-color: #0a0a0a;
+  background-color: var(--note-pattern-bg);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 800'%3E%3Cg stroke-width='1.5' stroke='hsla(0, 0%25, 100%25, 0.25)' fill='none'%3E%3Cline x1='0' y1='0' x2='400' y2='400'%3E%3C/line%3E%3Cline x1='400' y1='0' x2='0' y2='400'%3E%3C/line%3E%3Cline x1='400' y1='0' x2='800' y2='400'%3E%3C/line%3E%3Cline x1='800' y1='0' x2='400' y2='400'%3E%3C/line%3E%3Cline x1='0' y1='400' x2='400' y2='800'%3E%3C/line%3E%3Cline x1='400' y1='400' x2='0' y2='800'%3E%3C/line%3E%3Cline x1='400' y1='400' x2='800' y2='800'%3E%3C/line%3E%3Cline x1='800' y1='400' x2='400' y2='800'%3E%3C/line%3E%3C/g%3E%3C/svg%3E");
   background-size: 40px 40px;
 }
 
 /* Grid Pattern with Ellipsis - grid lines with dots at intersections */
 .note-pattern-grid {
-  background-color: #0a0a0a;
+  background-color: var(--note-pattern-bg);
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 800 800'%3E%3Cg stroke-width='1' stroke='hsla(0, 0%25, 100%25, 0.15)' fill='none'%3E%3Crect width='400' height='400' x='0' y='0'%3E%3C/rect%3E%3Ccircle r='6' cx='0' cy='0' fill='hsla(0, 0%25, 100%25, 0.3)' stroke='none'%3E%3C/circle%3E%3Crect width='400' height='400' x='400' y='0'%3E%3C/rect%3E%3Ccircle r='6' cx='400' cy='0' fill='hsla(0, 0%25, 100%25, 0.3)' stroke='none'%3E%3C/circle%3E%3Crect width='400' height='400' x='0' y='400'%3E%3C/rect%3E%3Ccircle r='6' cx='0' cy='400' fill='hsla(0, 0%25, 100%25, 0.3)' stroke='none'%3E%3C/circle%3E%3Crect width='400' height='400' x='400' y='400'%3E%3C/rect%3E%3Ccircle r='6' cx='400' cy='400' fill='hsla(0, 0%25, 100%25, 0.3)' stroke='none'%3E%3C/circle%3E%3C/g%3E%3C/svg%3E");
   background-size: 28px 28px;
 }
 
 /* Diagonal Lines Pattern */
 .note-pattern-lines {
-  background-color: #0a0a0a;
+  background-color: var(--note-pattern-bg);
   background-image: repeating-linear-gradient(45deg,
       transparent,
       transparent 5px,
@@ -427,7 +560,7 @@
   font-size: var(--editor-font-size, 0.9rem) !important;
   line-height: var(--editor-line-height, 1.8) !important;
   letter-spacing: var(--editor-letter-spacing, 0.01em) !important;
-  color: var(--wabi-text) !important;
+  color: var(--note-text) !important;
   overflow-y: auto !important;
   -webkit-overflow-scrolling: touch;
 }
@@ -486,11 +619,11 @@
 
 /* Show scrollbar on hover over the editor */
 .wabi-grid-editor:hover .ql-editor::-webkit-scrollbar-thumb {
-  background: #333;
+  background: var(--note-scrollbar);
 }
 
 .wabi-grid-editor:hover .ql-editor::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: var(--note-scrollbar-hover);
 }
 
 /* Placeholder styling for Wabi Grid */
@@ -498,7 +631,7 @@
   font-family: var(--editor-font, 'Geist', system-ui, sans-serif) !important;
   font-style: italic !important;
   font-weight: 400 !important;
-  color: var(--wabi-text-muted) !important;
+  color: var(--note-text-muted) !important;
   /* Match dynamic padding - default uses clamp */
   left: clamp(1px, 5%, 25px) !important;
 }
@@ -577,8 +710,7 @@
 .wabi-grid-editor .ql-editor strong,
 .wabi-grid-editor .ql-editor b {
   font-weight: 600 !important;
-  color: #ddddd4 !important;
-  /* Slightly brighter cream for bold */
+  color: var(--note-bold) !important;
 }
 
 /* Italic text styling for Wabi Grid */
@@ -598,8 +730,22 @@
 .wabi-grid-editor .ql-editor i b {
   font-weight: 500 !important;
   font-style: italic !important;
-  color: #ddddd4 !important;
-  /* Keep bold brightness for combined */
+  color: var(--note-bold) !important;
+}
+
+/* Heading and link styling for Wabi Grid */
+.wabi-grid-editor .ql-editor h1,
+.wabi-grid-editor .ql-editor h2,
+.wabi-grid-editor .ql-editor h3 {
+  color: var(--note-heading) !important;
+}
+
+.wabi-grid-editor .ql-editor a {
+  color: var(--note-link) !important;
+}
+
+.wabi-grid-editor .ql-editor a:hover {
+  color: var(--note-link-hover) !important;
 }
 
 /* ========================================
@@ -649,7 +795,7 @@
   font-size: 0.875rem !important;
   line-height: 2 !important;
   letter-spacing: 0.01em !important;
-  color: var(--void-text-muted) !important;
+  color: var(--note-text) !important;
   overflow-y: auto !important;
   -webkit-overflow-scrolling: touch;
 }
@@ -708,18 +854,18 @@
 
 /* Show scrollbar on hover over the editor */
 .zen-void-editor:hover .ql-editor::-webkit-scrollbar-thumb {
-  background: rgba(255, 255, 255, 0.15);
+  background: var(--note-scrollbar);
 }
 
 .zen-void-editor:hover .ql-editor::-webkit-scrollbar-thumb:hover {
-  background: rgba(255, 255, 255, 0.25);
+  background: var(--note-scrollbar-hover);
 }
 
 /* Placeholder styling for Zen Void */
 .zen-void-editor .ql-editor.ql-blank::before {
   font-family: 'Inter', system-ui, sans-serif !important;
   font-weight: 300 !important;
-  color: var(--void-text-muted) !important;
+  color: var(--note-text-muted) !important;
   /* Match dynamic padding - default uses clamp */
   left: clamp(1px, 5%, 25px) !important;
 }
@@ -764,8 +910,7 @@
 .zen-void-editor .ql-editor strong,
 .zen-void-editor .ql-editor b {
   font-weight: 500 !important;
-  color: rgba(255, 255, 255, 0.75) !important;
-  /* Slightly brighter for bold */
+  color: var(--note-bold) !important;
 }
 
 /* Italic text styling for Zen Void */
@@ -785,8 +930,22 @@
 .zen-void-editor .ql-editor i b {
   font-weight: 500 !important;
   font-style: italic !important;
-  color: rgba(255, 255, 255, 0.75) !important;
-  /* Keep bold brightness for combined */
+  color: var(--note-bold) !important;
+}
+
+/* Heading and link styling for Zen Void */
+.zen-void-editor .ql-editor h1,
+.zen-void-editor .ql-editor h2,
+.zen-void-editor .ql-editor h3 {
+  color: var(--note-heading) !important;
+}
+
+.zen-void-editor .ql-editor a {
+  color: var(--note-link) !important;
+}
+
+.zen-void-editor .ql-editor a:hover {
+  color: var(--note-link-hover) !important;
 }
 
 /* ========================================
@@ -836,7 +995,7 @@
   font-size: 0.875rem !important;
   line-height: 2.0 !important;
   letter-spacing: 0.02em !important;
-  color: var(--lab-text) !important;
+  color: var(--note-text) !important;
   overflow-y: auto !important;
   -webkit-overflow-scrolling: touch;
 }
@@ -895,18 +1054,18 @@
 
 /* Show scrollbar on hover over the editor */
 .test-lab-editor:hover .ql-editor::-webkit-scrollbar-thumb {
-  background: #333;
+  background: var(--note-scrollbar);
 }
 
 .test-lab-editor:hover .ql-editor::-webkit-scrollbar-thumb:hover {
-  background: #555;
+  background: var(--note-scrollbar-hover);
 }
 
 /* Placeholder styling for Test Lab */
 .test-lab-editor .ql-editor.ql-blank::before {
   font-family: 'Arimo', system-ui, sans-serif !important;
   font-weight: 400 !important;
-  color: var(--lab-text-muted) !important;
+  color: var(--note-text-muted) !important;
   /* Match dynamic padding - default uses clamp */
   left: clamp(1px, 5%, 25px) !important;
 }
@@ -951,7 +1110,7 @@
 .test-lab-editor .ql-editor strong,
 .test-lab-editor .ql-editor b {
   font-weight: 600 !important;
-  color: #fff !important;
+  color: var(--note-bold) !important;
 }
 
 /* Italic text styling for Test Lab */
@@ -971,7 +1130,22 @@
 .test-lab-editor .ql-editor i b {
   font-weight: 600 !important;
   font-style: italic !important;
-  color: #fff !important;
+  color: var(--note-bold) !important;
+}
+
+/* Heading and link styling for Test Lab */
+.test-lab-editor .ql-editor h1,
+.test-lab-editor .ql-editor h2,
+.test-lab-editor .ql-editor h3 {
+  color: var(--note-heading) !important;
+}
+
+.test-lab-editor .ql-editor a {
+  color: var(--note-link) !important;
+}
+
+.test-lab-editor .ql-editor a:hover {
+  color: var(--note-link-hover) !important;
 }
 
 /* Command Palette styling for Test Lab */
@@ -984,7 +1158,7 @@
 }
 
 .command-palette-test-lab ::-webkit-scrollbar-thumb {
-  background: #333;
+  background: var(--cp-scrollbar);
   border-radius: 2px;
 }
 
@@ -1062,7 +1236,7 @@
   margin-top: 2px !important;
   vertical-align: middle !important;
   border-radius: 3px !important;
-  border: 1.5px solid rgba(255, 255, 255, 0.4) !important;
+  border: 1.5px solid var(--note-checkbox-border) !important;
   background-color: transparent !important;
   flex-shrink: 0 !important;
   cursor: pointer !important;
@@ -1071,23 +1245,23 @@
 
 /* Unchecked checkbox - subtle white border */
 .wabi-grid-editor .ql-editor ul[data-checked="false"]>li::before {
-  border-color: rgba(220, 220, 210, 0.45) !important;
+  border-color: var(--note-checkbox-border-unchecked) !important;
 }
 
 .zen-void-editor .ql-editor ul[data-checked="false"]>li::before {
-  border-color: rgba(255, 255, 255, 0.35) !important;
+  border-color: var(--note-checkbox-border-unchecked) !important;
 }
 
 .test-lab-editor .ql-editor ul[data-checked="false"]>li::before {
-  border-color: rgba(255, 255, 255, 0.4) !important;
+  border-color: var(--note-checkbox-border-unchecked) !important;
 }
 
 /* Checked checkbox - bright white bg with black tick */
 .wabi-grid-editor .ql-editor ul[data-checked="true"]>li::before,
 .zen-void-editor .ql-editor ul[data-checked="true"]>li::before,
 .test-lab-editor .ql-editor ul[data-checked="true"]>li::before {
-  border-color: rgba(255, 255, 255, 0.9) !important;
-  background-color: rgba(255, 255, 255, 0.85) !important;
+  border-color: var(--note-checkbox-checked-border) !important;
+  background-color: var(--note-checkbox-checked-bg) !important;
   /* SVG checkmark - black tick on white bg */
   background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23111111' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12l5 5L20 7'/%3E%3C/svg%3E") !important;
   background-size: 10px 10px !important;
@@ -1098,42 +1272,42 @@
 /* Checkbox list item text - inherit theme fonts */
 .wabi-grid-editor .ql-editor ul[data-checked]>li {
   font-family: var(--editor-font, 'Geist', system-ui, sans-serif) !important;
-  color: var(--wabi-text) !important;
+  color: var(--note-text) !important;
 }
 
 .zen-void-editor .ql-editor ul[data-checked]>li {
   font-family: 'Inter', system-ui, sans-serif !important;
-  color: var(--void-text-muted) !important;
+  color: var(--note-text) !important;
 }
 
 .test-lab-editor .ql-editor ul[data-checked]>li {
   font-family: 'Arimo', system-ui, sans-serif !important;
-  color: var(--lab-text) !important;
+  color: var(--note-text) !important;
 }
 
 /* Completed items - strikethrough (brighter text) */
 .wabi-grid-editor .ql-editor ul[data-checked="true"]>li {
-  color: rgba(220, 220, 210, 0.55) !important;
+  color: var(--note-completed-text) !important;
   text-decoration: line-through !important;
-  text-decoration-color: rgba(220, 220, 210, 0.4) !important;
+  text-decoration-color: var(--note-completed-line) !important;
 }
 
 .zen-void-editor .ql-editor ul[data-checked="true"]>li {
-  color: rgba(255, 255, 255, 0.45) !important;
+  color: var(--note-completed-text) !important;
   text-decoration: line-through !important;
-  text-decoration-color: rgba(255, 255, 255, 0.35) !important;
+  text-decoration-color: var(--note-completed-line) !important;
 }
 
 .test-lab-editor .ql-editor ul[data-checked="true"]>li {
-  color: rgba(224, 224, 224, 0.5) !important;
+  color: var(--note-completed-text) !important;
   text-decoration: line-through !important;
-  text-decoration-color: rgba(224, 224, 224, 0.4) !important;
+  text-decoration-color: var(--note-completed-line) !important;
 }
 
 /* Hover effect on unchecked checkboxes */
 .wabi-grid-editor .ql-editor ul[data-checked="false"]>li::before:hover,
 .zen-void-editor .ql-editor ul[data-checked="false"]>li::before:hover,
 .test-lab-editor .ql-editor ul[data-checked="false"]>li::before:hover {
-  border-color: rgba(255, 255, 255, 0.6) !important;
-  background-color: rgba(255, 255, 255, 0.05) !important;
+  border-color: var(--note-checkbox-hover-border) !important;
+  background-color: var(--note-checkbox-hover-bg) !important;
 }

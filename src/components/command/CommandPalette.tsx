@@ -419,12 +419,12 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         <>
             {/* Backdrop */}
             <div
-                className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] animate-fade-in"
+                className="fixed inset-0 bg-black/60 backdrop-blur-sm z-100 animate-fade-in"
                 onClick={onClose}
             />
 
             {/* Command Palette Centering Wrapper */}
-            <div className="fixed inset-0 z-[101] flex items-start justify-center pt-[15vh] px-4 pointer-events-none">
+            <div className="fixed inset-0 z-101 flex items-start justify-center pt-[15vh] px-4 pointer-events-none">
                 {/* Command Palette Container */}
                 <div
                     className={clsx(
@@ -436,12 +436,12 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                                 : "command-palette-wabi-grid"
                     )}
                 >
-                    <div className="overflow-hidden rounded-lg border border-[var(--cp-border)] bg-[var(--cp-bg)] text-[var(--cp-text)] shadow-2xl">
+                    <div className="overflow-hidden rounded-lg border border-(--cp-border) bg-(--cp-bg) text-(--cp-text) shadow-2xl">
                         {mode === 'commands' && (
                             <>
-                                <div className="border-b border-[var(--cp-border)]">
+                                <div className="border-b border-(--cp-border)">
                                     <div className="flex items-center gap-2 px-3 py-2">
-                                        <Search className="h-4 w-4 text-[var(--cp-muted)]" />
+                                        <Search className="h-4 w-4 text-(--cp-muted)" />
                                         <input
                                             ref={searchInputRef}
                                             type="text"
@@ -451,7 +451,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                                                 setSelectedIndex(0)
                                             }}
                                             placeholder={variant === 'spaces' ? 'Search spaces...' : 'Search workspaces or actions...'}
-                                            className="flex-1 bg-transparent border-none outline-none text-sm text-[var(--cp-text)] placeholder:text-[var(--cp-muted)]"
+                                            className="flex-1 bg-transparent border-none outline-none text-sm text-(--cp-text) placeholder:text-(--cp-muted)"
                                             style={{ fontFamily: currentFontFamily }}
                                         />
                                     </div>
@@ -459,7 +459,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
 
                                 <div className="max-h-80 overflow-y-auto pt-1.5 pb-2">
                                     {Object.keys(groupedCommands).length === 0 ? (
-                                        <div className="py-6 text-center text-sm text-[var(--cp-muted)]">
+                                        <div className="py-6 text-center text-sm text-(--cp-muted)">
                                             No results found.
                                         </div>
                                     ) : (
@@ -467,12 +467,12 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                                             <div key={category}>
                                                 {/* Separator between groups */}
                                                 {groupIndex > 0 && (
-                                                    <div className="h-px bg-[var(--cp-border)] mx-2 my-1.5" />
+                                                    <div className="h-px bg-(--cp-border) mx-2 my-1.5" />
                                                 )}
                                                 
                                                 {/* Category heading - normal case like reference */}
                                                 {category !== '__top__' && (
-                                                    <div className="px-3 py-1 text-xs text-[var(--cp-muted)]">
+                                                    <div className="px-3 py-1 text-xs text-(--cp-muted)">
                                                         {category}
                                                     </div>
                                                 )}
@@ -491,18 +491,18 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                                                             className={clsx(
                                                                 "w-full flex items-center gap-2 px-3 py-1.5 text-left transition-colors",
                                                                 "hover-glow press-effect",
-                                                                isSelected ? "bg-[var(--cp-glow-soft)]" : "bg-transparent"
+                                                                isSelected ? "bg-(--cp-glow-soft)" : "bg-transparent"
                                                             )}
                                                             onClick={() => executeCommand(cmd)}
                                                         >
-                                                            <span className="text-[var(--cp-muted)]">
+                                                            <span className="text-(--cp-muted)">
                                                                 {cmd.icon}
                                                             </span>
-                                                            <span className="flex-1 text-sm text-[var(--cp-text)] truncate">
+                                                            <span className="flex-1 text-sm text-(--cp-text) truncate">
                                                                 {cmd.label}
                                                             </span>
                                                             {cmd.isActive && (
-                                                                <Check className="h-4 w-4 text-[var(--cp-muted)]" />
+                                                                <Check className="h-4 w-4 text-(--cp-muted)" />
                                                             )}
                                                             {showShortcut && (
                                                                 <span className="kbd ml-2">⌘{workspaceIndex + 1}</span>
@@ -525,7 +525,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                         {mode === 'new-workspace' && (
                             <div className="px-3 py-2">
                                 <div className="flex items-center gap-2">
-                                    <span className="text-[var(--cp-muted)]">
+                                    <span className="text-(--cp-muted)">
                                         <LayersPlus className="h-4 w-4" />
                                     </span>
                                     <input
@@ -538,7 +538,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                                             if (e.key === "Escape") setMode("commands")
                                         }}
                                         placeholder="New workspace name..."
-                                        className="flex-1 bg-transparent border-none outline-none text-sm text-[var(--cp-text)] placeholder:text-[var(--cp-muted)]"
+                                        className="flex-1 bg-transparent border-none outline-none text-sm text-(--cp-text) placeholder:text-(--cp-muted)"
                                         style={{ fontFamily: currentFontFamily }}
                                     />
                                     <div className="flex items-center gap-2">
@@ -552,7 +552,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                         {mode === 'rename-workspace' && (
                             <div className="px-3 py-2">
                                 <div className="flex items-center gap-2">
-                                    <span className="text-[var(--cp-muted)]">
+                                    <span className="text-(--cp-muted)">
                                         <Pencil className="h-4 w-4" />
                                     </span>
                                     <input
@@ -565,7 +565,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                                             if (e.key === "Escape") setMode("commands")
                                         }}
                                         placeholder="Rename workspace..."
-                                        className="flex-1 bg-transparent border-none outline-none text-sm text-[var(--cp-text)] placeholder:text-[var(--cp-muted)]"
+                                        className="flex-1 bg-transparent border-none outline-none text-sm text-(--cp-text) placeholder:text-(--cp-muted)"
                                         style={{ fontFamily: currentFontFamily }}
                                     />
                                     <div className="flex items-center gap-2">
@@ -578,7 +578,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
 
                         {mode === 'confirm-delete' && (
                             <div className="px-3 py-2.5">
-                                <div className="flex items-center gap-2 text-[var(--cp-text)]">
+                                <div className="flex items-center gap-2 text-(--cp-text)">
                                     <div className="text-sm font-medium truncate">
                                         Delete “{currentWorkspace?.name || 'workspace'}”?
                                     </div>
@@ -586,13 +586,13 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                                 <div className="mt-2 flex items-center justify-end gap-2">
                                     <button
                                         onClick={() => setMode('commands')}
-                                        className="rounded-md border border-white/10 bg-white/5 px-2.5 py-1 text-xs text-[var(--cp-text)] transition-colors hover:bg-white/10"
+                                        className="rounded-md border border-(--cp-border-subtle) bg-(--cp-input-bg) px-2.5 py-1 text-xs text-(--cp-text) transition-colors hover:bg-(--cp-input-bg-hover)"
                                     >
                                         Cancel
                                     </button>
                                     <button
                                         onClick={handleDeleteWorkspace}
-                                        className="rounded-md bg-red-700 px-2.5 py-1 text-xs text-white transition-colors hover:bg-red-800"
+                                        className="rounded-md bg-(--cp-danger) px-2.5 py-1 text-xs text-(--cp-danger-text) transition-colors hover:bg-(--cp-danger-hover)"
                                     >
                                         Delete
                                     </button>
@@ -602,11 +602,11 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
 
                         {mode === 'font' && (
                             <>
-                                <div className="flex items-center justify-between px-3 py-2 border-b border-[var(--cp-border)]">
-                                    <span className="text-xs text-[var(--cp-muted)]">Font</span>
+                                <div className="flex items-center justify-between px-3 py-2 border-b border-(--cp-border)">
+                                    <span className="text-xs text-(--cp-muted)">Font</span>
                                     <button
                                         onClick={() => setMode('commands')}
-                                        className="text-xs text-[var(--cp-muted)] hover:text-[var(--cp-text)] transition-colors"
+                                        className="text-xs text-(--cp-muted) hover:text-(--cp-text) transition-colors"
                                     >
                                         esc
                                     </button>
@@ -618,7 +618,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                                             className={clsx(
                                                 "w-full flex items-center gap-2 px-3 py-1.5 text-left transition-colors",
                                                 "hover-glow press-effect",
-                                                font.key === currentEditorFont ? "bg-[var(--cp-glow-soft)]" : "bg-transparent"
+                                                font.key === currentEditorFont ? "bg-(--cp-glow-soft)" : "bg-transparent"
                                             )}
                                             onClick={() => {
                                                 onExecuteCommand(`font-${font.key}`)
@@ -626,10 +626,10 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                                             }}
                                             style={{ fontFamily: font.fontFamily }}
                                         >
-                                            <span className="text-[var(--cp-muted)] text-sm">Aa</span>
+                                            <span className="text-(--cp-muted) text-sm">Aa</span>
                                             <span className="flex-1 text-sm">{font.name}</span>
                                             {currentEditorFont === font.key && (
-                                                <Check className="h-3 w-3 text-[var(--cp-muted)]" />
+                                                <Check className="h-3 w-3 text-(--cp-muted)" />
                                             )}
                                         </button>
                                     ))}
@@ -639,11 +639,11 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
 
                         {mode === 'theme' && (
                             <>
-                                <div className="flex items-center justify-between px-3 py-2 border-b border-[var(--cp-border)]">
-                                    <span className="text-xs text-[var(--cp-muted)]">Theme</span>
+                                <div className="flex items-center justify-between px-3 py-2 border-b border-(--cp-border)">
+                                    <span className="text-xs text-(--cp-muted)">Theme</span>
                                     <button
                                         onClick={() => setMode('commands')}
-                                        className="text-xs text-[var(--cp-muted)] hover:text-[var(--cp-text)] transition-colors"
+                                        className="text-xs text-(--cp-muted) hover:text-(--cp-text) transition-colors"
                                     >
                                         esc
                                     </button>
@@ -655,7 +655,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                                             className={clsx(
                                                 "w-full flex items-center gap-2 px-3 py-1.5 text-left transition-colors",
                                                 "hover-glow press-effect",
-                                                style.key === currentNoteStyle ? "bg-[var(--cp-glow-soft)]" : "bg-transparent"
+                                                style.key === currentNoteStyle ? "bg-(--cp-glow-soft)" : "bg-transparent"
                                             )}
                                             onClick={() => {
                                                 onExecuteCommand(`style-${style.key}`)
@@ -663,13 +663,13 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                                             }}
                                         >
                                             <div
-                                                className="w-2 h-2 rounded-full border border-[var(--cp-border-subtle)]"
+                                                className="w-2 h-2 rounded-full border border-(--cp-border-subtle)"
                                                 style={{ background: styleSwatches[style.key] || 'var(--cp-bg)' }}
                                             />
                                             <span className="flex-1 text-sm">{style.name}</span>
                                             {currentNoteStyle === style.key && (
-                                                <Check className="h-3 w-3 text-[var(--cp-muted)]" />
-                                            )}
+                                                <Check className="h-3 w-3 text-(--cp-muted)" />
+                                             )}
                                         </button>
                                     ))}
                                 </div>

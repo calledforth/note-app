@@ -121,10 +121,10 @@ export function FreeformWorkspace({ spaceId }: FreeformWorkspaceProps) {
 
   return (
     <div className="w-full h-full flex flex-col bg-background relative">
-      <div className="p-3 border-b border-neutral-800 bg-background">
+      <div className="p-3 border-b border-(--border-subtle) bg-(--surface-bg)">
         <button 
           onClick={handleAddNote} 
-          className="bg-neutral-800 border border-neutral-700 text-white px-4 py-2 rounded cursor-pointer font-inherit hover:bg-neutral-700"
+          className="bg-(--surface-bg) border border-(--border-subtle) text-(--text-primary) px-4 py-2 rounded cursor-pointer font-inherit hover:bg-(--border-subtle)"
         >
           + Add Note
         </button>

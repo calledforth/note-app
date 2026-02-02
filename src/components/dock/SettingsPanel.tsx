@@ -22,15 +22,15 @@ export function SettingsPanel({ spaceId: _spaceId, onClose }: SettingsPanelProps
 
   // Get background color based on theme
   const getBgColor = () => {
-    if (isZenVoid) return '#000000';
-    if (isTestLab) return '#0a0a0a';
-    return 'var(--wabi-bg)';
+    if (isZenVoid) return 'var(--note-bg)';
+    if (isTestLab) return 'var(--note-bg)';
+    return 'var(--note-bg)';
   };
 
   const getBorderColor = () => {
-    if (isZenVoid) return 'var(--void-border)';
-    if (isTestLab) return 'var(--lab-border)';
-    return 'var(--wabi-border)';
+    if (isZenVoid) return 'var(--note-border)';
+    if (isTestLab) return 'var(--note-border)';
+    return 'var(--note-border)';
   };
 
   // Short display names for themes
@@ -47,12 +47,12 @@ export function SettingsPanel({ spaceId: _spaceId, onClose }: SettingsPanelProps
     <>
       {/* Backdrop */}
       <div
-        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[100] animate-fade-in"
+        className="fixed inset-0 bg-black/60 backdrop-blur-sm z-100 animate-fade-in"
         onClick={onClose}
       />
 
       {/* Panel Centering Wrapper */}
-      <div className="fixed inset-0 z-[101] flex items-start justify-center pt-[15vh] px-4 pointer-events-none">
+      <div className="fixed inset-0 z-101 flex items-start justify-center pt-[15vh] px-4 pointer-events-none">
         <div
           className="w-full max-w-md pointer-events-auto animate-command-palette-in overflow-hidden shadow-2xl rounded-md"
           style={{
@@ -69,7 +69,7 @@ export function SettingsPanel({ spaceId: _spaceId, onClose }: SettingsPanelProps
             <div>
               <h1 className={clsx(
                 "text-base",
-                isZenVoid ? "text-[var(--void-title)] font-light" : "text-[var(--wabi-text)]"
+                isZenVoid ? "text-(--note-title) font-light" : "text-(--note-title)"
               )}>
                 Settings
               </h1>
@@ -78,9 +78,7 @@ export function SettingsPanel({ spaceId: _spaceId, onClose }: SettingsPanelProps
               onClick={onClose}
               className={clsx(
                 "p-1 rounded transition-colors",
-                isZenVoid
-                  ? "text-white/30 hover:text-white/60 hover:bg-white/5"
-                  : "text-[#555] hover:text-[#888] hover:bg-white/5"
+                "text-(--note-control-subtle) hover:text-(--note-control) hover:bg-(--note-control-bg-hover)"
               )}
             >
               <X size={16} strokeWidth={2} />
@@ -95,13 +93,13 @@ export function SettingsPanel({ spaceId: _spaceId, onClose }: SettingsPanelProps
               <div className="flex items-center justify-between">
                 <span className={clsx(
                   "text-sm",
-                  isZenVoid ? "text-[var(--void-text)] font-light" : "text-[var(--wabi-text)]"
+                  isZenVoid ? "text-(--note-text) font-light" : "text-(--note-text)"
                 )}>
                   Theme
                 </span>
 
                 {/* Pill toggle for themes */}
-                <div className="flex bg-white/5 rounded-full p-0.5">
+                <div className="flex bg-(--note-control-bg-hover) rounded-full p-0.5">
                   {NOTE_STYLES.map((style) => {
                     const isActive = currentNoteStyle === style.key;
                     return (
@@ -111,8 +109,8 @@ export function SettingsPanel({ spaceId: _spaceId, onClose }: SettingsPanelProps
                         className={clsx(
                           "px-4 py-1.5 text-xs rounded-full transition-all duration-200",
                           isActive
-                            ? "bg-white/15 text-white/90"
-                            : "text-white/40 hover:text-white/60"
+                          ? "bg-(--note-control-bg-active) text-(--note-control)"
+                          : "text-(--note-control-subtle) hover:text-(--note-control-muted)"
                         )}
                       >
                         {getThemeDisplayName(style.key)}
@@ -130,7 +128,7 @@ export function SettingsPanel({ spaceId: _spaceId, onClose }: SettingsPanelProps
             <section>
               <span className={clsx(
                 "text-sm block mb-5",
-                isZenVoid ? "text-[var(--void-text)] font-light" : "text-[var(--wabi-text)]"
+                isZenVoid ? "text-(--note-text) font-light" : "text-(--note-text)"
               )}>
                 Font
               </span>
@@ -146,15 +144,15 @@ export function SettingsPanel({ spaceId: _spaceId, onClose }: SettingsPanelProps
                       className={clsx(
                         "flex flex-col items-center py-4 px-2 rounded-lg transition-all duration-200 border",
                         isActive
-                          ? "bg-white/5 border-white/20"
-                          : "bg-transparent border-transparent hover:bg-white/5 hover:border-white/10"
+                          ? "bg-(--note-control-bg-hover) border-(--note-border-hover)"
+                          : "bg-transparent border-transparent hover:bg-(--note-control-bg-hover) hover:border-(--note-border)"
                       )}
                     >
                       {/* Ag Preview */}
                       <span
                         className={clsx(
                           "text-2xl mb-2",
-                          isActive ? "text-white/90" : "text-white/50"
+                          isActive ? "text-(--note-control)" : "text-(--note-control-muted)"
                         )}
                         style={{ fontFamily: font.fontFamily }}
                       >
@@ -163,7 +161,7 @@ export function SettingsPanel({ spaceId: _spaceId, onClose }: SettingsPanelProps
                       {/* Font Name */}
                       <span className={clsx(
                         "text-[10px]",
-                        isActive ? "text-white/70" : "text-white/40"
+                        isActive ? "text-(--note-control-muted)" : "text-(--note-control-subtle)"
                       )}>
                         {font.name}
                       </span>
@@ -181,7 +179,7 @@ export function SettingsPanel({ spaceId: _spaceId, onClose }: SettingsPanelProps
               <div className="flex items-center justify-between">
                 <span className={clsx(
                   "text-sm",
-                  isZenVoid ? "text-[var(--void-text)] font-light" : "text-[var(--wabi-text)]"
+                  isZenVoid ? "text-(--note-text) font-light" : "text-(--note-text)"
                 )}>
                   Mantra auto-open
                 </span>
@@ -191,12 +189,12 @@ export function SettingsPanel({ spaceId: _spaceId, onClose }: SettingsPanelProps
                   onClick={() => setMantraAutoOpenEnabled(!mantraAutoOpenEnabled)}
                   className={clsx(
                     "relative inline-flex h-6 w-11 items-center rounded-full transition-colors",
-                    mantraAutoOpenEnabled ? "bg-white/20" : "bg-white/5"
+                    mantraAutoOpenEnabled ? "bg-(--note-control-bg-active)" : "bg-(--note-control-bg-hover)"
                   )}
                 >
                   <span
                     className={clsx(
-                      "inline-block h-4 w-4 transform rounded-full bg-white/80 transition-transform",
+                      "inline-block h-4 w-4 transform rounded-full bg-(--note-control) transition-transform",
                       mantraAutoOpenEnabled ? "translate-x-5" : "translate-x-1"
                     )}
                   />

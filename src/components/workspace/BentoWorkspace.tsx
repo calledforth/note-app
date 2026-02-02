@@ -79,8 +79,10 @@ const DraggableNote = ({
             onClick={(e) => { e.stopPropagation(); onToggleBorder?.(); }}
             onPointerDown={(e) => e.stopPropagation()}
             className={clsx(
-              "p-1 rounded transition-all duration-150 hover:bg-white/10",
-              showBorder ? "text-white/60 hover:text-white/90" : "text-amber-400/80 hover:text-amber-400"
+              "p-1 rounded transition-all duration-150 hover:bg-(--note-control-bg-hover)",
+              showBorder
+                ? "text-(--note-control-muted) hover:text-(--note-control)"
+                : "text-(--note-warning) opacity-80 hover:opacity-100"
             )}
             title={showBorder ? "Hide Border" : "Show Border"}
           >
@@ -90,7 +92,7 @@ const DraggableNote = ({
           <button
             onClick={(e) => { e.stopPropagation(); onSplit("vertical"); setIsMenuExpanded(false); }}
             onPointerDown={(e) => e.stopPropagation()}
-            className="p-1 rounded transition-all duration-150 text-white/60 hover:text-white/90 hover:bg-white/10"
+            className="p-1 rounded transition-all duration-150 text-(--note-control-muted) hover:text-(--note-control) hover:bg-(--note-control-bg-hover)"
             title="Split Vertically"
           >
             <Split className="w-3 h-3 rotate-90" />
@@ -99,7 +101,7 @@ const DraggableNote = ({
           <button
             onClick={(e) => { e.stopPropagation(); onSplit("horizontal"); setIsMenuExpanded(false); }}
             onPointerDown={(e) => e.stopPropagation()}
-            className="p-1 rounded transition-all duration-150 text-white/60 hover:text-white/90 hover:bg-white/10"
+            className="p-1 rounded transition-all duration-150 text-(--note-control-muted) hover:text-(--note-control) hover:bg-(--note-control-bg-hover)"
             title="Split Horizontally"
           >
             <Split className="w-3 h-3" />
@@ -108,7 +110,7 @@ const DraggableNote = ({
           <button
             onClick={(e) => { e.stopPropagation(); onRemove(); }}
             onPointerDown={(e) => e.stopPropagation()}
-            className="p-1 rounded transition-all duration-150 text-white/60 hover:text-red-400 hover:bg-white/10"
+            className="p-1 rounded transition-all duration-150 text-(--note-control-muted) hover:text-(--note-danger) hover:bg-(--note-control-bg-hover)"
             title="Remove Panel"
           >
             <Trash2 className="w-3 h-3" />
@@ -120,8 +122,10 @@ const DraggableNote = ({
           onClick={(e) => { e.stopPropagation(); setIsMenuExpanded(!isMenuExpanded); }}
           onPointerDown={(e) => e.stopPropagation()}
           className={clsx(
-            "p-1 rounded transition-all duration-150 hover:bg-white/10",
-            isMenuExpanded ? "text-white/90 bg-white/10" : "text-white/30 hover:text-white/60"
+            "p-1 rounded transition-all duration-150 hover:bg-(--note-control-bg-hover)",
+            isMenuExpanded
+              ? "text-(--note-control) bg-(--note-control-bg-hover)"
+              : "text-(--note-control-subtle) hover:text-(--note-control-muted)"
           )}
           title="Panel Options"
         >
@@ -140,7 +144,7 @@ const DraggableNote = ({
         className={clsx(
           "group relative w-full h-full transition-all duration-500",
           "flex flex-col overflow-hidden",
-          "bg-[var(--void-bg)]",
+          "bg-(--void-bg)",
           isOverlay && "shadow-2xl z-50",
         )}
       >
@@ -177,8 +181,8 @@ const DraggableNote = ({
         className={clsx(
           "group relative w-full h-full transition-all duration-300",
           "flex flex-col overflow-hidden rounded-md",
-          "bg-[var(--lab-bg)]",
-          isOverlay && "shadow-2xl z-50 ring-1 ring-[var(--lab-accent)]/30",
+          "bg-(--lab-bg)",
+          isOverlay && "shadow-2xl z-50 ring-1 ring-(--note-overlay-ring)",
         )}
       >
         {/* Draggable Header - minimal, no title */}
@@ -213,8 +217,8 @@ const DraggableNote = ({
       className={clsx(
         "group relative w-full h-full transition-all duration-300",
         "flex flex-col overflow-hidden",
-        "bg-[var(--wabi-bg)]",
-        isOverlay && "shadow-2xl z-50 ring-1 ring-white/20",
+        "bg-(--wabi-bg)",
+        isOverlay && "shadow-2xl z-50 ring-1 ring-(--note-overlay-ring)",
       )}
     >
       {/* Draggable Header - minimal, no title */}
@@ -283,7 +287,7 @@ const PanelContent = ({
         <button
           onClick={(e) => { e.stopPropagation(); onSplit("vertical"); }}
           onPointerDown={(e) => e.stopPropagation()}
-          className="p-1 rounded transition-all duration-150 text-white/60 hover:text-white/90 hover:bg-white/10"
+          className="p-1 rounded transition-all duration-150 text-(--note-control-muted) hover:text-(--note-control) hover:bg-(--note-control-bg-hover)"
           title="Split Vertically"
         >
           <Split className="w-3 h-3 rotate-90" />
@@ -291,7 +295,7 @@ const PanelContent = ({
         <button
           onClick={(e) => { e.stopPropagation(); onSplit("horizontal"); }}
           onPointerDown={(e) => e.stopPropagation()}
-          className="p-1 rounded transition-all duration-150 text-white/60 hover:text-white/90 hover:bg-white/10"
+          className="p-1 rounded transition-all duration-150 text-(--note-control-muted) hover:text-(--note-control) hover:bg-(--note-control-bg-hover)"
           title="Split Horizontally"
         >
           <Split className="w-3 h-3" />
@@ -299,7 +303,7 @@ const PanelContent = ({
         <button
           onClick={(e) => { e.stopPropagation(); onRemove(); }}
           onPointerDown={(e) => e.stopPropagation()}
-          className="p-1 rounded transition-all duration-150 text-white/60 hover:text-red-400 hover:bg-white/10"
+          className="p-1 rounded transition-all duration-150 text-(--note-control-muted) hover:text-(--note-danger) hover:bg-(--note-control-bg-hover)"
           title="Remove Panel"
         >
           <Trash2 className="w-3 h-3" />
@@ -313,34 +317,22 @@ const PanelContent = ({
       return "border border-transparent"
     }
     if (currentNoteStyle === 'zen-void') {
-      return "border border-[var(--void-border)] hover:border-[var(--void-border-hover)]"
+      return "border border-(--note-border) hover:border-(--note-border-hover)"
     }
     if (currentNoteStyle === 'test-lab') {
-      return "border border-[var(--lab-border)] hover:border-[var(--lab-border-hover)] rounded-md"
+      return "border border-(--note-border) hover:border-(--note-border-hover) rounded-md"
     }
-    return "border border-[var(--wabi-border)] hover:border-[var(--wabi-border-hover)] rounded-xs"
+    return "border border-(--note-border) hover:border-(--note-border-hover) rounded-xs"
   }
 
   const getDropZoneClasses = () => {
     if (!isOver) return ""
-    if (currentNoteStyle === 'zen-void') {
-      return "!border-dashed !border-white/60 bg-white/10 ring-2 ring-white/30 ring-inset"
-    }
-    if (currentNoteStyle === 'test-lab') {
-      return "!border-dashed !border-white/50 bg-white/8 ring-2 ring-white/25 ring-inset"
-    }
-    return "!border-dashed !border-white/50 bg-white/8 ring-2 ring-white/25 ring-inset"
+      return "!border-dashed !border-(--note-drop-border) bg-(--note-drop-bg) ring-2 ring-(--note-drop-ring) ring-inset"
   }
 
   const getDropZoneShadow = () => {
     if (!isOver) return undefined
-    if (currentNoteStyle === 'zen-void') {
-      return { boxShadow: 'inset 0 0 40px rgba(255, 255, 255, 0.15)' }
-    }
-    if (currentNoteStyle === 'test-lab') {
-      return { boxShadow: 'inset 0 0 40px rgba(255, 255, 255, 0.12)' }
-    }
-    return { boxShadow: 'inset 0 0 40px rgba(255, 255, 255, 0.12)' }
+    return { boxShadow: 'inset 0 0 40px var(--note-drop-shadow)' }
   }
 
   return (
@@ -373,8 +365,8 @@ const PanelContent = ({
               <div className={clsx(
                 "w-full h-full flex items-center justify-center text-xs pointer-events-none",
                 isOver
-                  ? (currentNoteStyle === 'zen-void' ? "text-white/50" : "text-[var(--text-secondary)]/60")
-                  : "text-[var(--text-secondary)]/40"
+                  ? "text-(--note-control-muted)"
+                  : "text-(--note-control-subtle)"
               )}>
                 {isOver ? "Release to drop" : "Drop note here"}
               </div>
@@ -585,7 +577,7 @@ export const BentoWorkspace = ({ spaceId: _spaceId }: BentoWorkspaceProps) => {
 
   if (!layout) {
     return (
-      <div className="h-full w-full flex items-center justify-center text-[var(--text-secondary)]">
+      <div className="h-full w-full flex items-center justify-center text-(--text-secondary)">
         Loading workspace...
       </div>
     )
@@ -593,7 +585,7 @@ export const BentoWorkspace = ({ spaceId: _spaceId }: BentoWorkspaceProps) => {
 
   return (
     <DndContext onDragStart={handleDragStart} onDragEnd={handleDragEnd}>
-      <div className="h-full w-full bg-[var(--app-bg)] text-[var(--text-primary)] overflow-hidden flex flex-col font-sans">
+      <div className="h-full w-full bg-(--app-bg) text-(--text-primary) overflow-hidden flex flex-col font-sans">
         <div className="flex-1 overflow-hidden relative p-2">
           <LayoutRenderer
             node={layout}
