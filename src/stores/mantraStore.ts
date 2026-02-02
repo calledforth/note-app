@@ -5,6 +5,9 @@ interface MantraStore {
     // The date string (YYYY-MM-DD) of the last completed mantra
     lastCompletedDate: string | null;
 
+    // Toggle for auto-opening mantra on startup
+    mantraAutoOpenEnabled: boolean;
+
     // Check if mantra has been completed today
     isMantraCompletedToday: () => boolean;
 
@@ -13,6 +16,9 @@ interface MantraStore {
 
     // Mark mantra as completed for today
     completeMantra: () => void;
+
+    // Update the auto-open setting
+    setMantraAutoOpenEnabled: (enabled: boolean) => void;
 
     // Reset for testing purposes
     resetMantra: () => void;
@@ -28,6 +34,7 @@ export const useMantraStore = create<MantraStore>()(
     persist(
         (set, get) => ({
             lastCompletedDate: null,
+            mantraAutoOpenEnabled: false,
 
             isMantraCompletedToday: () => {
                 const { lastCompletedDate } = get();
@@ -43,6 +50,10 @@ export const useMantraStore = create<MantraStore>()(
 
             completeMantra: () => {
                 set({ lastCompletedDate: getTodayDateString() });
+            },
+
+            setMantraAutoOpenEnabled: (enabled: boolean) => {
+                set({ mantraAutoOpenEnabled: enabled });
             },
 
             resetMantra: () => {

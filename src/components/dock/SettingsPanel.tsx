@@ -1,4 +1,5 @@
 import { useThemeStore, type NoteStyle, NOTE_STYLES, EDITOR_FONTS } from "../../stores/themeStore";
+import { useMantraStore } from "../../stores/mantraStore";
 import { X } from "lucide-react";
 import clsx from "clsx";
 
@@ -12,6 +13,8 @@ export function SettingsPanel({ spaceId: _spaceId, onClose }: SettingsPanelProps
   const setNoteStyle = useThemeStore((state) => state.setNoteStyle);
   const currentEditorFont = useThemeStore((state) => state.currentEditorFont);
   const setEditorFont = useThemeStore((state) => state.setEditorFont);
+  const mantraAutoOpenEnabled = useMantraStore((state) => state.mantraAutoOpenEnabled);
+  const setMantraAutoOpenEnabled = useMantraStore((state) => state.setMantraAutoOpenEnabled);
 
   // Theme-specific styling (match command palette)
   const isZenVoid = currentNoteStyle === 'zen-void';
@@ -167,6 +170,37 @@ export function SettingsPanel({ spaceId: _spaceId, onClose }: SettingsPanelProps
                     </button>
                   );
                 })}
+              </div>
+            </section>
+
+            {/* Divider */}
+            <div style={{ borderTop: `1px solid ${getBorderColor()}` }} />
+
+            {/* Mantra Section */}
+            <section>
+              <div className="flex items-center justify-between">
+                <span className={clsx(
+                  "text-sm",
+                  isZenVoid ? "text-[var(--void-text)] font-light" : "text-[var(--wabi-text)]"
+                )}>
+                  Mantra auto-open
+                </span>
+                <button
+                  type="button"
+                  aria-pressed={mantraAutoOpenEnabled}
+                  onClick={() => setMantraAutoOpenEnabled(!mantraAutoOpenEnabled)}
+                  className={clsx(
+                    "relative inline-flex h-6 w-11 items-center rounded-full transition-colors",
+                    mantraAutoOpenEnabled ? "bg-white/20" : "bg-white/5"
+                  )}
+                >
+                  <span
+                    className={clsx(
+                      "inline-block h-4 w-4 transform rounded-full bg-white/80 transition-transform",
+                      mantraAutoOpenEnabled ? "translate-x-5" : "translate-x-1"
+                    )}
+                  />
+                </button>
               </div>
             </section>
 

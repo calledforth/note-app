@@ -1,4 +1,4 @@
-import { app, BrowserWindow, ipcMain } from 'electron';
+import { app, BrowserWindow, ipcMain, shell } from 'electron';
 import * as path from 'path';
 import { database } from './database';
 import { autoUpdater } from 'electron-updater';
@@ -12,6 +12,15 @@ const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
 
 let mainWindow: BrowserWindow | null = null;
 let windowStateSaveTimer: NodeJS.Timeout | null = null;
+
+const isExternalHttpUrl = (url: string): boolean => {
+  try {
+    const parsedUrl = new URL(url);
+    return parsedUrl.protocol === 'http:' || parsedUrl.protocol === 'https:';
+  } catch {
+    return false;
+  }
+};
 
 const saveWindowBounds = (immediate = false): void => {
   if (!mainWindow) return;
@@ -70,6 +79,22 @@ const createWindow = (): void => {
     // Production: load from built files
     mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
   }
+
+  // Open external links in the default browser instead of new windows
+  mainWindow.webContents.setWindowOpenHandler(({ url }) => {
+    if (isExternalHttpUrl(url)) {
+      shell.openExternal(url);
+    }
+    return { action: 'deny' };
+  });
+
+  mainWindow.webContents.on('will-navigate', (event, url) => {
+    const currentUrl = mainWindow?.webContents.getURL();
+    if (currentUrl && url !== currentUrl && isExternalHttpUrl(url)) {
+      event.preventDefault();
+      shell.openExternal(url);
+    }
+  });
 
   // Save window dimensions when closing
   mainWindow.on('close', () => {

@@ -34,6 +34,7 @@ function App() {
 
   // Mantra store
   const shouldShowMantraOnStartup = useMantraStore((state) => state.shouldShowMantraOnStartup);
+  const mantraAutoOpenEnabled = useMantraStore((state) => state.mantraAutoOpenEnabled);
 
   // Command Palette state
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
@@ -58,11 +59,11 @@ function App() {
   useEffect(() => {
     if (isInitialized && !hasCheckedMantra) {
       setHasCheckedMantra(true);
-      if (shouldShowMantraOnStartup()) {
+      if (mantraAutoOpenEnabled && shouldShowMantraOnStartup()) {
         setShowMantraStartup(true);
       }
     }
-  }, [isInitialized, hasCheckedMantra, shouldShowMantraOnStartup]);
+  }, [isInitialized, hasCheckedMantra, mantraAutoOpenEnabled, shouldShowMantraOnStartup]);
 
   // Command execution handler
   const handleExecuteCommand: CommandHandler = useCallback(async (commandId: string, payload?: unknown) => {
