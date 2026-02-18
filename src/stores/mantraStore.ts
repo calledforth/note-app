@@ -1,5 +1,6 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { createJSONStorage, persist } from 'zustand/middleware';
+import { electronStoreStorage } from '../utils/electronStoreStorage';
 
 interface MantraStore {
     // The date string (YYYY-MM-DD) of the last completed mantra
@@ -62,6 +63,7 @@ export const useMantraStore = create<MantraStore>()(
         }),
         {
             name: 'sticky-notes-mantra',
+            storage: createJSONStorage(() => electronStoreStorage),
         }
     )
 );

@@ -1,5 +1,6 @@
 import { app, BrowserWindow, ipcMain, shell } from 'electron';
 import * as path from 'path';
+import Store from 'electron-store';
 import { database } from './database';
 import { autoUpdater } from 'electron-updater';
 
@@ -12,6 +13,8 @@ const isDev = process.env.NODE_ENV === 'development' || !app.isPackaged;
 
 let mainWindow: BrowserWindow | null = null;
 let windowStateSaveTimer: NodeJS.Timeout | null = null;
+let dbReady = false;
+const settingsStore = new Store();
 
 const isExternalHttpUrl = (url: string): boolean => {
   try {
@@ -27,9 +30,19 @@ const saveWindowBounds = (immediate = false): void => {
 
   const doSave = () => {
     if (!mainWindow) return;
-    const [width, height] = mainWindow.getSize();
-    database.setSetting('windowWidth', width.toString());
-    database.setSetting('windowHeight', height.toString());
+    const isMaximized = mainWindow.isMaximized();
+    const bounds = isMaximized ? mainWindow.getNormalBounds() : mainWindow.getBounds();
+    try {
+      settingsStore.set('windowBounds', {
+        width: bounds.width,
+        height: bounds.height,
+        x: bounds.x,
+        y: bounds.y,
+        isMaximized,
+      });
+    } catch (error) {
+      console.error('[Settings] Failed to persist window settings:', error);
+    }
   };
 
   if (immediate) {
@@ -49,20 +62,36 @@ const saveWindowBounds = (immediate = false): void => {
 };
 
 const createWindow = (): void => {
-  // Read saved window dimensions from database (defaults: 1000x700)
-  const savedWidth = database.getSetting('windowWidth');
-  const savedHeight = database.getSetting('windowHeight');
-  const windowWidth = savedWidth ? parseInt(savedWidth, 10) : 1000;
-  const windowHeight = savedHeight ? parseInt(savedHeight, 10) : 700;
+  // Read saved window dimensions from settings (defaults: 1000x700)
+  let windowWidth = 1000;
+  let windowHeight = 700;
+  let windowX: number | undefined;
+  let windowY: number | undefined;
+  let shouldMaximize = false;
+  try {
+    const savedBounds = settingsStore.get('windowBounds') as
+      | { width?: number; height?: number; x?: number; y?: number; isMaximized?: boolean }
+      | undefined;
+    if (savedBounds?.width) windowWidth = savedBounds.width;
+    if (savedBounds?.height) windowHeight = savedBounds.height;
+    if (typeof savedBounds?.x === 'number') windowX = savedBounds.x;
+    if (typeof savedBounds?.y === 'number') windowY = savedBounds.y;
+    shouldMaximize = Boolean(savedBounds?.isMaximized);
+  } catch (error) {
+    console.error('[Settings] Failed to read window settings:', error);
+  }
   const devIconPath = path.join(app.getAppPath(), 'src/assets/icon.ico');
 
   mainWindow = new BrowserWindow({
     height: windowHeight,
     width: windowWidth,
+    x: windowX,
+    y: windowY,
     backgroundColor: '#171717',
     frame: false,
     titleBarStyle: 'hidden',
     icon: isDev ? devIconPath : undefined,
+    show: false,
     webPreferences: {
       preload: path.join(__dirname, '../preload/preload.js'),
       nodeIntegration: false,
@@ -79,6 +108,19 @@ const createWindow = (): void => {
     // Production: load from built files
     mainWindow.loadFile(path.join(__dirname, '../renderer/index.html'));
   }
+
+  mainWindow.once('ready-to-show', () => {
+    mainWindow?.show();
+    if (shouldMaximize) {
+      mainWindow?.maximize();
+    }
+  });
+
+  mainWindow.webContents.on('did-finish-load', () => {
+    if (dbReady) {
+      sendToRenderer('db-ready');
+    }
+  });
 
   // Open external links in the default browser instead of new windows
   mainWindow.webContents.setWindowOpenHandler(({ url }) => {
@@ -250,12 +292,34 @@ ipcMain.handle('db-delete-note', (_event, id: string) => {
 
 // App Settings handlers
 ipcMain.handle('db-get-last-workspace-id', () => {
-  return database.getLastWorkspaceId();
+  const lastWorkspaceId = settingsStore.get('lastWorkspaceId');
+  return typeof lastWorkspaceId === 'string' ? lastWorkspaceId : null;
 });
 
 ipcMain.handle('db-set-last-workspace-id', (_event, workspaceId: string) => {
-  database.setLastWorkspaceId(workspaceId);
+  settingsStore.set('lastWorkspaceId', workspaceId);
   return { success: true };
+});
+
+// Settings storage
+ipcMain.handle('settings-get', (_event, key: string) => {
+  const value = settingsStore.get(key);
+  return typeof value === 'string' ? value : null;
+});
+
+ipcMain.handle('settings-set', (_event, key: string, value: string) => {
+  settingsStore.set(key, value);
+  return { success: true };
+});
+
+ipcMain.handle('settings-delete', (_event, key: string) => {
+  settingsStore.delete(key);
+  return { success: true };
+});
+
+// Database readiness status
+ipcMain.handle('db-is-ready', () => {
+  return dbReady;
 });
 
 // ============================================================================
@@ -263,9 +327,19 @@ ipcMain.handle('db-set-last-workspace-id', (_event, workspaceId: string) => {
 // ============================================================================
 
 app.on('ready', () => {
-  // Initialize database before creating window
-  database.initialize();
   createWindow();
+
+  setTimeout(() => {
+    try {
+      if (!dbReady) {
+        database.initialize();
+        dbReady = true;
+        sendToRenderer('db-ready');
+      }
+    } catch (error) {
+      console.error('[Database] Initialization failed:', error);
+    }
+  }, 0);
 
   // Check for updates (only in production)
   if (!isDev) {

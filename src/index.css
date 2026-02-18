@@ -557,7 +557,7 @@
   font-family: var(--editor-font, 'Geist', system-ui, sans-serif) !important;
   font-style: normal !important;
   font-weight: 400 !important;
-  font-size: var(--editor-font-size, 0.9rem) !important;
+  font-size: var(--editor-font-size, 15px) !important;
   line-height: var(--editor-line-height, 1.8) !important;
   letter-spacing: var(--editor-letter-spacing, 0.01em) !important;
   color: var(--note-text) !important;
@@ -677,7 +677,7 @@
 /* Mono font variant */
 .wabi-grid-editor.font-mono {
   --editor-font: 'JetBrains Mono', monospace;
-  --editor-font-size: 0.82rem;
+  --editor-font-size: 14px;
   --editor-line-height: 1.7;
   --editor-letter-spacing: 0.02em;
 }
@@ -685,7 +685,7 @@
 /* Geist font variant (default, explicit) */
 .wabi-grid-editor.font-geist {
   --editor-font: 'Geist', system-ui, sans-serif;
-  --editor-font-size: 0.9rem;
+  --editor-font-size: 15px;
   --editor-line-height: 1.8;
   --editor-letter-spacing: 0.01em;
 }
@@ -693,7 +693,7 @@
 /* Hanken Grotesk font variant - classic grotesque */
 .wabi-grid-editor.font-hanken {
   --editor-font: 'Hanken Grotesk', system-ui, sans-serif;
-  --editor-font-size: 0.9rem;
+  --editor-font-size: 15px;
   --editor-line-height: 1.85;
   --editor-letter-spacing: 0.005em;
 }
@@ -701,8 +701,16 @@
 /* Sen font variant - geohumanist, friendly geometric */
 .wabi-grid-editor.font-sen {
   --editor-font: 'Sen', system-ui, sans-serif;
-  --editor-font-size: 0.88rem;
+  --editor-font-size: 15px;
   --editor-line-height: 1.9;
+  --editor-letter-spacing: 0.01em;
+}
+
+/* Inter font variant - clean UI sans-serif */
+.wabi-grid-editor.font-inter {
+  --editor-font: 'Inter', system-ui, sans-serif;
+  --editor-font-size: 15px;
+  --editor-line-height: 1.8;
   --editor-letter-spacing: 0.01em;
 }
 
@@ -790,9 +798,9 @@
   bottom: 0;
   /* Default: percentage-based padding for small panes, caps at 25px */
   padding: 0 clamp(1px, 5%, 25px) 0 clamp(1px, 5%, 25px) !important;
-  font-family: 'Inter', system-ui, sans-serif !important;
+  font-family: var(--editor-font, 'Inter', system-ui, sans-serif) !important;
   font-weight: 300 !important;
-  font-size: 0.875rem !important;
+  font-size: 15px !important;
   line-height: 2 !important;
   letter-spacing: 0.01em !important;
   color: var(--note-text) !important;
@@ -861,9 +869,16 @@
   background: var(--note-scrollbar-hover);
 }
 
+/* Font modifiers for Zen Void */
+.zen-void-editor.font-mono { --editor-font: 'JetBrains Mono', monospace; }
+.zen-void-editor.font-geist { --editor-font: 'Geist', system-ui, sans-serif; }
+.zen-void-editor.font-hanken { --editor-font: 'Hanken Grotesk', system-ui, sans-serif; }
+.zen-void-editor.font-sen { --editor-font: 'Sen', system-ui, sans-serif; }
+.zen-void-editor.font-inter { --editor-font: 'Inter', system-ui, sans-serif; }
+
 /* Placeholder styling for Zen Void */
 .zen-void-editor .ql-editor.ql-blank::before {
-  font-family: 'Inter', system-ui, sans-serif !important;
+  font-family: var(--editor-font, 'Inter', system-ui, sans-serif) !important;
   font-weight: 300 !important;
   color: var(--note-text-muted) !important;
   /* Match dynamic padding - default uses clamp */
@@ -990,9 +1005,9 @@
   bottom: 0;
   /* Default: percentage-based padding for small panes, caps at 25px */
   padding: 0 clamp(1px, 5%, 25px) 0 clamp(1px, 5%, 25px) !important;
-  font-family: 'Arimo', system-ui, sans-serif !important;
+  font-family: var(--editor-font, 'Arimo', system-ui, sans-serif) !important;
   font-weight: 400 !important;
-  font-size: 0.875rem !important;
+  font-size: 15px !important;
   line-height: 2.0 !important;
   letter-spacing: 0.02em !important;
   color: var(--note-text) !important;
@@ -1061,9 +1076,16 @@
   background: var(--note-scrollbar-hover);
 }
 
+/* Font modifiers for Test Lab */
+.test-lab-editor.font-mono { --editor-font: 'JetBrains Mono', monospace; }
+.test-lab-editor.font-geist { --editor-font: 'Geist', system-ui, sans-serif; }
+.test-lab-editor.font-hanken { --editor-font: 'Hanken Grotesk', system-ui, sans-serif; }
+.test-lab-editor.font-sen { --editor-font: 'Sen', system-ui, sans-serif; }
+.test-lab-editor.font-inter { --editor-font: 'Inter', system-ui, sans-serif; }
+
 /* Placeholder styling for Test Lab */
 .test-lab-editor .ql-editor.ql-blank::before {
-  font-family: 'Arimo', system-ui, sans-serif !important;
+  font-family: var(--editor-font, 'Arimo', system-ui, sans-serif) !important;
   font-weight: 400 !important;
   color: var(--note-text-muted) !important;
   /* Match dynamic padding - default uses clamp */
@@ -1162,6 +1184,24 @@
   border-radius: 2px;
 }
 
+/* Slash menu scrollbar - match app scrollbar style */
+.slash-menu::-webkit-scrollbar {
+  width: 4px;
+}
+
+.slash-menu::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.slash-menu::-webkit-scrollbar-thumb {
+  background: var(--note-scrollbar);
+  border-radius: 2px;
+}
+
+.slash-menu::-webkit-scrollbar-thumb:hover {
+  background: var(--note-scrollbar-hover);
+}
+
 @layer utilities {
   .hover-glow {
     transition: background 0.15s ease;
@@ -1190,6 +1230,11 @@
     color: var(--cp-muted);
     border: 1px solid var(--cp-border);
     font-family: ui-monospace, monospace;
+  }
+
+  .kbd-input {
+    font-size: 14px;
+    padding: 4px 8px;
   }
 }
 

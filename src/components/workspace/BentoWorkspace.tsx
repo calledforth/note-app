@@ -162,7 +162,7 @@ const DraggableNote = ({
         {/* Content Area */}
         <div className={clsx("flex-1 flex flex-col min-h-0", getContentPadding())}>
           <div
-            className="flex-1 min-h-0 zen-void-editor"
+            className={clsx("flex-1 min-h-0 zen-void-editor", `font-${currentEditorFont}`)}
             onPointerDown={(e) => e.stopPropagation()}
           >
             <RichTextEditor noteId={noteId} />
@@ -199,7 +199,7 @@ const DraggableNote = ({
         {/* Content Area */}
         <div className={clsx("flex-1 flex flex-col min-h-0", getContentPadding())}>
           <div
-            className="flex-1 min-h-0 test-lab-editor"
+            className={clsx("flex-1 min-h-0 test-lab-editor", `font-${currentEditorFont}`)}
             onPointerDown={(e) => e.stopPropagation()}
           >
             <RichTextEditor noteId={noteId} />

@@ -64,6 +64,19 @@ declare global {
                 setLastWorkspaceId: (workspaceId: string) => Promise<{ success: boolean }>;
             };
 
+            // Database readiness
+            databaseStatus: {
+                isReady: () => Promise<boolean>;
+                onReady: (callback: () => void) => () => void;
+            };
+
+            // Settings storage (electron-store)
+            settings: {
+                get: (key: string) => Promise<string | null>;
+                set: (key: string, value: string) => Promise<{ success: boolean }>;
+                delete: (key: string) => Promise<{ success: boolean }>;
+            };
+
             // Auto-updater
             updater: {
                 // Actions

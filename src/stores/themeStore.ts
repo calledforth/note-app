@@ -1,9 +1,10 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { createJSONStorage, persist } from 'zustand/middleware';
+import { electronStoreStorage } from '../utils/electronStoreStorage';
 
 export type ThemeKey = 'neutral' | 'black' | 'white';
 export type NoteStyle = 'wabi-grid' | 'zen-void' | 'test-lab';
-export type EditorFont = 'mono' | 'geist' | 'hanken' | 'sen';
+export type EditorFont = 'mono' | 'geist' | 'hanken' | 'sen' | 'inter';
 
 interface ThemeTokens {
   appBg: string;
@@ -72,6 +73,7 @@ export const EDITOR_FONTS: { key: EditorFont; name: string; description: string;
   { key: 'geist', name: 'Geist', description: 'Clean sans-serif', fontFamily: "'Geist', system-ui, sans-serif" },
   { key: 'hanken', name: 'Hanken', description: 'Hanken Grotesk', fontFamily: "'Hanken Grotesk', system-ui, sans-serif" },
   { key: 'sen', name: 'Sen', description: 'Geohumanist sans', fontFamily: "'Sen', system-ui, sans-serif" },
+  { key: 'inter', name: 'Inter', description: 'Clean UI sans-serif', fontFamily: "'Inter', system-ui, sans-serif" },
 ];
 
 interface ThemeStore {
@@ -90,7 +92,7 @@ interface ThemeStore {
 
 const THEME_ORDER: ThemeKey[] = ['neutral', 'black', 'white'];
 const NOTE_STYLE_ORDER: NoteStyle[] = ['wabi-grid', 'zen-void', 'test-lab'];
-const EDITOR_FONT_ORDER: EditorFont[] = ['mono', 'geist', 'hanken', 'sen'];
+const EDITOR_FONT_ORDER: EditorFont[] = ['mono', 'geist', 'hanken', 'sen', 'inter'];
 
 export const useThemeStore = create<ThemeStore>()(
   persist(
@@ -130,6 +132,7 @@ export const useThemeStore = create<ThemeStore>()(
     }),
     {
       name: 'sticky-notes-theme',
+      storage: createJSONStorage(() => electronStoreStorage),
     }
   )
 );

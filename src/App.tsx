@@ -36,6 +36,9 @@ function App() {
   const shouldShowMantraOnStartup = useMantraStore((state) => state.shouldShowMantraOnStartup);
   const mantraAutoOpenEnabled = useMantraStore((state) => state.mantraAutoOpenEnabled);
 
+  // Database readiness state
+  const [isDbReady, setIsDbReady] = useState(false);
+
   // Command Palette state
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
   const [commandPaletteVariant, setCommandPaletteVariant] = useState<CommandPaletteVariant>('all');
@@ -48,12 +51,45 @@ function App() {
   const [showMantraFromPalette, setShowMantraFromPalette] = useState(false);
   const [hasCheckedMantra, setHasCheckedMantra] = useState(false);
 
+  // Wait for database readiness before initializing
+  useEffect(() => {
+    let isCancelled = false;
+    let removeListener: (() => void) | undefined;
+
+    const setupDatabaseReady = async () => {
+      const dbStatus = window.electronAPI?.databaseStatus;
+      if (!dbStatus) {
+        setIsDbReady(true);
+        return;
+      }
+
+      const ready = await dbStatus.isReady();
+      if (isCancelled) return;
+
+      if (ready) {
+        setIsDbReady(true);
+        return;
+      }
+
+      removeListener = dbStatus.onReady(() => {
+        if (!isCancelled) setIsDbReady(true);
+      });
+    };
+
+    setupDatabaseReady();
+
+    return () => {
+      isCancelled = true;
+      if (removeListener) removeListener();
+    };
+  }, []);
+
   // Initialize the bento store on mount
   useEffect(() => {
-    if (!isInitialized) {
+    if (!isInitialized && isDbReady) {
       initialize();
     }
-  }, [initialize, isInitialized]);
+  }, [initialize, isInitialized, isDbReady]);
 
   // Check if we should show the mantra on startup (only once)
   useEffect(() => {
@@ -204,11 +240,14 @@ function App() {
   const currentWorkspace = workspaces.find((s) => s.id === currentWorkspaceId);
 
   // Show loading state
-  if (isLoading || !isInitialized) {
+  if (isLoading || !isInitialized || !isDbReady) {
     return (
-      <div className="w-screen h-screen flex items-center justify-center bg-[var(--app-bg)] text-[var(--text-secondary)]">
+      <div className="w-screen h-screen flex items-center justify-center bg-(--app-bg) text-(--text-secondary)">
         <ThemeManager />
-        <p>Loading...</p>
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 rounded-full border-2 border-(--text-secondary) border-t-(--text-primary) animate-spin" />
+          <div className="text-xs tracking-wide text-(--text-secondary)">Loading workspace...</div>
+        </div>
       </div>
     );
   }
@@ -222,7 +261,7 @@ function App() {
         onExecuteCommand={handleExecuteCommand}
         variant={commandPaletteVariant}
       />
-      <div className="w-screen h-screen flex flex-col bg-[var(--app-bg)] text-[var(--text-primary)] overflow-hidden">
+      <div className="w-screen h-screen flex flex-col bg-(--app-bg) text-(--text-primary) overflow-hidden">
         <TitleBar
           onOpenSpacesPicker={() => {
             setCommandPaletteVariant('spaces');
@@ -233,7 +272,7 @@ function App() {
           {currentWorkspace ? (
             <BentoWorkspace spaceId={currentWorkspace.id} />
           ) : (
-            <div className="flex items-center justify-center h-full text-[var(--text-secondary)]">
+            <div className="flex items-center justify-center h-full text-(--text-secondary)">
               <p>No workspace selected</p>
             </div>
           )}

@@ -75,6 +75,25 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.invoke('db-set-last-workspace-id', workspaceId),
   },
 
+  // Database readiness
+  databaseStatus: {
+    isReady: (): Promise<boolean> => ipcRenderer.invoke('db-is-ready'),
+    onReady: (callback: () => void) => {
+      const handler = () => callback();
+      ipcRenderer.on('db-ready', handler);
+      return () => ipcRenderer.removeListener('db-ready', handler);
+    },
+  },
+
+  // Settings storage (electron-store)
+  settings: {
+    get: (key: string): Promise<string | null> => ipcRenderer.invoke('settings-get', key),
+    set: (key: string, value: string): Promise<{ success: boolean }> =>
+      ipcRenderer.invoke('settings-set', key, value),
+    delete: (key: string): Promise<{ success: boolean }> =>
+      ipcRenderer.invoke('settings-delete', key),
+  },
+
   // Auto-updater events
   updater: {
     // Actions

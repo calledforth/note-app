@@ -170,7 +170,7 @@ export const UpdateToast: React.FC<UpdateToastProps> = () => {
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: 8 }}
                 transition={{ duration: 0.3, ease: [0.4, 0, 0.2, 1] }}
-                className="fixed bottom-4 right-4 z-9999 w-60 p-3 rounded-lg"
+                className="fixed bottom-5 right-5 z-9999 w-72 p-4 rounded-lg shadow-[0_8px_32px_rgba(0,0,0,0.4),0_0_0_1px_rgba(255,255,255,0.06)]"
                 style={{
                     fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
                     backgroundColor: bgColor,
@@ -180,24 +180,24 @@ export const UpdateToast: React.FC<UpdateToastProps> = () => {
                 {/* Header row: title + close button */}
                 <div className="flex items-start justify-between gap-2">
                     <div className="flex-1">
-                        <p className="text-[13px] mb-0.5 text-(--note-title)">
+                        <p className="text-sm font-medium mb-1 text-(--note-title)">
                             {getTitle()}
                         </p>
-                        <p className="text-[11px] text-(--note-text-muted)">
+                        <p className="text-xs text-(--note-text-muted)">
                             {getSubtitle()}
                         </p>
                     </div>
                     <button
                         onClick={handleDismiss}
-                        className="text-(--note-control-muted) hover:text-(--note-control) transition-colors"
+                        className="cursor-pointer text-(--note-control-muted) hover:text-(--note-control) transition-colors -mt-0.5"
                     >
-                        <X size={13} strokeWidth={2} />
+                        <X size={15} strokeWidth={2} />
                     </button>
                 </div>
 
                 {/* Progress bar for downloading state */}
                 {status === 'downloading' && (
-                    <div className="mt-2.5 h-0.5 rounded-full overflow-hidden bg-(--note-control-bg-hover)">
+                    <div className="mt-3 h-1 rounded-full overflow-hidden bg-(--note-control-bg-hover)">
                         <motion.div
                             className="h-full rounded-full bg-(--note-control-bg-active)"
                             initial={{ width: 0 }}
@@ -211,7 +211,7 @@ export const UpdateToast: React.FC<UpdateToastProps> = () => {
                 {actionText && (
                     <button
                         onClick={handleAction}
-                        className="mt-2.5 text-[11px] text-(--note-title) transition-colors hover:text-(--note-control)"
+                        className="mt-3 cursor-pointer text-xs font-medium text-(--note-title) transition-colors hover:text-(--note-control)"
                     >
                         {actionText}
                     </button>

@@ -1,7 +1,9 @@
-import { useMemo, useRef, useEffect } from 'react';
+import { useMemo, useRef, useEffect, useState, useCallback } from 'react';
 import ReactQuill, { Quill } from 'react-quill';
 import 'react-quill/dist/quill.bubble.css';
 import { useBentoStore } from '../../stores/bentoStore';
+import { useThemeStore, EDITOR_FONTS } from '../../stores/themeStore';
+import { SlashMenu, type SlashMenuItemType } from './SlashMenu';
 
 // ============================================================================
 // CUSTOM LINK PREVIEW BLOT
@@ -110,8 +112,19 @@ interface RichTextEditorProps {
   noteId: string;
 }
 
+const SLASH_SELECTABLE_COUNT = 7; // heading1,2,3, bold, italic, bullet, ordered
+
 export function RichTextEditor({ noteId }: RichTextEditorProps) {
   const quillRef = useRef<ReactQuill>(null);
+  const [slashMenuOpen, setSlashMenuOpen] = useState(false);
+  const [slashMenuPosition, setSlashMenuPosition] = useState<{ top: number; left: number } | null>(null);
+  const [slashMenuSelectedIndex, setSlashMenuSelectedIndex] = useState(0);
+
+  const currentEditorFont = useThemeStore((state) => state.currentEditorFont);
+  const currentFontFamily = useMemo(() => {
+    const font = EDITOR_FONTS.find((f) => f.key === currentEditorFont);
+    return font?.fontFamily ?? "'Geist', system-ui, sans-serif";
+  }, [currentEditorFont]);
 
   // Optimized selector: only subscribes to this specific note's content
   // This prevents re-renders when other notes change
@@ -122,6 +135,54 @@ export function RichTextEditor({ noteId }: RichTextEditorProps) {
 
   // No local buffer needed - Zustand updates are synchronous (optimistic)
   // so the content from the selector is always current
+
+  // Slash menu: native keydown listener (Quill keyboard binding was unreliable)
+  useEffect(() => {
+    let teardown: (() => void) | null = null;
+    let retryId: ReturnType<typeof setInterval> | null = null;
+    const tryAttach = () => {
+      const quill = quillRef.current?.getEditor();
+      if (!quill) return false;
+      const root = quill.root as HTMLElement;
+      const handleKeyDown = (e: KeyboardEvent) => {
+        if (e.key !== '/') return;
+        const range = quill.getSelection();
+        if (!range) return;
+        const prefix = quill.getText(0, range.index);
+        if (prefix.length > 0 && !/[\s\n]$/.test(prefix)) return;
+        e.preventDefault();
+        e.stopPropagation();
+        const bounds = quill.getBounds(range.index);
+        if (!bounds) return;
+        const rootRect = root.getBoundingClientRect();
+        slashMenuRangeRef.current = range;
+        setSlashMenuPosition({
+          top: rootRect.top + bounds.bottom + 4,
+          left: rootRect.left + bounds.left,
+        });
+        setSlashMenuOpen(true);
+        setSlashMenuSelectedIndex(0);
+      };
+      root.addEventListener('keydown', handleKeyDown, true);
+      teardown = () => root.removeEventListener('keydown', handleKeyDown, true);
+      return true;
+    };
+    const timeoutId = setTimeout(() => {
+      if (!tryAttach()) {
+        retryId = setInterval(() => {
+          if (tryAttach() && retryId) {
+            clearInterval(retryId);
+            retryId = null;
+          }
+        }, 50);
+      }
+    }, 50);
+    return () => {
+      clearTimeout(timeoutId);
+      if (retryId) clearInterval(retryId);
+      teardown?.();
+    };
+  }, []);
 
   // Handle paste to detect URLs and convert to link previews
   useEffect(() => {
@@ -271,9 +332,83 @@ export function RichTextEditor({ noteId }: RichTextEditorProps) {
     updateNoteContent(noteId, value);
   };
 
+  const slashMenuRangeRef = useRef<{ index: number; length: number } | null>(null);
+
+  const applySlashCommand = useCallback(
+    (type: SlashMenuItemType) => {
+      const quill = quillRef.current?.getEditor();
+      const range = slashMenuRangeRef.current;
+      if (!quill || !range) return;
+
+      quill.focus();
+      quill.setSelection(range.index, range.length);
+
+      switch (type) {
+        case 'heading1':
+          quill.format('header', 1);
+          break;
+        case 'heading2':
+          quill.format('header', 2);
+          break;
+        case 'heading3':
+          quill.format('header', 3);
+          break;
+        case 'bold':
+          quill.format('bold', !quill.getFormat(range).bold);
+          break;
+        case 'italic':
+          quill.format('italic', !quill.getFormat(range).italic);
+          break;
+        case 'bullet':
+          quill.format('list', 'bullet');
+          break;
+        case 'ordered':
+          quill.format('list', 'ordered');
+          break;
+        default:
+          break;
+      }
+
+      setSlashMenuOpen(false);
+      setSlashMenuPosition(null);
+      slashMenuRangeRef.current = null;
+    },
+    []
+  );
+
+  const closeSlashMenu = useCallback(() => {
+    setSlashMenuOpen(false);
+    setSlashMenuPosition(null);
+    slashMenuRangeRef.current = null;
+  }, []);
+
+  useEffect(() => {
+    if (!slashMenuOpen) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        e.preventDefault();
+        closeSlashMenu();
+      } else if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        setSlashMenuSelectedIndex((i) => Math.min(i + 1, SLASH_SELECTABLE_COUNT - 1));
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        setSlashMenuSelectedIndex((i) => Math.max(i - 1, 0));
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        const types: SlashMenuItemType[] = ['heading1', 'heading2', 'heading3', 'bold', 'italic', 'bullet', 'ordered'];
+        const type = types[slashMenuSelectedIndex];
+        if (type) applySlashCommand(type);
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [slashMenuOpen, slashMenuSelectedIndex, applySlashCommand, closeSlashMenu]);
+
   return (
-    <div className="w-full h-full flex flex-col min-h-0 [&_.ql-container]:border-none [&_.ql-container]:bg-transparent [&_.ql-editor]:text-(--note-text) [&_.ql-editor]:p-0 [&_.ql-editor.ql-blank::before]:text-(--note-text-muted) [&_.ql-editor.ql-blank::before]:not-italic [&_.ql-toolbar]:hidden [&_.ql-link-preview]:inline-flex [&_.ql-link-preview]:items-baseline [&_.ql-link-preview]:gap-1.5 [&_.ql-link-preview]:text-(--note-link) [&_.ql-link-preview]:no-underline [&_.ql-link-preview]:transition-colors [&_.ql-link-preview:hover]:text-(--note-link-hover) [&_.ql-link-preview-favicon]:inline-block [&_.ql-link-preview-favicon]:w-[1em] [&_.ql-link-preview-favicon]:h-[1em] [&_.ql-link-preview-favicon]:rounded-sm [&_.ql-link-preview-favicon]:align-text-bottom [&_.ql-link-preview-domain]:font-medium [&_.ql-link-preview-domain]:leading-none">
-      <ReactQuill
+    <>
+      <div className="w-full h-full flex flex-col min-h-0 [&_.ql-container]:border-none [&_.ql-container]:bg-transparent [&_.ql-editor]:text-(--note-text) [&_.ql-editor]:p-0 [&_.ql-editor.ql-blank::before]:text-(--note-text-muted) [&_.ql-editor.ql-blank::before]:not-italic [&_.ql-toolbar]:hidden [&_.ql-link-preview]:inline-flex [&_.ql-link-preview]:items-baseline [&_.ql-link-preview]:gap-1.5 [&_.ql-link-preview]:text-(--note-link) [&_.ql-link-preview]:no-underline [&_.ql-link-preview]:transition-colors [&_.ql-link-preview:hover]:text-(--note-link-hover) [&_.ql-link-preview-favicon]:inline-block [&_.ql-link-preview-favicon]:w-[1em] [&_.ql-link-preview-favicon]:h-[1em] [&_.ql-link-preview-favicon]:rounded-sm [&_.ql-link-preview-favicon]:align-text-bottom [&_.ql-link-preview-domain]:font-medium [&_.ql-link-preview-domain]:leading-none">
+        <ReactQuill
         ref={quillRef}
         theme="bubble"
         value={content}
@@ -282,7 +417,23 @@ export function RichTextEditor({ noteId }: RichTextEditorProps) {
         formats={formats}
         placeholder="Start typing..."
       />
-    </div>
+      </div>
+      {slashMenuOpen && (
+        <div
+          className="fixed inset-0 z-199"
+          aria-hidden
+          onClick={closeSlashMenu}
+        />
+      )}
+      <SlashMenu
+        position={slashMenuPosition}
+        selectedIndex={slashMenuSelectedIndex}
+        onSelect={applySlashCommand}
+        onClose={closeSlashMenu}
+        onHoverIndex={setSlashMenuSelectedIndex}
+        fontFamily={currentFontFamily}
+      />
+    </>
   );
 }
 

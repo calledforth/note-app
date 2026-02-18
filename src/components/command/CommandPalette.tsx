@@ -320,10 +320,14 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         }
         if (cmd.id === 'open-font') {
             setMode('font')
+            const fontIdx = EDITOR_FONTS.findIndex((f) => f.key === currentEditorFont)
+            setSelectedIndex(fontIdx >= 0 ? fontIdx : 0)
             return
         }
         if (cmd.id === 'open-theme') {
             setMode('theme')
+            const themeIdx = NOTE_STYLES.findIndex((s) => s.key === currentNoteStyle)
+            setSelectedIndex(themeIdx >= 0 ? themeIdx : 0)
             return
         }
 
@@ -367,16 +371,29 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                     // Go back to commands mode
                     setMode('commands')
                     setSearchQuery('')
+                    setSelectedIndex(0)
                     setTimeout(() => searchInputRef.current?.focus(), 50)
                 } else {
                     onClose()
                 }
-            } else if (e.key === 'ArrowDown' && mode === 'commands') {
+            } else if (e.key === 'ArrowDown') {
                 e.preventDefault()
-                setSelectedIndex(prev => Math.min(prev + 1, filteredCommands.length - 1))
-            } else if (e.key === 'ArrowUp' && mode === 'commands') {
+                if (mode === 'commands') {
+                    setSelectedIndex(prev => Math.min(prev + 1, filteredCommands.length - 1))
+                } else if (mode === 'font') {
+                    setSelectedIndex(prev => Math.min(prev + 1, EDITOR_FONTS.length - 1))
+                } else if (mode === 'theme') {
+                    setSelectedIndex(prev => Math.min(prev + 1, NOTE_STYLES.length - 1))
+                }
+            } else if (e.key === 'ArrowUp') {
                 e.preventDefault()
-                setSelectedIndex(prev => Math.max(prev - 1, 0))
+                if (mode === 'commands') {
+                    setSelectedIndex(prev => Math.max(prev - 1, 0))
+                } else if (mode === 'font') {
+                    setSelectedIndex(prev => Math.max(prev - 1, 0))
+                } else if (mode === 'theme') {
+                    setSelectedIndex(prev => Math.max(prev - 1, 0))
+                }
             } else if (e.key === 'Enter') {
                 e.preventDefault()
                 if (mode === 'new-workspace') {
@@ -387,6 +404,12 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                     handleDeleteWorkspace()
                 } else if (mode === 'commands' && filteredCommands[selectedIndex]) {
                     executeCommand(filteredCommands[selectedIndex])
+                } else if (mode === 'font' && EDITOR_FONTS[selectedIndex]) {
+                    onExecuteCommand(`font-${EDITOR_FONTS[selectedIndex].key}`)
+                    onClose()
+                } else if (mode === 'theme' && NOTE_STYLES[selectedIndex]) {
+                    onExecuteCommand(`style-${NOTE_STYLES[selectedIndex].key}`)
+                    onClose()
                 }
             }
         }
@@ -525,8 +548,8 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                         {mode === 'new-workspace' && (
                             <div className="px-3 py-2">
                                 <div className="flex items-center gap-2">
-                                    <span className="text-(--cp-muted)">
-                                        <LayersPlus className="h-4 w-4" />
+                                    <span className="text-(--cp-muted) shrink-0">
+                                        <LayersPlus className="h-5 w-5" />
                                     </span>
                                     <input
                                         ref={workspaceInputRef}
@@ -538,12 +561,12 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                                             if (e.key === "Escape") setMode("commands")
                                         }}
                                         placeholder="New workspace name..."
-                                        className="flex-1 bg-transparent border-none outline-none text-sm text-(--cp-text) placeholder:text-(--cp-muted)"
+                                        className="flex-1 min-w-0 bg-transparent border-none outline-none text-base text-(--cp-text) placeholder:text-(--cp-muted)"
                                         style={{ fontFamily: currentFontFamily }}
                                     />
-                                    <div className="flex items-center gap-2">
-                                        <span className="kbd">↵</span>
-                                        <span className="kbd">esc</span>
+                                    <div className="flex items-center gap-2 shrink-0">
+                                        <span className="kbd kbd-input">↵</span>
+                                        <span className="kbd kbd-input">esc</span>
                                     </div>
                                 </div>
                             </div>
@@ -552,8 +575,8 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                         {mode === 'rename-workspace' && (
                             <div className="px-3 py-2">
                                 <div className="flex items-center gap-2">
-                                    <span className="text-(--cp-muted)">
-                                        <Pencil className="h-4 w-4" />
+                                    <span className="text-(--cp-muted) shrink-0">
+                                        <Pencil className="h-5 w-5" />
                                     </span>
                                     <input
                                         ref={workspaceInputRef}
@@ -565,12 +588,12 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                                             if (e.key === "Escape") setMode("commands")
                                         }}
                                         placeholder="Rename workspace..."
-                                        className="flex-1 bg-transparent border-none outline-none text-sm text-(--cp-text) placeholder:text-(--cp-muted)"
+                                        className="flex-1 min-w-0 bg-transparent border-none outline-none text-base text-(--cp-text) placeholder:text-(--cp-muted)"
                                         style={{ fontFamily: currentFontFamily }}
                                     />
-                                    <div className="flex items-center gap-2">
-                                        <span className="kbd">↵</span>
-                                        <span className="kbd">esc</span>
+                                    <div className="flex items-center gap-2 shrink-0">
+                                        <span className="kbd kbd-input">↵</span>
+                                        <span className="kbd kbd-input">esc</span>
                                     </div>
                                 </div>
                             </div>
@@ -602,7 +625,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
 
                         {mode === 'font' && (
                             <>
-                                <div className="flex items-center justify-between px-3 py-2 border-b border-(--cp-border)">
+                                <div className="flex items-center justify-between px-3 py-2.5 border-b border-(--cp-border)">
                                     <span className="text-xs text-(--cp-muted)">Font</span>
                                     <button
                                         onClick={() => setMode('commands')}
@@ -611,25 +634,26 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                                         esc
                                     </button>
                                 </div>
-                                <div className="max-h-80 overflow-y-auto">
-                                    {EDITOR_FONTS.map((font) => (
+                                <div className="max-h-80 overflow-y-auto pt-1.5 pb-2">
+                                    {EDITOR_FONTS.map((font, index) => (
                                         <button
                                             key={font.key}
                                             className={clsx(
-                                                "w-full flex items-center gap-2 px-3 py-1.5 text-left transition-colors",
+                                                "w-full flex items-center gap-2 px-3 py-2 text-left transition-colors",
                                                 "hover-glow press-effect",
-                                                font.key === currentEditorFont ? "bg-(--cp-glow-soft)" : "bg-transparent"
+                                                index === selectedIndex ? "bg-(--cp-glow-soft)" : "bg-transparent"
                                             )}
                                             onClick={() => {
                                                 onExecuteCommand(`font-${font.key}`)
                                                 onClose()
                                             }}
+                                            onMouseEnter={() => setSelectedIndex(index)}
                                             style={{ fontFamily: font.fontFamily }}
                                         >
                                             <span className="text-(--cp-muted) text-sm">Aa</span>
                                             <span className="flex-1 text-sm">{font.name}</span>
                                             {currentEditorFont === font.key && (
-                                                <Check className="h-3 w-3 text-(--cp-muted)" />
+                                                <Check className="h-4 w-4 text-(--cp-muted)" />
                                             )}
                                         </button>
                                     ))}
@@ -639,7 +663,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
 
                         {mode === 'theme' && (
                             <>
-                                <div className="flex items-center justify-between px-3 py-2 border-b border-(--cp-border)">
+                                <div className="flex items-center justify-between px-3 py-2.5 border-b border-(--cp-border)">
                                     <span className="text-xs text-(--cp-muted)">Theme</span>
                                     <button
                                         onClick={() => setMode('commands')}
@@ -648,28 +672,29 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                                         esc
                                     </button>
                                 </div>
-                                <div className="max-h-80 overflow-y-auto">
-                                    {NOTE_STYLES.map((style) => (
+                                <div className="max-h-80 overflow-y-auto pt-1.5 pb-2">
+                                    {NOTE_STYLES.map((style, index) => (
                                         <button
                                             key={style.key}
                                             className={clsx(
-                                                "w-full flex items-center gap-2 px-3 py-1.5 text-left transition-colors",
+                                                "w-full flex items-center gap-2 px-3 py-2 text-left transition-colors",
                                                 "hover-glow press-effect",
-                                                style.key === currentNoteStyle ? "bg-(--cp-glow-soft)" : "bg-transparent"
+                                                index === selectedIndex ? "bg-(--cp-glow-soft)" : "bg-transparent"
                                             )}
                                             onClick={() => {
                                                 onExecuteCommand(`style-${style.key}`)
                                                 onClose()
                                             }}
+                                            onMouseEnter={() => setSelectedIndex(index)}
                                         >
                                             <div
-                                                className="w-2 h-2 rounded-full border border-(--cp-border-subtle)"
+                                                className="w-2.5 h-2.5 rounded-full border border-(--cp-border-subtle)"
                                                 style={{ background: styleSwatches[style.key] || 'var(--cp-bg)' }}
                                             />
                                             <span className="flex-1 text-sm">{style.name}</span>
                                             {currentNoteStyle === style.key && (
-                                                <Check className="h-3 w-3 text-(--cp-muted)" />
-                                             )}
+                                                <Check className="h-4 w-4 text-(--cp-muted)" />
+                                            )}
                                         </button>
                                     ))}
                                 </div>
