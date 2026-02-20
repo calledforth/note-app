@@ -37,7 +37,7 @@
   /* ===== Wabi Grid Style Variables ===== */
   --wabi-bg: #0c0c0c;
   /* Warm charcoal background */
-  --wabi-text: #dcdcdc;
+  --wabi-text: #f5f5f5;
   /* Cream/kinari text */
   --wabi-text-muted: rgba(211, 211, 211, 0.5);
   /* Muted cream for placeholder */
@@ -45,7 +45,7 @@
   /* Subtle border - zen void style */
   --wabi-border-hover: rgba(255, 255, 255, 0.12);
   /* Border hover - zen void style */
-  --wabi-title: #aaa;
+  --wabi-title: #d5d5d5;
   /* Title color */
   --wabi-date: #666;
   /* Date color */
