@@ -179,6 +179,10 @@ function App() {
         window.electronAPI?.windowControls.close();
         break;
 
+      case 'check-for-updates':
+        window.electronAPI?.updater?.checkForUpdates();
+        break;
+
       default:
         console.log('Unknown command:', commandId);
     }

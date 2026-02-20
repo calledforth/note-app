@@ -4,6 +4,7 @@ import { useBentoStore } from '../../stores/bentoStore'
 import {
     Check,
     Info,
+    RefreshCw,
     Layers,
     LayersPlus,
     Maximize2,
@@ -49,6 +50,7 @@ interface CommandPaletteProps {
 
 // Mode for input states
 type PaletteMode = 'commands' | 'new-workspace' | 'rename-workspace' | 'confirm-delete' | 'font' | 'theme'
+type UpdateCheckStatus = 'idle' | 'checking' | 'up-to-date' | 'available' | 'error'
 
 export const CommandPalette: React.FC<CommandPaletteProps> = ({
     isOpen,
@@ -61,6 +63,9 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     const [mode, setMode] = useState<PaletteMode>('commands')
     const [newWorkspaceName, setNewWorkspaceName] = useState('')
     const [renameWorkspaceName, setRenameWorkspaceName] = useState('')
+    const [targetWorkspaceIdForAction, setTargetWorkspaceIdForAction] = useState<string | null>(null)
+    const [updateCheckStatus, setUpdateCheckStatus] = useState<UpdateCheckStatus>('idle')
+    const clearUpdateStatusTimerRef = useRef<number | null>(null)
     const searchInputRef = useRef<HTMLInputElement>(null)
     const workspaceInputRef = useRef<HTMLInputElement>(null)
 
@@ -79,6 +84,66 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         const font = EDITOR_FONTS.find(f => f.key === currentEditorFont)
         return font?.fontFamily || "'Geist', system-ui, sans-serif"
     }, [currentEditorFont])
+
+    const clearUpdateStatusTimer = () => {
+        if (clearUpdateStatusTimerRef.current !== null) {
+            window.clearTimeout(clearUpdateStatusTimerRef.current)
+            clearUpdateStatusTimerRef.current = null
+        }
+    }
+
+    const scheduleUpdateStatusReset = (delayMs: number) => {
+        clearUpdateStatusTimer()
+        clearUpdateStatusTimerRef.current = window.setTimeout(() => {
+            setUpdateCheckStatus('idle')
+            clearUpdateStatusTimerRef.current = null
+        }, delayMs)
+    }
+
+    useEffect(() => {
+        const updater = window.electronAPI?.updater
+        if (!updater) return
+
+        const handleChecking = () => {
+            clearUpdateStatusTimer()
+            setUpdateCheckStatus('checking')
+        }
+
+        const handleAvailable = () => {
+            clearUpdateStatusTimer()
+            setUpdateCheckStatus('available')
+        }
+
+        const handleNotAvailable = () => {
+            setUpdateCheckStatus('up-to-date')
+            scheduleUpdateStatusReset(2200)
+        }
+
+        const handleError = () => {
+            setUpdateCheckStatus('error')
+            scheduleUpdateStatusReset(2800)
+        }
+
+        updater.onCheckingForUpdate(handleChecking)
+        updater.onUpdateAvailable(handleAvailable)
+        updater.onUpdateNotAvailable(handleNotAvailable)
+        updater.onError(handleError)
+
+        return () => {
+            clearUpdateStatusTimer()
+        }
+    }, [])
+
+    useEffect(() => {
+        if (updateCheckStatus !== 'checking') return
+
+        const timeoutId = window.setTimeout(() => {
+            setUpdateCheckStatus('error')
+            scheduleUpdateStatusReset(2800)
+        }, 10000)
+
+        return () => window.clearTimeout(timeoutId)
+    }, [updateCheckStatus])
 
     // Build commands list dynamically
     const allCommands = useMemo((): CommandItem[] => {
@@ -236,6 +301,39 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         })
 
         // === ABOUT ===
+        const checkForUpdatesCommand =
+            updateCheckStatus === 'checking'
+                ? {
+                    description: 'Checking for updates...',
+                    icon: <RefreshCw className="w-4 h-4 animate-spin" />,
+                }
+                : updateCheckStatus === 'up-to-date'
+                    ? {
+                        description: 'You are up to date',
+                        icon: <Check className="w-4 h-4" />,
+                    }
+                    : updateCheckStatus === 'available'
+                        ? {
+                            description: 'Update available - see toast for actions',
+                            icon: <RefreshCw className="w-4 h-4" />,
+                        }
+                        : updateCheckStatus === 'error'
+                            ? {
+                                description: 'Update check failed - try again',
+                                icon: <RefreshCw className="w-4 h-4" />,
+                            }
+                            : {
+                                description: 'Check if a new version is available',
+                                icon: <RefreshCw className="w-4 h-4" />,
+                            }
+
+        commands.push({
+            id: 'check-for-updates',
+            label: 'Check for updates',
+            description: checkForUpdatesCommand.description,
+            icon: checkForUpdatesCommand.icon,
+            category: 'About'
+        })
         commands.push({
             id: 'about-version',
             label: `Version ${APP_VERSION}`,
@@ -245,7 +343,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         })
 
         return commands
-    }, [workspaces, currentWorkspaceId, variant])
+    }, [workspaces, currentWorkspaceId, variant, updateCheckStatus])
 
     // Filter commands based on search
     const filteredCommands = useMemo(() => {
@@ -291,12 +389,15 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             setSelectedIndex(0)
             setMode('commands')
             setNewWorkspaceName('')
+            setTargetWorkspaceIdForAction(null)
+            clearUpdateStatusTimer()
+            setUpdateCheckStatus('idle')
             setTimeout(() => searchInputRef.current?.focus(), 50)
         }
     }, [isOpen])
 
     useEffect(() => {
-        if (mode === 'new-workspace') {
+        if (mode === 'new-workspace' || mode === 'rename-workspace') {
             setTimeout(() => workspaceInputRef.current?.focus(), 50)
         }
     }, [mode])
@@ -310,11 +411,13 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             return
         }
         if (cmd.id === 'rename-workspace') {
+            setTargetWorkspaceIdForAction(null)
             setMode('rename-workspace')
             setRenameWorkspaceName(currentWorkspace?.name || '')
             return
         }
         if (cmd.id === 'delete-workspace') {
+            setTargetWorkspaceIdForAction(null)
             setMode('confirm-delete')
             return
         }
@@ -328,6 +431,12 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             setMode('theme')
             const themeIdx = NOTE_STYLES.findIndex((s) => s.key === currentNoteStyle)
             setSelectedIndex(themeIdx >= 0 ? themeIdx : 0)
+            return
+        }
+        if (cmd.id === 'check-for-updates') {
+            clearUpdateStatusTimer()
+            setUpdateCheckStatus('checking')
+            onExecuteCommand(cmd.id)
             return
         }
 
@@ -345,19 +454,41 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         }
     }
 
+    const targetWorkspaceId = targetWorkspaceIdForAction ?? currentWorkspaceId
+    const targetWorkspace = useMemo(
+        () => workspaces.find((w) => w.id === targetWorkspaceId) || null,
+        [workspaces, targetWorkspaceId]
+    )
+
     const handleRenameWorkspace = () => {
         const name = renameWorkspaceName.trim()
-        if (name && currentWorkspaceId) {
-            onExecuteCommand('rename-workspace', { id: currentWorkspaceId, name })
+        if (name && targetWorkspaceId) {
+            onExecuteCommand('rename-workspace', { id: targetWorkspaceId, name })
             onClose()
         }
     }
 
     const handleDeleteWorkspace = () => {
-        if (currentWorkspaceId) {
-            onExecuteCommand('delete-workspace', { id: currentWorkspaceId })
+        if (targetWorkspaceId) {
+            onExecuteCommand('delete-workspace', { id: targetWorkspaceId })
             onClose()
         }
+    }
+
+    const enterRenameForWorkspace = (workspaceId: string) => (e: React.MouseEvent) => {
+        e.stopPropagation()
+        const ws = workspaces.find((w) => w.id === workspaceId)
+        if (ws) {
+            setTargetWorkspaceIdForAction(workspaceId)
+            setMode('rename-workspace')
+            setRenameWorkspaceName(ws.name)
+        }
+    }
+
+    const enterDeleteForWorkspace = (workspaceId: string) => (e: React.MouseEvent) => {
+        e.stopPropagation()
+        setTargetWorkspaceIdForAction(workspaceId)
+        setMode('confirm-delete')
     }
 
     // Handle keyboard navigation
@@ -370,6 +501,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                 if (mode !== 'commands') {
                     // Go back to commands mode
                     setMode('commands')
+                    setTargetWorkspaceIdForAction(null)
                     setSearchQuery('')
                     setSelectedIndex(0)
                     setTimeout(() => searchInputRef.current?.focus(), 50)
@@ -507,6 +639,60 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                                                     const isWorkspaceItem = cmd.id.startsWith('workspace-')
                                                     const workspaceIndex = isWorkspaceItem ? workspaces.findIndex(w => `workspace-${w.id}` === cmd.id) : -1
                                                     const showShortcut = isWorkspaceItem && workspaceIndex >= 0 && workspaceIndex < 9
+                                                    const workspaceId = isWorkspaceItem ? cmd.id.replace('workspace-', '') : null
+
+                                                    if (isWorkspaceItem && workspaceId) {
+                                                        return (
+                                                            <div
+                                                                key={cmd.id}
+                                                                className={clsx(
+                                                                    "group relative flex items-center w-full px-3 py-1.5 transition-colors",
+                                                                    "hover-glow",
+                                                                    isSelected ? "bg-(--cp-glow-soft)" : "bg-transparent"
+                                                                )}
+                                                                onMouseEnter={() => setSelectedIndex(currentFlatIndex)}
+                                                            >
+                                                                <button
+                                                                    className="flex-1 flex items-center gap-2 text-left min-w-0 press-effect"
+                                                                    onClick={() => executeCommand(cmd)}
+                                                                >
+                                                                    <span className="text-(--cp-muted) shrink-0">
+                                                                        {cmd.icon}
+                                                                    </span>
+                                                                    <span className="flex-1 text-sm text-(--cp-text) truncate">
+                                                                        {cmd.label}
+                                                                    </span>
+                                                                    {cmd.isActive && (
+                                                                        <Check className="h-4 w-4 text-(--cp-muted) shrink-0" />
+                                                                    )}
+                                                                    {showShortcut && (
+                                                                        <span className="kbd ml-2 shrink-0">⌘{workspaceIndex + 1}</span>
+                                                                    )}
+                                                                </button>
+                                                                <div
+                                                                    className="absolute right-14 top-1/2 -translate-y-1/2 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity ease-out pointer-events-none group-hover:pointer-events-auto"
+                                                                    onClick={(e) => e.stopPropagation()}
+                                                                >
+                                                                    <button
+                                                                        onClick={enterRenameForWorkspace(workspaceId)}
+                                                                        className="p-1 rounded text-(--cp-muted) hover:text-(--cp-text) hover:bg-(--cp-glow-soft) transition-colors"
+                                                                        title={`Rename ${cmd.label}`}
+                                                                    >
+                                                                        <Pencil className="w-3.5 h-3.5" />
+                                                                    </button>
+                                                                    <button
+                                                                        onClick={enterDeleteForWorkspace(workspaceId)}
+                                                                        className="p-1 rounded text-(--cp-muted) hover:text-(--cp-danger) hover:bg-(--cp-glow-soft) transition-colors"
+                                                                        title={`Delete ${cmd.label}`}
+                                                                    >
+                                                                        <Trash2 className="w-3.5 h-3.5" />
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                        )
+                                                    }
+
+                                                    const showStatusDescription = cmd.id === 'check-for-updates' && updateCheckStatus !== 'idle'
 
                                                     return (
                                                         <button
@@ -517,21 +703,29 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                                                                 isSelected ? "bg-(--cp-glow-soft)" : "bg-transparent"
                                                             )}
                                                             onClick={() => executeCommand(cmd)}
+                                                            onMouseEnter={() => setSelectedIndex(currentFlatIndex)}
                                                         >
-                                                            <span className="text-(--cp-muted)">
+                                                            <span className="text-(--cp-muted) shrink-0">
                                                                 {cmd.icon}
                                                             </span>
-                                                            <span className="flex-1 text-sm text-(--cp-text) truncate">
-                                                                {cmd.label}
-                                                            </span>
-                                                            {cmd.isActive && (
-                                                                <Check className="h-4 w-4 text-(--cp-muted)" />
+                                                            <div className="flex-1 min-w-0 flex items-center gap-2">
+                                                                <span className="text-sm text-(--cp-text) truncate">
+                                                                    {cmd.label}
+                                                                </span>
+                                                                {showStatusDescription && cmd.description && (
+                                                                    <span className="text-xs text-(--cp-muted) truncate">
+                                                                        {cmd.description}
+                                                                    </span>
+                                                                )}
+                                                            </div>
+                                                            {cmd.isActive && cmd.id !== 'check-for-updates' && (
+                                                                <Check className="h-4 w-4 text-(--cp-muted) shrink-0" />
                                                             )}
                                                             {showShortcut && (
-                                                                <span className="kbd ml-2">⌘{workspaceIndex + 1}</span>
+                                                                <span className="kbd ml-2 shrink-0">⌘{workspaceIndex + 1}</span>
                                                             )}
                                                             {cmd.shortcut && (
-                                                                <div className="flex items-center gap-1 ml-2">
+                                                                <div className="flex items-center gap-1 ml-2 shrink-0">
                                                                     {renderShortcut(cmd.shortcut)}
                                                                 </div>
                                                             )}
@@ -603,12 +797,15 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                             <div className="px-3 py-2.5">
                                 <div className="flex items-center gap-2 text-(--cp-text)">
                                     <div className="text-sm font-medium truncate">
-                                        Delete “{currentWorkspace?.name || 'workspace'}”?
+                                        Delete “{targetWorkspace?.name || 'workspace'}”?
                                     </div>
                                 </div>
                                 <div className="mt-2 flex items-center justify-end gap-2">
                                     <button
-                                        onClick={() => setMode('commands')}
+                                        onClick={() => {
+                                            setTargetWorkspaceIdForAction(null)
+                                            setMode('commands')
+                                        }}
                                         className="rounded-md border border-(--cp-border-subtle) bg-(--cp-input-bg) px-2.5 py-1 text-xs text-(--cp-text) transition-colors hover:bg-(--cp-input-bg-hover)"
                                     >
                                         Cancel

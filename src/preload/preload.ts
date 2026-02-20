@@ -97,6 +97,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // Auto-updater events
   updater: {
     // Actions
+    checkForUpdates: () => ipcRenderer.invoke('updater-check-for-updates'),
     downloadUpdate: () => ipcRenderer.invoke('updater-download'),
     quitAndInstall: () => ipcRenderer.invoke('updater-quit-and-install'),
 

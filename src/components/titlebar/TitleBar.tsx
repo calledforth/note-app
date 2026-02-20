@@ -71,7 +71,7 @@ export function TitleBar({ onOpenSpacesPicker }: TitleBarProps) {
             title="Switch space"
           >
             <span
-              className="text-[13px] font-medium text-(--text-secondary)"
+              className="text-[13px] font-medium text-(--text-primary)"
               style={{ fontFamily: currentFontFamily }}
             >
               {currentWorkspace?.name || 'Spaces'}
@@ -87,28 +87,28 @@ export function TitleBar({ onOpenSpacesPicker }: TitleBarProps) {
           <div className="flex items-center">
             <button
               onClick={() => setShowSettings(true)}
-              className="w-10 h-8 flex items-center justify-center transition-colors text-(--note-control-muted) hover:text-(--note-control) hover:bg-(--note-control-bg-hover)"
+              className="w-10 h-8 flex items-center justify-center transition-colors text-(--text-primary) hover:text-(--note-control) hover:bg-(--note-control-bg-hover)"
               title="Settings"
             >
               <Settings2 className="w-4 h-4" />
             </button>
             <button
               onClick={handleMinimize}
-              className="w-10 h-8 flex items-center justify-center transition-colors text-(--note-control-muted) hover:text-(--note-control) hover:bg-(--note-control-bg-hover)"
+              className="w-10 h-8 flex items-center justify-center transition-colors text-(--text-primary) hover:text-(--note-control) hover:bg-(--note-control-bg-hover)"
               title="Minimize"
             >
               <Minus className="w-4 h-4" strokeWidth={1.5} />
             </button>
             <button
               onClick={handleMaximize}
-              className="w-10 h-8 flex items-center justify-center transition-colors text-(--note-control-muted) hover:text-(--note-control) hover:bg-(--note-control-bg-hover)"
+              className="w-10 h-8 flex items-center justify-center transition-colors text-(--text-primary) hover:text-(--note-control) hover:bg-(--note-control-bg-hover)"
               title="Maximize"
             >
               <Square className="w-3.5 h-3.5" strokeWidth={1.5} />
             </button>
             <button
               onClick={handleClose}
-              className="w-10 h-8 flex items-center justify-center transition-colors text-(--note-control-muted) hover:bg-(--note-danger-strong) hover:text-(--note-danger-text)"
+              className="w-10 h-8 flex items-center justify-center transition-colors text-(--text-primary) hover:bg-(--note-danger-strong) hover:text-(--note-danger-text)"
               title="Close"
             >
               <X className="w-4 h-4" strokeWidth={1.5} />

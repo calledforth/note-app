@@ -80,6 +80,7 @@ declare global {
             // Auto-updater
             updater: {
                 // Actions
+                checkForUpdates: () => Promise<void>;
                 downloadUpdate: () => Promise<void>;
                 quitAndInstall: () => Promise<void>;
 

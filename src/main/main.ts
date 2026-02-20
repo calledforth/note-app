@@ -206,6 +206,20 @@ autoUpdater.on('error', (error) => {
 });
 
 // IPC handlers for updater actions
+ipcMain.handle('updater-check-for-updates', () => {
+  if (isDev) {
+    // In dev builds, electron-updater won't perform a real check.
+    // Emit completion events so renderer UI doesn't get stuck in "checking".
+    sendToRenderer('updater-checking');
+    setTimeout(() => {
+      sendToRenderer('updater-not-available');
+    }, 500);
+    return;
+  }
+
+  autoUpdater.checkForUpdates();
+});
+
 ipcMain.handle('updater-download', () => {
   autoUpdater.downloadUpdate();
 });
