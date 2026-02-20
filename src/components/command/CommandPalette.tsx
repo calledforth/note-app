@@ -557,8 +557,9 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     const getFlatIndex = () => flatIndex++
 
     const styleSwatches: Record<string, string> = {
-        'wabi-grid': 'var(--wabi-bg)',
-        'zen-void': 'var(--void-bg)',
+        'dark': 'var(--dark-bg)',
+        'light': 'var(--light-bg)',
+        'dim': 'var(--dim-bg)',
         'test-lab': 'var(--lab-bg)'
     }
 
@@ -584,11 +585,13 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                 <div
                     className={clsx(
                         "w-full max-w-lg pointer-events-auto animate-command-open",
-                        currentNoteStyle === 'zen-void'
-                            ? "command-palette-zen-void"
-                            : currentNoteStyle === 'test-lab'
-                                ? "command-palette-test-lab"
-                                : "command-palette-wabi-grid"
+                        currentNoteStyle === 'light'
+                            ? "command-palette-light"
+                            : currentNoteStyle === 'dim'
+                                ? "command-palette-dim"
+                                : currentNoteStyle === 'test-lab'
+                                    ? "command-palette-test-lab"
+                                    : "command-palette-dark"
                     )}
                 >
                     <div className="overflow-hidden rounded-lg border border-(--cp-border) bg-(--cp-bg) text-(--cp-text) shadow-2xl">

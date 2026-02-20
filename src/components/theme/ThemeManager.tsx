@@ -4,19 +4,19 @@ import { useThemeStore } from '../../stores/themeStore';
 export function ThemeManager() {
   const currentTheme = useThemeStore((state) => state.currentTheme);
   const currentNoteStyle = useThemeStore((state) => state.currentNoteStyle);
-  const getCurrentThemeTokens = useThemeStore((state) => state.getCurrentThemeTokens);
+  const getAppChromeTokens = useThemeStore((state) => state.getAppChromeTokens);
 
   useEffect(() => {
     const root = document.documentElement;
-    const tokens = getCurrentThemeTokens();
+    const tokens = getAppChromeTokens();
 
-    // Set data-theme attribute for CSS selectors
+    // Set data-theme attribute (kept for any legacy selectors)
     root.dataset.theme = currentTheme;
 
     // Set data-note-style attribute for note styling
     root.dataset.noteStyle = currentNoteStyle;
 
-    // Apply CSS custom properties
+    // Apply app chrome CSS custom properties (title bar, dock, etc.) from note style
     root.style.setProperty('--app-bg', tokens.appBg);
     root.style.setProperty('--surface-bg', tokens.surfaceBg);
     root.style.setProperty('--border-subtle', tokens.borderSubtle);
@@ -26,10 +26,8 @@ export function ThemeManager() {
     root.style.setProperty('--badge-editing-text', tokens.badgeEditingText);
     root.style.setProperty('--badge-focus-bg', tokens.badgeFocusBg);
     root.style.setProperty('--badge-focus-text', tokens.badgeFocusText);
-
-    // Legacy single badge text variable (kept for safety)
     root.style.setProperty('--badge-text', tokens.badgeEditingText);
-  }, [currentTheme, currentNoteStyle, getCurrentThemeTokens]);
+  }, [currentTheme, currentNoteStyle, getAppChromeTokens]);
 
   return null; // This component doesn't render anything
 }

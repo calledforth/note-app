@@ -34,37 +34,36 @@
   /* Legacy single badge text var */
   --badge-text: #ffffff;
 
-  /* ===== Wabi Grid Style Variables ===== */
-  --wabi-bg: #0c0c0c;
-  /* Warm charcoal background */
-  --wabi-text: #f5f5f5;
-  /* Cream/kinari text */
-  --wabi-text-muted: rgba(211, 211, 211, 0.5);
-  /* Muted cream for placeholder */
-  --wabi-border: rgba(255, 255, 255, 0.08);
-  /* Subtle border - zen void style */
-  --wabi-border-hover: rgba(255, 255, 255, 0.12);
-  /* Border hover - zen void style */
-  --wabi-title: #d5d5d5;
-  /* Title color */
-  --wabi-date: #666;
-  /* Date color */
+  /* ===== Dark Style Variables (refined text - Notion/Material inspired) ===== */
+  --dark-bg: #0c0c0c;
+  --dark-text: #e4e4e7;
+  /* Softer white - reduces glare, 90% equivalent */
+  --dark-text-muted: #9b9a97;
+  /* Notion-style muted */
+  --dark-border: rgba(255, 255, 255, 0.08);
+  --dark-border-hover: rgba(255, 255, 255, 0.12);
+  --dark-title: #d4d4d4;
+  --dark-date: #6b6b6b;
 
-  /* ===== Zen Void Style Variables ===== */
-  --void-bg: #000000;
-  /* Near-black background */
-  --void-title: rgba(255, 255, 255, 0.92);
-  /* Bright white title */
-  --void-text: rgba(255, 255, 255, 0.456);
-  /* Softer body text */
-  --void-text-muted: rgba(255, 255, 255, 0.619);
-  /* Muted placeholder */
-  --void-border: rgba(255, 255, 255, 0.078);
-  /* Subtle border */
-  --void-border-hover: rgba(255, 255, 255, 0.15);
-  /* Border hover */
-  --void-date: rgba(255, 255, 255, 0.25);
-  /* Date color */
+  /* ===== Light Style Variables (Notion-inspired warm off-white) ===== */
+  --light-bg: #f7f6f3;
+  /* Notion sidebar warm off-white */
+  --light-text: #37352f;
+  /* Notion primary text */
+  --light-text-muted: #9b9a97;
+  --light-border: #ebeced;
+  --light-border-hover: #d1d5db;
+  --light-title: #1c1c1e;
+  --light-date: #737373;
+
+  /* ===== Dim Style Variables (Notion-inspired, slightly darker) ===== */
+  --dim-bg: #121212;
+  --dim-text: #e4e4e7;
+  --dim-text-muted: #9b9a97;
+  --dim-border: rgba(255, 255, 255, 0.1);
+  --dim-border-hover: rgba(255, 255, 255, 0.15);
+  --dim-title: #d4d4d4;
+  --dim-date: #71717a;
 
   /* ===== Test Lab Style Variables (Experimental) ===== */
   --lab-bg: #111111;
@@ -82,17 +81,17 @@
   --lab-accent: #8b5cf6;
   /* Accent color - violet */
 
-  /* ===== Current Note Style Tokens (defaults to Wabi Grid) ===== */
-  --note-bg: var(--wabi-bg);
-  --note-text: var(--wabi-text);
-  --note-text-muted: var(--wabi-text-muted);
-  --note-title: var(--wabi-text);
-  --note-border: var(--wabi-border);
-  --note-border-hover: var(--wabi-border-hover);
-  --note-heading: var(--wabi-text);
-  --note-bold: var(--wabi-text);
-  --note-link: var(--wabi-text);
-  --note-link-hover: var(--wabi-title);
+  /* ===== Current Note Style Tokens (defaults to Dark) ===== */
+  --note-bg: var(--dark-bg);
+  --note-text: var(--dark-text);
+  --note-text-muted: var(--dark-text-muted);
+  --note-title: var(--dark-title);
+  --note-border: var(--dark-border);
+  --note-border-hover: var(--dark-border-hover);
+  --note-heading: var(--dark-text);
+  --note-bold: var(--dark-text);
+  --note-link: var(--dark-text);
+  --note-link-hover: var(--dark-title);
   --note-scrollbar: #333;
   --note-scrollbar-hover: #555;
   --note-control-muted: rgba(255, 255, 255, 0.6);
@@ -110,7 +109,7 @@
   --note-drop-shadow: rgba(255, 255, 255, 0.12);
   --note-overlay-ring: rgba(255, 255, 255, 0.2);
   --note-panel-corner: rgba(255, 255, 255, 0.4);
-  --note-pattern-bg: var(--wabi-bg);
+  --note-pattern-bg: var(--dark-bg);
   --note-grid-placeholder-bg: rgba(255, 255, 255, 0.08);
   --note-grid-placeholder-shadow: rgba(0, 0, 0, 0.45);
   --note-grid-drag-ring: rgba(255, 255, 255, 0.10);
@@ -125,19 +124,62 @@
   --note-completed-line: rgba(220, 220, 210, 0.4);
 }
 
-:root[data-note-style="zen-void"] {
-  --note-bg: var(--void-bg);
-  --note-text: var(--void-text-muted);
-  --note-text-muted: var(--void-text-muted);
-  --note-title: var(--void-title);
-  --note-border: var(--void-border);
-  --note-border-hover: var(--void-border-hover);
-  --note-heading: var(--void-title);
-  --note-bold: rgba(255, 255, 255, 0.75);
-  --note-link: var(--void-title);
-  --note-link-hover: rgba(255, 255, 255, 0.85);
-  --note-scrollbar: rgba(255, 255, 255, 0.15);
-  --note-scrollbar-hover: rgba(255, 255, 255, 0.25);
+:root[data-note-style="light"] {
+  --note-bg: var(--light-bg);
+  --note-text: var(--light-text);
+  --note-text-muted: var(--light-text-muted);
+  --note-title: var(--light-title);
+  --note-border: var(--light-border);
+  --note-border-hover: var(--light-border-hover);
+  --note-heading: var(--light-title);
+  --note-bold: var(--light-text);
+  --note-link: #2563eb;
+  --note-link-hover: #1d4ed8;
+  --note-scrollbar: #d1d5db;
+  --note-scrollbar-hover: #9ca3af;
+  --note-control-muted: rgba(55, 53, 47, 0.6);
+  --note-control: rgba(55, 53, 47, 0.9);
+  --note-control-subtle: rgba(55, 53, 47, 0.4);
+  --note-control-bg-hover: rgba(55, 53, 47, 0.08);
+  --note-control-bg-active: rgba(55, 53, 47, 0.12);
+  --note-danger: #dc2626;
+  --note-danger-strong: #b91c1c;
+  --note-danger-text: #ffffff;
+  --note-warning: #d97706;
+  --note-drop-border: rgba(55, 53, 47, 0.4);
+  --note-drop-bg: rgba(55, 53, 47, 0.06);
+  --note-drop-ring: rgba(55, 53, 47, 0.2);
+  --note-drop-shadow: rgba(0, 0, 0, 0.08);
+  --note-overlay-ring: rgba(55, 53, 47, 0.15);
+  --note-panel-corner: rgba(55, 53, 47, 0.25);
+  --note-pattern-bg: var(--light-bg);
+  --note-grid-placeholder-bg: rgba(55, 53, 47, 0.06);
+  --note-grid-placeholder-shadow: rgba(0, 0, 0, 0.12);
+  --note-grid-drag-ring: rgba(55, 53, 47, 0.1);
+  --note-grid-drag-shadow: rgba(0, 0, 0, 0.2);
+  --note-checkbox-border: rgba(55, 53, 47, 0.6);
+  --note-checkbox-border-unchecked: rgba(55, 53, 47, 0.45);
+  --note-checkbox-checked-border: rgba(55, 53, 47, 0.9);
+  --note-checkbox-checked-bg: rgba(55, 53, 47, 0.85);
+  --note-checkbox-hover-border: rgba(55, 53, 47, 0.7);
+  --note-checkbox-hover-bg: rgba(55, 53, 47, 0.04);
+  --note-completed-text: rgba(55, 53, 47, 0.5);
+  --note-completed-line: rgba(55, 53, 47, 0.35);
+}
+
+:root[data-note-style="dim"] {
+  --note-bg: var(--dim-bg);
+  --note-text: var(--dim-text);
+  --note-text-muted: var(--dim-text-muted);
+  --note-title: var(--dim-title);
+  --note-border: var(--dim-border);
+  --note-border-hover: var(--dim-border-hover);
+  --note-heading: var(--dim-title);
+  --note-bold: var(--dim-text);
+  --note-link: var(--dim-text);
+  --note-link-hover: #e4e4e7;
+  --note-scrollbar: #3f3f46;
+  --note-scrollbar-hover: #52525b;
   --note-control-muted: rgba(255, 255, 255, 0.6);
   --note-control: rgba(255, 255, 255, 0.9);
   --note-control-subtle: rgba(255, 255, 255, 0.3);
@@ -147,13 +189,13 @@
   --note-danger-strong: #ef4444;
   --note-danger-text: #ffffff;
   --note-warning: #fbbf24;
-  --note-drop-border: rgba(255, 255, 255, 0.6);
-  --note-drop-bg: rgba(255, 255, 255, 0.10);
-  --note-drop-ring: rgba(255, 255, 255, 0.30);
-  --note-drop-shadow: rgba(255, 255, 255, 0.15);
-  --note-overlay-ring: rgba(255, 255, 255, 0.25);
+  --note-drop-border: rgba(255, 255, 255, 0.5);
+  --note-drop-bg: rgba(255, 255, 255, 0.08);
+  --note-drop-ring: rgba(255, 255, 255, 0.25);
+  --note-drop-shadow: rgba(255, 255, 255, 0.12);
+  --note-overlay-ring: rgba(255, 255, 255, 0.2);
   --note-panel-corner: rgba(255, 255, 255, 0.4);
-  --note-pattern-bg: var(--void-bg);
+  --note-pattern-bg: var(--dim-bg);
   --note-grid-placeholder-bg: rgba(255, 255, 255, 0.08);
   --note-grid-placeholder-shadow: rgba(0, 0, 0, 0.45);
   --note-grid-drag-ring: rgba(255, 255, 255, 0.10);
@@ -164,8 +206,8 @@
   --note-checkbox-checked-bg: rgba(255, 255, 255, 0.85);
   --note-checkbox-hover-border: rgba(255, 255, 255, 0.6);
   --note-checkbox-hover-bg: rgba(255, 255, 255, 0.05);
-  --note-completed-text: rgba(255, 255, 255, 0.45);
-  --note-completed-line: rgba(255, 255, 255, 0.35);
+  --note-completed-text: rgba(228, 228, 231, 0.5);
+  --note-completed-line: rgba(228, 228, 231, 0.35);
 }
 
 :root[data-note-style="test-lab"] {
@@ -360,8 +402,9 @@
 }
 
 /* Command Palette Scrollbar Styling */
-.command-palette-wabi-grid,
-.command-palette-zen-void,
+.command-palette-dark,
+.command-palette-light,
+.command-palette-dim,
 .command-palette-test-lab {
   --cp-accent: var(--badge-editing-bg);
   --cp-accent-soft: color-mix(in srgb, var(--cp-accent) 18%, transparent);
@@ -377,18 +420,25 @@
   --cp-danger-text: var(--note-danger-text);
 }
 
-.command-palette-wabi-grid {
-  --cp-bg: var(--wabi-bg);
-  --cp-border: var(--wabi-border);
-  --cp-text: var(--wabi-text);
-  --cp-muted: var(--wabi-text-muted);
+.command-palette-dark {
+  --cp-bg: var(--dark-bg);
+  --cp-border: var(--dark-border);
+  --cp-text: var(--dark-text);
+  --cp-muted: var(--dark-text-muted);
 }
 
-.command-palette-zen-void {
-  --cp-bg: var(--void-bg);
-  --cp-border: var(--void-border);
-  --cp-text: var(--void-title);
-  --cp-muted: var(--void-text-muted);
+.command-palette-light {
+  --cp-bg: var(--light-bg);
+  --cp-border: var(--light-border);
+  --cp-text: var(--light-text);
+  --cp-muted: var(--light-text-muted);
+}
+
+.command-palette-dim {
+  --cp-bg: var(--dim-bg);
+  --cp-border: var(--dim-border);
+  --cp-text: var(--dim-text);
+  --cp-muted: var(--dim-text-muted);
 }
 
 .command-palette-test-lab {
@@ -398,28 +448,31 @@
   --cp-muted: var(--lab-text-muted);
 }
 
-.command-palette-zen-void ::-webkit-scrollbar {
+.command-palette-dark ::-webkit-scrollbar,
+.command-palette-dim ::-webkit-scrollbar {
   width: 4px;
 }
 
-.command-palette-zen-void ::-webkit-scrollbar-track {
+.command-palette-dark ::-webkit-scrollbar-track,
+.command-palette-dim ::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.command-palette-zen-void ::-webkit-scrollbar-thumb {
+.command-palette-dark ::-webkit-scrollbar-thumb,
+.command-palette-dim ::-webkit-scrollbar-thumb {
   background: var(--cp-scrollbar);
   border-radius: 2px;
 }
 
-.command-palette-wabi-grid ::-webkit-scrollbar {
+.command-palette-light ::-webkit-scrollbar {
   width: 4px;
 }
 
-.command-palette-wabi-grid ::-webkit-scrollbar-track {
+.command-palette-light ::-webkit-scrollbar-track {
   background: transparent;
 }
 
-.command-palette-wabi-grid ::-webkit-scrollbar-thumb {
+.command-palette-light ::-webkit-scrollbar-thumb {
   background: var(--cp-scrollbar);
   border-radius: 2px;
 }
@@ -757,10 +810,12 @@
 }
 
 /* ========================================
-   Zen Void Style - Minimal, Light Sans-Serif
+   Light & Dim Editor - Minimal Sans-Serif
+   (.light-editor for Light theme, .zen-void-editor for Dim theme)
    ======================================== */
 
-/* Zen Void Editor Container */
+/* Light / Zen Void Editor Container */
+.light-editor,
 .zen-void-editor {
   display: flex;
   flex-direction: column;
@@ -772,6 +827,7 @@
 }
 
 /* Target ReactQuill's internal .quill wrapper */
+.light-editor .quill,
 .zen-void-editor .quill {
   display: flex;
   flex-direction: column;
@@ -781,6 +837,7 @@
   overflow: hidden;
 }
 
+.light-editor .ql-container,
 .zen-void-editor .ql-container {
   flex: 1;
   display: flex;
@@ -790,6 +847,7 @@
   position: relative;
 }
 
+.light-editor .ql-editor,
 .zen-void-editor .ql-editor {
   position: absolute;
   top: 0;
@@ -799,7 +857,7 @@
   /* Default: percentage-based padding for small panes, caps at 25px */
   padding: 0 clamp(1px, 5%, 25px) 0 clamp(1px, 5%, 25px) !important;
   font-family: var(--editor-font, 'Inter', system-ui, sans-serif) !important;
-  font-weight: 300 !important;
+  font-weight: 400 !important;
   font-size: 15px !important;
   line-height: 2 !important;
   letter-spacing: 0.01em !important;
@@ -810,131 +868,165 @@
 
 /* Smooth padding curve with gradual breakpoints */
 @container (min-width: 400px) {
+  .light-editor .ql-editor,
   .zen-void-editor .ql-editor {
     padding: 0 25px 0 25px !important;
   }
 }
 
 @container (min-width: 600px) {
+  .light-editor .ql-editor,
   .zen-void-editor .ql-editor {
     padding: 0 40px 0 40px !important;
   }
 }
 
 @container (min-width: 800px) {
+  .light-editor .ql-editor,
   .zen-void-editor .ql-editor {
     padding: 0 60px 0 60px !important;
   }
 }
 
 @container (min-width: 1000px) {
+  .light-editor .ql-editor,
   .zen-void-editor .ql-editor {
     padding: 0 90px 0 90px !important;
   }
 }
 
 @container (min-width: 1200px) {
+  .light-editor .ql-editor,
   .zen-void-editor .ql-editor {
     padding: 0 130px 0 130px !important;
   }
 }
 
 @container (min-width: 1500px) {
+  .light-editor .ql-editor,
   .zen-void-editor .ql-editor {
     padding: 0 180px 0 180px !important;
   }
 }
 
-/* Scrollbar styling for Zen Void editor - matching Wabi Grid */
+/* Scrollbar styling for Light / Zen Void editor */
+.light-editor .ql-editor::-webkit-scrollbar,
 .zen-void-editor .ql-editor::-webkit-scrollbar {
   width: 3px;
 }
 
+.light-editor .ql-editor::-webkit-scrollbar-track,
 .zen-void-editor .ql-editor::-webkit-scrollbar-track {
   background: transparent;
 }
 
+.light-editor .ql-editor::-webkit-scrollbar-thumb,
 .zen-void-editor .ql-editor::-webkit-scrollbar-thumb {
   background: transparent;
   border-radius: 2px;
   transition: background 0.2s ease;
 }
 
-/* Show scrollbar on hover over the editor */
+.light-editor:hover .ql-editor::-webkit-scrollbar-thumb,
 .zen-void-editor:hover .ql-editor::-webkit-scrollbar-thumb {
   background: var(--note-scrollbar);
 }
 
+.light-editor:hover .ql-editor::-webkit-scrollbar-thumb:hover,
 .zen-void-editor:hover .ql-editor::-webkit-scrollbar-thumb:hover {
   background: var(--note-scrollbar-hover);
 }
 
-/* Font modifiers for Zen Void */
+/* Font modifiers */
+.light-editor.font-mono,
 .zen-void-editor.font-mono { --editor-font: 'JetBrains Mono', monospace; }
+.light-editor.font-geist,
 .zen-void-editor.font-geist { --editor-font: 'Geist', system-ui, sans-serif; }
+.light-editor.font-hanken,
 .zen-void-editor.font-hanken { --editor-font: 'Hanken Grotesk', system-ui, sans-serif; }
+.light-editor.font-sen,
 .zen-void-editor.font-sen { --editor-font: 'Sen', system-ui, sans-serif; }
+.light-editor.font-inter,
 .zen-void-editor.font-inter { --editor-font: 'Inter', system-ui, sans-serif; }
 
-/* Placeholder styling for Zen Void */
+/* Placeholder styling */
+.light-editor .ql-editor.ql-blank::before,
 .zen-void-editor .ql-editor.ql-blank::before {
   font-family: var(--editor-font, 'Inter', system-ui, sans-serif) !important;
-  font-weight: 300 !important;
+  font-weight: 400 !important;
   color: var(--note-text-muted) !important;
   /* Match dynamic padding - default uses clamp */
   left: clamp(1px, 5%, 25px) !important;
 }
 
 @container (min-width: 400px) {
+  .light-editor .ql-editor.ql-blank::before,
   .zen-void-editor .ql-editor.ql-blank::before {
     left: 25px !important;
   }
 }
 
 @container (min-width: 600px) {
+  .light-editor .ql-editor.ql-blank::before,
   .zen-void-editor .ql-editor.ql-blank::before {
     left: 40px !important;
   }
 }
 
 @container (min-width: 800px) {
+  .light-editor .ql-editor.ql-blank::before,
   .zen-void-editor .ql-editor.ql-blank::before {
     left: 60px !important;
   }
 }
 
 @container (min-width: 1000px) {
+  .light-editor .ql-editor.ql-blank::before,
   .zen-void-editor .ql-editor.ql-blank::before {
     left: 90px !important;
   }
 }
 
 @container (min-width: 1200px) {
+  .light-editor .ql-editor.ql-blank::before,
   .zen-void-editor .ql-editor.ql-blank::before {
     left: 130px !important;
   }
 }
 
 @container (min-width: 1500px) {
+  .light-editor .ql-editor.ql-blank::before,
   .zen-void-editor .ql-editor.ql-blank::before {
     left: 180px !important;
   }
 }
 
-/* Bold text styling for Zen Void - subtle but visible */
+/* Bold text styling - match Dark theme */
+.light-editor .ql-editor strong,
+.light-editor .ql-editor b,
 .zen-void-editor .ql-editor strong,
 .zen-void-editor .ql-editor b {
-  font-weight: 500 !important;
+  font-weight: 600 !important;
   color: var(--note-bold) !important;
 }
 
-/* Italic text styling for Zen Void */
+/* Italic text styling */
+.light-editor .ql-editor em,
+.light-editor .ql-editor i,
 .zen-void-editor .ql-editor em,
 .zen-void-editor .ql-editor i {
   font-style: italic !important;
 }
 
-/* Bold + Italic combined - maintain bold brightness */
+/* Bold + Italic combined */
+.light-editor .ql-editor strong em,
+.light-editor .ql-editor strong i,
+.light-editor .ql-editor em strong,
+.light-editor .ql-editor i strong,
+.light-editor .ql-editor b em,
+.light-editor .ql-editor b i,
+.light-editor .ql-editor em b,
+.light-editor .ql-editor i b,
 .zen-void-editor .ql-editor strong em,
 .zen-void-editor .ql-editor strong i,
 .zen-void-editor .ql-editor em strong,
@@ -948,17 +1040,22 @@
   color: var(--note-bold) !important;
 }
 
-/* Heading and link styling for Zen Void */
+/* Heading and link styling */
+.light-editor .ql-editor h1,
+.light-editor .ql-editor h2,
+.light-editor .ql-editor h3,
 .zen-void-editor .ql-editor h1,
 .zen-void-editor .ql-editor h2,
 .zen-void-editor .ql-editor h3 {
   color: var(--note-heading) !important;
 }
 
+.light-editor .ql-editor a,
 .zen-void-editor .ql-editor a {
   color: var(--note-link) !important;
 }
 
+.light-editor .ql-editor a:hover,
 .zen-void-editor .ql-editor a:hover {
   color: var(--note-link-hover) !important;
 }
@@ -1248,6 +1345,7 @@
 /* Reduce bullet list left padding to align with numbered lists */
 /* Quill uses data-list="bullet" for bullet lists */
 .wabi-grid-editor .ql-editor li[data-list="bullet"],
+.light-editor .ql-editor li[data-list="bullet"],
 .zen-void-editor .ql-editor li[data-list="bullet"],
 .test-lab-editor .ql-editor li[data-list="bullet"] {
   padding-left: 1em !important;
@@ -1255,6 +1353,7 @@
 
 /* Ordered lists - keep consistent */
 .wabi-grid-editor .ql-editor li[data-list="ordered"],
+.light-editor .ql-editor li[data-list="ordered"],
 .zen-void-editor .ql-editor li[data-list="ordered"],
 .test-lab-editor .ql-editor li[data-list="ordered"] {
   padding-left: 1em !important;
@@ -1270,6 +1369,7 @@
 
 /* Reset default Quill checkbox styling */
 .wabi-grid-editor .ql-editor ul[data-checked]>li::before,
+.light-editor .ql-editor ul[data-checked]>li::before,
 .zen-void-editor .ql-editor ul[data-checked]>li::before,
 .test-lab-editor .ql-editor ul[data-checked]>li::before {
   /* Override Quill's default checkbox character */
@@ -1293,6 +1393,7 @@
   border-color: var(--note-checkbox-border-unchecked) !important;
 }
 
+.light-editor .ql-editor ul[data-checked="false"]>li::before,
 .zen-void-editor .ql-editor ul[data-checked="false"]>li::before {
   border-color: var(--note-checkbox-border-unchecked) !important;
 }
@@ -1303,6 +1404,7 @@
 
 /* Checked checkbox - bright white bg with black tick */
 .wabi-grid-editor .ql-editor ul[data-checked="true"]>li::before,
+.light-editor .ql-editor ul[data-checked="true"]>li::before,
 .zen-void-editor .ql-editor ul[data-checked="true"]>li::before,
 .test-lab-editor .ql-editor ul[data-checked="true"]>li::before {
   border-color: var(--note-checkbox-checked-border) !important;
@@ -1320,8 +1422,9 @@
   color: var(--note-text) !important;
 }
 
+.light-editor .ql-editor ul[data-checked]>li,
 .zen-void-editor .ql-editor ul[data-checked]>li {
-  font-family: 'Inter', system-ui, sans-serif !important;
+  font-family: var(--editor-font, 'Inter', system-ui, sans-serif) !important;
   color: var(--note-text) !important;
 }
 
@@ -1337,6 +1440,7 @@
   text-decoration-color: var(--note-completed-line) !important;
 }
 
+.light-editor .ql-editor ul[data-checked="true"]>li,
 .zen-void-editor .ql-editor ul[data-checked="true"]>li {
   color: var(--note-completed-text) !important;
   text-decoration: line-through !important;
@@ -1349,8 +1453,14 @@
   text-decoration-color: var(--note-completed-line) !important;
 }
 
+/* Light theme: checked checkbox needs white tick on dark bg */
+.light-editor .ql-editor ul[data-checked="true"]>li::before {
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%23ffffff' stroke-width='3.5' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M5 12l5 5L20 7'/%3E%3C/svg%3E") !important;
+}
+
 /* Hover effect on unchecked checkboxes */
 .wabi-grid-editor .ql-editor ul[data-checked="false"]>li::before:hover,
+.light-editor .ql-editor ul[data-checked="false"]>li::before:hover,
 .zen-void-editor .ql-editor ul[data-checked="false"]>li::before:hover,
 .test-lab-editor .ql-editor ul[data-checked="false"]>li::before:hover {
   border-color: var(--note-checkbox-hover-border) !important;

@@ -135,8 +135,8 @@ const DraggableNote = ({
     )
   }
 
-  // =============== ZEN VOID STYLE ===============
-  if (currentNoteStyle === 'zen-void') {
+  // =============== LIGHT STYLE ===============
+  if (currentNoteStyle === 'light') {
     return (
       <div
         ref={setNodeRef}
@@ -144,11 +144,10 @@ const DraggableNote = ({
         className={clsx(
           "group relative w-full h-full transition-all duration-500",
           "flex flex-col overflow-hidden",
-          "bg-(--void-bg)",
+          "bg-(--light-bg)",
           isOverlay && "shadow-2xl z-50",
         )}
       >
-        {/* Draggable Header - minimal, no title */}
         <div
           {...(isOverlay ? {} : listeners)}
           className={clsx(
@@ -158,8 +157,40 @@ const DraggableNote = ({
         >
           <PanelControls />
         </div>
+        <div className={clsx("flex-1 flex flex-col min-h-0", getContentPadding())}>
+          <div
+            className={clsx("flex-1 min-h-0 light-editor", `font-${currentEditorFont}`)}
+            onPointerDown={(e) => e.stopPropagation()}
+          >
+            <RichTextEditor noteId={noteId} />
+          </div>
+        </div>
+      </div>
+    )
+  }
 
-        {/* Content Area */}
+  // =============== DIM STYLE ===============
+  if (currentNoteStyle === 'dim') {
+    return (
+      <div
+        ref={setNodeRef}
+        {...attributes}
+        className={clsx(
+          "group relative w-full h-full transition-all duration-500",
+          "flex flex-col overflow-hidden",
+          "bg-(--dim-bg)",
+          isOverlay && "shadow-2xl z-50",
+        )}
+      >
+        <div
+          {...(isOverlay ? {} : listeners)}
+          className={clsx(
+            "flex justify-end items-center relative z-20",
+            !isOverlay && "cursor-grab active:cursor-grabbing"
+          )}
+        >
+          <PanelControls />
+        </div>
         <div className={clsx("flex-1 flex flex-col min-h-0", getContentPadding())}>
           <div
             className={clsx("flex-1 min-h-0 zen-void-editor", `font-${currentEditorFont}`)}
@@ -209,7 +240,7 @@ const DraggableNote = ({
     )
   }
 
-  // =============== WABI GRID STYLE (Default) ===============
+  // =============== DARK STYLE (Default) ===============
   return (
     <div
       ref={setNodeRef}
@@ -217,7 +248,7 @@ const DraggableNote = ({
       className={clsx(
         "group relative w-full h-full transition-all duration-300",
         "flex flex-col overflow-hidden",
-        "bg-(--wabi-bg)",
+        "bg-(--dark-bg)",
         isOverlay && "shadow-2xl z-50 ring-1 ring-(--note-overlay-ring)",
       )}
     >
@@ -316,7 +347,7 @@ const PanelContent = ({
     if (!showBorder) {
       return "border border-transparent"
     }
-    if (currentNoteStyle === 'zen-void') {
+    if (currentNoteStyle === 'dim') {
       return "border border-(--note-border) hover:border-(--note-border-hover)"
     }
     if (currentNoteStyle === 'test-lab') {

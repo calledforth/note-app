@@ -17,27 +17,17 @@ export function SettingsPanel({ spaceId: _spaceId, onClose }: SettingsPanelProps
   const setMantraAutoOpenEnabled = useMantraStore((state) => state.setMantraAutoOpenEnabled);
 
   // Theme-specific styling (match command palette)
-  const isZenVoid = currentNoteStyle === 'zen-void';
-  const isTestLab = currentNoteStyle === 'test-lab';
+  const isLightOrDim = currentNoteStyle === 'light' || currentNoteStyle === 'dim';
 
-  // Get background color based on theme
-  const getBgColor = () => {
-    if (isZenVoid) return 'var(--note-bg)';
-    if (isTestLab) return 'var(--note-bg)';
-    return 'var(--note-bg)';
-  };
-
-  const getBorderColor = () => {
-    if (isZenVoid) return 'var(--note-border)';
-    if (isTestLab) return 'var(--note-border)';
-    return 'var(--note-border)';
-  };
+  const getBgColor = () => 'var(--note-bg)';
+  const getBorderColor = () => 'var(--note-border)';
 
   // Short display names for themes
   const getThemeDisplayName = (key: NoteStyle) => {
     switch (key) {
-      case 'wabi-grid': return 'Wabi';
-      case 'zen-void': return 'Zen';
+      case 'dark': return 'Dark';
+      case 'light': return 'Light';
+      case 'dim': return 'Dim';
       case 'test-lab': return 'Lab';
       default: return key;
     }
@@ -58,7 +48,7 @@ export function SettingsPanel({ spaceId: _spaceId, onClose }: SettingsPanelProps
           style={{
             backgroundColor: getBgColor(),
             border: `1px solid ${getBorderColor()}`,
-            fontFamily: isZenVoid ? "'Inter', sans-serif" : "'JetBrains Mono', monospace",
+            fontFamily: isLightOrDim ? "'Inter', sans-serif" : "'JetBrains Mono', monospace",
           }}
         >
           {/* Header */}
@@ -69,7 +59,7 @@ export function SettingsPanel({ spaceId: _spaceId, onClose }: SettingsPanelProps
             <div>
               <h1 className={clsx(
                 "text-base",
-                isZenVoid ? "text-(--note-title) font-light" : "text-(--note-title)"
+                isLightOrDim ? "text-(--note-title) font-light" : "text-(--note-title)"
               )}>
                 Settings
               </h1>
@@ -93,7 +83,7 @@ export function SettingsPanel({ spaceId: _spaceId, onClose }: SettingsPanelProps
               <div className="flex items-center justify-between">
                 <span className={clsx(
                   "text-sm",
-                  isZenVoid ? "text-(--note-text) font-light" : "text-(--note-text)"
+                  isLightOrDim ? "text-(--note-text) font-light" : "text-(--note-text)"
                 )}>
                   Theme
                 </span>
@@ -128,7 +118,7 @@ export function SettingsPanel({ spaceId: _spaceId, onClose }: SettingsPanelProps
             <section>
               <span className={clsx(
                 "text-sm block mb-5",
-                isZenVoid ? "text-(--note-text) font-light" : "text-(--note-text)"
+                isLightOrDim ? "text-(--note-text) font-light" : "text-(--note-text)"
               )}>
                 Font
               </span>
@@ -179,7 +169,7 @@ export function SettingsPanel({ spaceId: _spaceId, onClose }: SettingsPanelProps
               <div className="flex items-center justify-between">
                 <span className={clsx(
                   "text-sm",
-                  isZenVoid ? "text-(--note-text) font-light" : "text-(--note-text)"
+                  isLightOrDim ? "text-(--note-text) font-light" : "text-(--note-text)"
                 )}>
                   Mantra auto-open
                 </span>

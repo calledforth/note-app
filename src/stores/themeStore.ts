@@ -3,7 +3,7 @@ import { createJSONStorage, persist } from 'zustand/middleware';
 import { electronStoreStorage } from '../utils/electronStoreStorage';
 
 export type ThemeKey = 'neutral' | 'black' | 'white';
-export type NoteStyle = 'wabi-grid' | 'zen-void' | 'test-lab';
+export type NoteStyle = 'dark' | 'light' | 'dim' | 'test-lab';
 export type EditorFont = 'mono' | 'geist' | 'hanken' | 'sen' | 'inter';
 
 interface ThemeTokens {
@@ -60,10 +60,59 @@ const THEMES: Record<ThemeKey, ThemeTokens> = {
   },
 };
 
+// App chrome tokens per note style (title bar, dock, etc.)
+const APP_CHROME_BY_NOTE_STYLE: Record<NoteStyle, ThemeTokens> = {
+  dark: {
+    appBg: '#0c0c0c',
+    surfaceBg: '#171717',
+    borderSubtle: '#262626',
+    textPrimary: '#e4e4e7',
+    textSecondary: '#9b9a97',
+    badgeEditingBg: '#2563eb',
+    badgeEditingText: '#ffffff',
+    badgeFocusBg: '#262626',
+    badgeFocusText: '#e4e4e7',
+  },
+  light: {
+    appBg: '#f7f6f3',
+    surfaceBg: '#ffffff',
+    borderSubtle: '#ebeced',
+    textPrimary: '#37352f',
+    textSecondary: '#9b9a97',
+    badgeEditingBg: '#2563eb',
+    badgeEditingText: '#ffffff',
+    badgeFocusBg: '#e5e5e5',
+    badgeFocusText: '#171717',
+  },
+  dim: {
+    appBg: '#121212',
+    surfaceBg: '#1c1c1e',
+    borderSubtle: '#27272a',
+    textPrimary: '#e4e4e7',
+    textSecondary: '#9b9a97',
+    badgeEditingBg: '#2563eb',
+    badgeEditingText: '#ffffff',
+    badgeFocusBg: '#27272a',
+    badgeFocusText: '#e4e4e7',
+  },
+  'test-lab': {
+    appBg: '#111111',
+    surfaceBg: '#171717',
+    borderSubtle: '#2a2a2a',
+    textPrimary: '#e0e0e0',
+    textSecondary: '#a3a3a3',
+    badgeEditingBg: '#2563eb',
+    badgeEditingText: '#ffffff',
+    badgeFocusBg: '#2a2a2a',
+    badgeFocusText: '#e0e0e0',
+  },
+};
+
 // Note style definitions
 export const NOTE_STYLES: { key: NoteStyle; name: string; description: string }[] = [
-  { key: 'wabi-grid', name: 'Wabi Grid', description: 'Japanese-inspired, serif italic' },
-  { key: 'zen-void', name: 'Zen Void', description: 'Minimal, light sans-serif' },
+  { key: 'dark', name: 'Dark', description: 'Deep black, refined text' },
+  { key: 'light', name: 'Light', description: 'Warm off-white, Notion-style' },
+  { key: 'dim', name: 'Dim', description: 'Soft dark gray, easy on eyes' },
   { key: 'test-lab', name: 'Test Lab', description: 'Experimental playground theme' },
 ];
 
@@ -84,6 +133,7 @@ interface ThemeStore {
   setTheme: (theme: ThemeKey) => void;
   cycleTheme: () => void;
   getCurrentThemeTokens: () => ThemeTokens;
+  getAppChromeTokens: () => ThemeTokens;
   setNoteStyle: (style: NoteStyle) => void;
   cycleNoteStyle: () => void;
   setEditorFont: (font: EditorFont) => void;
@@ -91,14 +141,14 @@ interface ThemeStore {
 }
 
 const THEME_ORDER: ThemeKey[] = ['neutral', 'black', 'white'];
-const NOTE_STYLE_ORDER: NoteStyle[] = ['wabi-grid', 'zen-void', 'test-lab'];
+const NOTE_STYLE_ORDER: NoteStyle[] = ['dark', 'light', 'dim', 'test-lab'];
 const EDITOR_FONT_ORDER: EditorFont[] = ['mono', 'geist', 'hanken', 'sen', 'inter'];
 
 export const useThemeStore = create<ThemeStore>()(
   persist(
     (set, get) => ({
       currentTheme: 'neutral',
-      currentNoteStyle: 'wabi-grid',
+      currentNoteStyle: 'dark',
       currentEditorFont: 'geist',
       themes: THEMES,
       setTheme: (theme) => set({ currentTheme: theme }),
@@ -112,6 +162,10 @@ export const useThemeStore = create<ThemeStore>()(
       getCurrentThemeTokens: () => {
         const current = get().currentTheme;
         return THEMES[current] ?? THEMES.neutral;
+      },
+      getAppChromeTokens: () => {
+        const style = get().currentNoteStyle;
+        return APP_CHROME_BY_NOTE_STYLE[style] ?? APP_CHROME_BY_NOTE_STYLE.dark;
       },
       setNoteStyle: (style) => set({ currentNoteStyle: style }),
       cycleNoteStyle: () => {
@@ -133,6 +187,16 @@ export const useThemeStore = create<ThemeStore>()(
     {
       name: 'sticky-notes-theme',
       storage: createJSONStorage(() => electronStoreStorage),
+      migrate: (persisted: unknown) => {
+        const p = persisted as { state?: { currentNoteStyle?: string } };
+        if (p?.state?.currentNoteStyle === 'wabi-grid') {
+          p.state.currentNoteStyle = 'dark';
+        }
+        if (p?.state?.currentNoteStyle === 'zen-void') {
+          p.state.currentNoteStyle = 'dim';
+        }
+        return p;
+      },
     }
   )
 );
