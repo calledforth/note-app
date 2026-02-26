@@ -2,7 +2,7 @@
   "name": "notes",
   "productName": "Notes",
   "private": true,
-  "version": "0.7.5",
+  "version": "0.7.6",
   "description": "A minimalist notes app for capturing quick thoughts and ideas",
   "author": "cletus",
   "license": "MIT",
