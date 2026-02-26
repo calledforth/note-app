@@ -54,15 +54,15 @@ export function TitleBar({ onOpenSpacesPicker }: TitleBarProps) {
     <>
       {/* Title Bar - always visible */}
       <div
-        className="h-8 bg-(--app-bg) flex items-center justify-between select-none pl-2 pr-0 relative"
+        className="h-8 bg-(--app-bg) flex items-center select-none pl-2 pr-0 relative"
         style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}
       >
-        {/* Left spacer */}
-        <div className="flex-1" />
+        {/* Left: draggable area */}
+        <div className="flex-1 min-w-0" />
 
-        {/* Center: Clickable space title -> opens Spaces picker command palette */}
+        {/* Center: Workspace name - absolutely positioned for true visual centering */}
         <div
-          className="relative flex items-center gap-2 z-10"
+          className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 flex items-center z-10"
           style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
         >
           <button
@@ -79,12 +79,12 @@ export function TitleBar({ onOpenSpacesPicker }: TitleBarProps) {
           </button>
         </div>
 
-        {/* Right: Controls */}
-        <div
-          className="flex-1 flex items-center justify-end relative z-10 pr-0"
-          style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
-        >
-          <div className="flex items-center">
+        {/* Right: draggable spacer + window controls */}
+        <div className="flex-1 min-w-0 flex items-center justify-end">
+          <div
+            className="flex items-center"
+            style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
+          >
             <button
               onClick={() => setShowSettings(true)}
               className="w-10 h-8 flex items-center justify-center transition-colors text-(--text-primary) hover:text-(--note-control) hover:bg-(--note-control-bg-hover)"

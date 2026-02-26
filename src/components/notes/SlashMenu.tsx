@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Type, List, ListOrdered, Heading1, Heading2, Heading3 } from 'lucide-react';
+import { Type, List, ListOrdered, Heading1, Heading2, Heading3, Minus } from 'lucide-react';
 import clsx from 'clsx';
 
 export type SlashMenuItemType =
@@ -10,6 +10,7 @@ export type SlashMenuItemType =
   | 'italic'
   | 'bullet'
   | 'ordered'
+  | 'horizontalRule'
   | 'divider';
 
 interface SlashMenuItem {
@@ -18,7 +19,7 @@ interface SlashMenuItem {
   icon?: React.ReactNode;
 }
 
-const SLASH_ITEMS: SlashMenuItem[] = [
+export const SLASH_ITEMS: SlashMenuItem[] = [
   { type: 'heading1', label: 'Heading 1', icon: <Heading1 className="w-4 h-4" /> },
   { type: 'heading2', label: 'Heading 2', icon: <Heading2 className="w-4 h-4" /> },
   { type: 'heading3', label: 'Heading 3', icon: <Heading3 className="w-4 h-4" /> },
@@ -28,7 +29,20 @@ const SLASH_ITEMS: SlashMenuItem[] = [
   { type: 'divider', label: '' },
   { type: 'bullet', label: 'Bullet list', icon: <List className="w-4 h-4" /> },
   { type: 'ordered', label: 'Numbered list', icon: <ListOrdered className="w-4 h-4" /> },
+  { type: 'horizontalRule', label: 'Divider', icon: <Minus className="w-4 h-4" /> },
 ];
+
+export function filterSlashItems(items: SlashMenuItem[], query: string): SlashMenuItem[] {
+  const q = query.trim().toLowerCase();
+  if (!q) return items;
+  return items.filter(
+    (item) => item.type !== 'divider' && item.label.toLowerCase().includes(q)
+  );
+}
+
+export function getFilteredTypes(items: SlashMenuItem[]): SlashMenuItemType[] {
+  return items.filter((i) => i.type !== 'divider').map((i) => i.type);
+}
 
 interface SlashMenuProps {
   position: { top: number; left: number } | null;
@@ -37,6 +51,7 @@ interface SlashMenuProps {
   onClose: () => void;
   onHoverIndex?: (index: number) => void;
   fontFamily: string;
+  searchQuery?: string;
 }
 
 export function SlashMenu({
@@ -46,8 +61,10 @@ export function SlashMenu({
   onClose,
   onHoverIndex,
   fontFamily,
+  searchQuery = '',
 }: SlashMenuProps) {
   const menuRef = useRef<HTMLDivElement>(null);
+  const filteredItems = filterSlashItems(SLASH_ITEMS, searchQuery);
 
   useEffect(() => {
     if (!menuRef.current || position === null) return;
@@ -59,11 +76,14 @@ export function SlashMenu({
 
   if (position === null) return null;
 
+  const selectableItems = filteredItems.filter((i) => i.type !== 'divider');
+  const hasResults = selectableItems.length > 0;
+
   let flatIndex = 0;
   return (
     <div
       ref={menuRef}
-      className="slash-menu fixed z-200 min-w-[200px] max-h-[280px] overflow-y-auto rounded-lg border shadow-lg py-1.5 animate-fade-in"
+      className="slash-menu fixed z-200 min-w-[230px] max-h-[260px] overflow-y-auto rounded-lg border shadow-lg py-1 animate-fade-in"
       style={{
         top: position.top,
         left: position.left,
@@ -72,12 +92,20 @@ export function SlashMenu({
         fontFamily,
       }}
     >
-      {SLASH_ITEMS.map((item, idx) => {
+      {!hasResults ? (
+        <div
+          className="px-2.5 py-3 text-center text-sm"
+          style={{ color: 'var(--note-text-muted)' }}
+        >
+          No results
+        </div>
+      ) : null}
+      {filteredItems.map((item, idx) => {
         if (item.type === 'divider') {
           return (
             <div
               key={idx}
-              className="my-1 h-px"
+              className="my-0.5 h-px"
               style={{ background: 'var(--note-border)' }}
               role="separator"
             />
@@ -91,7 +119,7 @@ export function SlashMenu({
             data-index={currentIndex}
             type="button"
             className={clsx(
-              'w-full flex items-center gap-2.5 px-3 py-2 text-left text-sm transition-colors',
+              'w-full flex items-center gap-2 px-2.5 py-1.5 text-left text-sm transition-colors',
               isSelected ? 'bg-(--note-control-bg-hover)' : 'hover:bg-(--note-control-bg-hover)'
             )}
             style={{ color: 'var(--note-text)' }}
