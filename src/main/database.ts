@@ -69,6 +69,41 @@ const migrations: Migration[] = [
             `);
         },
     },
+    // Migration for Todo workspace (sections, items, history)
+    {
+        version: 3,
+        name: 'add_todo_tables',
+        up: (db) => {
+            db.exec(`
+                CREATE TABLE IF NOT EXISTS todo_sections (
+                    id TEXT PRIMARY KEY,
+                    title TEXT NOT NULL,
+                    sortOrder INTEGER NOT NULL DEFAULT 0,
+                    archived INTEGER NOT NULL DEFAULT 0,
+                    createdAt INTEGER NOT NULL
+                )
+            `);
+            db.exec(`
+                CREATE TABLE IF NOT EXISTS todo_items (
+                    id TEXT PRIMARY KEY,
+                    sectionId TEXT NOT NULL,
+                    text TEXT NOT NULL DEFAULT '',
+                    completed INTEGER NOT NULL DEFAULT 0,
+                    daily INTEGER NOT NULL DEFAULT 0,
+                    completedAt TEXT,
+                    sortOrder INTEGER NOT NULL DEFAULT 0,
+                    createdAt INTEGER NOT NULL,
+                    FOREIGN KEY (sectionId) REFERENCES todo_sections(id) ON DELETE CASCADE
+                )
+            `);
+            db.exec(`
+                CREATE TABLE IF NOT EXISTS todo_history (
+                    date TEXT PRIMARY KEY,
+                    items TEXT NOT NULL DEFAULT '[]'
+                )
+            `);
+        },
+    },
 ];
 
 class StickyNotesDatabase {
@@ -293,6 +328,155 @@ class StickyNotesDatabase {
 
     setLastWorkspaceId(workspaceId: string): void {
         this.setSetting('lastWorkspaceId', workspaceId);
+    }
+
+    // ============================================================================
+    // TODO WORKSPACE OPERATIONS
+    // ============================================================================
+
+    getAllTodoSections(): any[] {
+        if (!this.db) throw new Error('Database not initialized');
+        const rows = this.db.prepare('SELECT * FROM todo_sections ORDER BY sortOrder ASC, createdAt ASC').all();
+        return rows.map((row: any) => ({
+            ...row,
+            archived: Boolean(row.archived),
+        }));
+    }
+
+    createTodoSection(section: { id: string; title: string; sortOrder: number; archived: boolean; createdAt: number }): void {
+        if (!this.db) throw new Error('Database not initialized');
+        this.db
+            .prepare(
+                'INSERT INTO todo_sections (id, title, sortOrder, archived, createdAt) VALUES (?, ?, ?, ?, ?)'
+            )
+            .run(
+                section.id,
+                section.title,
+                section.sortOrder,
+                section.archived ? 1 : 0,
+                section.createdAt
+            );
+    }
+
+    updateTodoSection(id: string, updates: { title?: string; sortOrder?: number; archived?: boolean }): void {
+        if (!this.db) throw new Error('Database not initialized');
+        const setClauses: string[] = [];
+        const values: any[] = [];
+        if (updates.title !== undefined) {
+            setClauses.push('title = ?');
+            values.push(updates.title);
+        }
+        if (updates.sortOrder !== undefined) {
+            setClauses.push('sortOrder = ?');
+            values.push(updates.sortOrder);
+        }
+        if (updates.archived !== undefined) {
+            setClauses.push('archived = ?');
+            values.push(updates.archived ? 1 : 0);
+        }
+        if (setClauses.length === 0) return;
+        values.push(id);
+        this.db.prepare(`UPDATE todo_sections SET ${setClauses.join(', ')} WHERE id = ?`).run(...values);
+    }
+
+    deleteTodoSection(id: string): void {
+        if (!this.db) throw new Error('Database not initialized');
+        this.db.prepare('DELETE FROM todo_sections WHERE id = ?').run(id);
+    }
+
+    getTodoItemsBySection(sectionId: string): any[] {
+        if (!this.db) throw new Error('Database not initialized');
+        const rows = this.db.prepare('SELECT * FROM todo_items WHERE sectionId = ? ORDER BY sortOrder ASC, createdAt ASC').all(sectionId);
+        return rows.map((row: any) => ({
+            ...row,
+            completed: Boolean(row.completed),
+            daily: Boolean(row.daily),
+        }));
+    }
+
+    createTodoItem(item: {
+        id: string;
+        sectionId: string;
+        text: string;
+        completed: boolean;
+        daily: boolean;
+        completedAt?: string | null;
+        sortOrder: number;
+        createdAt: number;
+    }): void {
+        if (!this.db) throw new Error('Database not initialized');
+        this.db
+            .prepare(
+                'INSERT INTO todo_items (id, sectionId, text, completed, daily, completedAt, sortOrder, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?)'
+            )
+            .run(
+                item.id,
+                item.sectionId,
+                item.text,
+                item.completed ? 1 : 0,
+                item.daily ? 1 : 0,
+                item.completedAt ?? null,
+                item.sortOrder,
+                item.createdAt
+            );
+    }
+
+    updateTodoItem(id: string, updates: { text?: string; completed?: boolean; daily?: boolean; completedAt?: string | null; sortOrder?: number }): void {
+        if (!this.db) throw new Error('Database not initialized');
+        const setClauses: string[] = [];
+        const values: any[] = [];
+        if (updates.text !== undefined) {
+            setClauses.push('text = ?');
+            values.push(updates.text);
+        }
+        if (updates.completed !== undefined) {
+            setClauses.push('completed = ?');
+            values.push(updates.completed ? 1 : 0);
+        }
+        if (updates.daily !== undefined) {
+            setClauses.push('daily = ?');
+            values.push(updates.daily ? 1 : 0);
+        }
+        if (updates.completedAt !== undefined) {
+            setClauses.push('completedAt = ?');
+            values.push(updates.completedAt ?? null);
+        }
+        if (updates.sortOrder !== undefined) {
+            setClauses.push('sortOrder = ?');
+            values.push(updates.sortOrder);
+        }
+        if (setClauses.length === 0) return;
+        values.push(id);
+        this.db.prepare(`UPDATE todo_items SET ${setClauses.join(', ')} WHERE id = ?`).run(...values);
+    }
+
+    deleteTodoItem(id: string): void {
+        if (!this.db) throw new Error('Database not initialized');
+        this.db.prepare('DELETE FROM todo_items WHERE id = ?').run(id);
+    }
+
+    getTodoHistory(dateKey: string): any[] {
+        if (!this.db) throw new Error('Database not initialized');
+        const row: any = this.db.prepare('SELECT items FROM todo_history WHERE date = ?').get(dateKey);
+        if (!row) return [];
+        try {
+            return JSON.parse(row.items);
+        } catch {
+            return [];
+        }
+    }
+
+    getAllTodoHistory(): { date: string; items: any[] }[] {
+        if (!this.db) throw new Error('Database not initialized');
+        const rows = this.db.prepare('SELECT * FROM todo_history ORDER BY date DESC').all() as any[];
+        return rows.map((r) => ({ date: r.date, items: JSON.parse(r.items || '[]') }));
+    }
+
+    saveTodoHistory(dateKey: string, items: any[]): void {
+        if (!this.db) throw new Error('Database not initialized');
+        this.db
+            .prepare('INSERT OR REPLACE INTO todo_history (date, items) VALUES (?, ?)')
+            .run(dateKey, JSON.stringify(items));
     }
 }
 

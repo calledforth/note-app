@@ -94,6 +94,29 @@ contextBridge.exposeInMainWorld('electronAPI', {
       ipcRenderer.invoke('settings-delete', key),
   },
 
+  // Todo workspace operations
+  todo: {
+    getSections: (): Promise<unknown[]> => ipcRenderer.invoke('todo-get-sections'),
+    getItems: (sectionId: string): Promise<unknown[]> => ipcRenderer.invoke('todo-get-items', sectionId),
+    createSection: (section: unknown): Promise<{ success: boolean }> =>
+      ipcRenderer.invoke('todo-create-section', section),
+    updateSection: (id: string, updates: unknown): Promise<{ success: boolean }> =>
+      ipcRenderer.invoke('todo-update-section', id, updates),
+    deleteSection: (id: string): Promise<{ success: boolean }> =>
+      ipcRenderer.invoke('todo-delete-section', id),
+    createItem: (item: unknown): Promise<{ success: boolean }> =>
+      ipcRenderer.invoke('todo-create-item', item),
+    updateItem: (id: string, updates: unknown): Promise<{ success: boolean }> =>
+      ipcRenderer.invoke('todo-update-item', id, updates),
+    deleteItem: (id: string): Promise<{ success: boolean }> =>
+      ipcRenderer.invoke('todo-delete-item', id),
+    getHistory: (dateKey: string): Promise<unknown[]> => ipcRenderer.invoke('todo-get-history', dateKey),
+    getAllHistory: (): Promise<{ date: string; items: unknown[] }[]> =>
+      ipcRenderer.invoke('todo-get-all-history'),
+    saveHistory: (dateKey: string, items: unknown[]): Promise<{ success: boolean }> =>
+      ipcRenderer.invoke('todo-save-history', dateKey, items),
+  },
+
   // Auto-updater events
   updater: {
     // Actions

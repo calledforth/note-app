@@ -3,6 +3,7 @@ import { useBentoStore } from '../../stores/bentoStore';
 import { useThemeStore, EDITOR_FONTS } from '../../stores/themeStore';
 import { SettingsPanel } from '../dock/SettingsPanel';
 import { Settings2, Minus, Square, X } from 'lucide-react';
+import { FIXED_TODO_WORKSPACE_ID } from '../../constants/workspaces';
 import '../../types/electron.d';
 
 interface TitleBarProps {
@@ -74,7 +75,7 @@ export function TitleBar({ onOpenSpacesPicker }: TitleBarProps) {
               className="text-[13px] font-medium text-(--text-primary)"
               style={{ fontFamily: currentFontFamily }}
             >
-              {currentWorkspace?.name || 'Spaces'}
+              {currentWorkspaceId === FIXED_TODO_WORKSPACE_ID ? 'Todo' : (currentWorkspace?.name || 'Spaces')}
             </span>
           </button>
         </div>

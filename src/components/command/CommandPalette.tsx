@@ -1,8 +1,10 @@
-import React, { useState, useEffect, useRef, useMemo } from 'react'
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react'
 import { useThemeStore, NOTE_STYLES, EDITOR_FONTS } from '../../stores/themeStore'
 import { useBentoStore } from '../../stores/bentoStore'
+import { FIXED_TODO_WORKSPACE_ID, isFixedWorkspace } from '../../constants/workspaces'
 import {
     Check,
+    CheckSquare,
     Info,
     RefreshCw,
     Layers,
@@ -92,6 +94,18 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         }
     }
 
+    const focusSearchInput = useCallback(() => {
+        window.requestAnimationFrame(() => {
+            searchInputRef.current?.focus()
+        })
+    }, [])
+
+    const focusWorkspaceInput = useCallback(() => {
+        window.requestAnimationFrame(() => {
+            workspaceInputRef.current?.focus()
+        })
+    }, [])
+
     const scheduleUpdateStatusReset = (delayMs: number) => {
         clearUpdateStatusTimer()
         clearUpdateStatusTimerRef.current = window.setTimeout(() => {
@@ -159,7 +173,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                 category: '__top__',
             })
 
-            if (currentWorkspaceId) {
+            if (currentWorkspaceId && !isFixedWorkspace(currentWorkspaceId)) {
                 commands.push({
                     id: 'rename-workspace',
                     label: 'Rename workspace',
@@ -176,6 +190,14 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                 })
             }
 
+            commands.push({
+                id: `workspace-${FIXED_TODO_WORKSPACE_ID}`,
+                label: 'Todo',
+                description: 'Switch to Todo',
+                icon: <CheckSquare className="w-4 h-4" />,
+                category: 'Spaces',
+                isActive: currentWorkspaceId === FIXED_TODO_WORKSPACE_ID,
+            })
             workspaces.forEach((workspace) => {
                 commands.push({
                     id: `workspace-${workspace.id}`,
@@ -205,6 +227,14 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         }
 
         // === SPACES (workspaces, mantra, settings - places you go to) ===
+        commands.push({
+            id: `workspace-${FIXED_TODO_WORKSPACE_ID}`,
+            label: 'Todo',
+            description: 'Switch to Todo',
+            icon: <CheckSquare className="w-4 h-4" />,
+            category: 'Spaces',
+            isActive: currentWorkspaceId === FIXED_TODO_WORKSPACE_ID,
+        })
         workspaces.forEach((workspace) => {
             commands.push({
                 id: `workspace-${workspace.id}`,
@@ -238,7 +268,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             icon: <LayersPlus className="w-4 h-4" />,
             category: 'Actions'
         })
-        if (currentWorkspaceId) {
+        if (currentWorkspaceId && !isFixedWorkspace(currentWorkspaceId)) {
             commands.push({
                 id: 'rename-workspace',
                 label: 'Rename workspace',
@@ -382,6 +412,14 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         }, {} as Record<string, CommandItem[]>)
     }, [filteredCommands])
 
+    const workspaceShortcutIndexById = useMemo(() => {
+        const indexById = new Map<string, number>()
+        workspaces.forEach((workspace, index) => {
+            indexById.set(workspace.id, index)
+        })
+        return indexById
+    }, [workspaces])
+
     // Reset state when opened
     useEffect(() => {
         if (isOpen) {
@@ -392,15 +430,15 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             setTargetWorkspaceIdForAction(null)
             clearUpdateStatusTimer()
             setUpdateCheckStatus('idle')
-            setTimeout(() => searchInputRef.current?.focus(), 50)
+            focusSearchInput()
         }
-    }, [isOpen])
+    }, [isOpen, focusSearchInput])
 
     useEffect(() => {
         if (mode === 'new-workspace' || mode === 'rename-workspace') {
-            setTimeout(() => workspaceInputRef.current?.focus(), 50)
+            focusWorkspaceInput()
         }
-    }, [mode])
+    }, [mode, focusWorkspaceInput])
 
     // Handle command execution
     const executeCommand = (cmd: CommandItem) => {
@@ -504,7 +542,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                     setTargetWorkspaceIdForAction(null)
                     setSearchQuery('')
                     setSelectedIndex(0)
-                    setTimeout(() => searchInputRef.current?.focus(), 50)
+                    focusSearchInput()
                 } else {
                     onClose()
                 }
@@ -548,7 +586,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
 
         window.addEventListener('keydown', handleKeyDown)
         return () => window.removeEventListener('keydown', handleKeyDown)
-    }, [isOpen, filteredCommands, selectedIndex, onClose, mode, newWorkspaceName])
+    }, [isOpen, filteredCommands, selectedIndex, onClose, mode, newWorkspaceName, focusSearchInput])
 
     if (!isOpen) return null
 
@@ -575,7 +613,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         <>
             {/* Backdrop */}
             <div
-                className="fixed inset-0 bg-black/60 backdrop-blur-sm z-100 animate-fade-in"
+                className="fixed inset-0 bg-black/60 z-100 animate-fade-in"
                 onClick={onClose}
             />
 
@@ -640,9 +678,9 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                                                     const isSelected = currentFlatIndex === selectedIndex
                                                     // Show keyboard shortcut for first 9 workspace items
                                                     const isWorkspaceItem = cmd.id.startsWith('workspace-')
-                                                    const workspaceIndex = isWorkspaceItem ? workspaces.findIndex(w => `workspace-${w.id}` === cmd.id) : -1
-                                                    const showShortcut = isWorkspaceItem && workspaceIndex >= 0 && workspaceIndex < 9
                                                     const workspaceId = isWorkspaceItem ? cmd.id.replace('workspace-', '') : null
+                                                    const workspaceIndex = workspaceId ? (workspaceShortcutIndexById.get(workspaceId) ?? -1) : -1
+                                                    const showShortcut = isWorkspaceItem && workspaceIndex >= 0 && workspaceIndex < 9
 
                                                     if (isWorkspaceItem && workspaceId) {
                                                         return (
@@ -672,6 +710,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                                                                         <span className="kbd ml-2 shrink-0">⌘{workspaceIndex + 1}</span>
                                                                     )}
                                                                 </button>
+                                                                {!isFixedWorkspace(workspaceId) && (
                                                                 <div
                                                                     className="absolute right-14 top-1/2 -translate-y-1/2 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity ease-out pointer-events-none group-hover:pointer-events-auto"
                                                                     onClick={(e) => e.stopPropagation()}
@@ -691,6 +730,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                                                                         <Trash2 className="w-3.5 h-3.5" />
                                                                     </button>
                                                                 </div>
+                                                                )}
                                                             </div>
                                                         )
                                                     }

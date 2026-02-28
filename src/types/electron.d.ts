@@ -77,6 +77,21 @@ declare global {
                 delete: (key: string) => Promise<{ success: boolean }>;
             };
 
+            // Todo workspace operations
+            todo: {
+                getSections: () => Promise<{ id: string; title: string; sortOrder: number; archived: boolean; createdAt: number }[]>;
+                getItems: (sectionId: string) => Promise<{ id: string; sectionId: string; text: string; completed: boolean; daily: boolean; completedAt?: string | null; sortOrder: number; createdAt: number }[]>;
+                createSection: (section: { id: string; title: string; sortOrder: number; archived: boolean; createdAt: number }) => Promise<{ success: boolean }>;
+                updateSection: (id: string, updates: { title?: string; sortOrder?: number; archived?: boolean }) => Promise<{ success: boolean }>;
+                deleteSection: (id: string) => Promise<{ success: boolean }>;
+                createItem: (item: { id: string; sectionId: string; text: string; completed: boolean; daily: boolean; completedAt?: string | null; sortOrder: number; createdAt: number }) => Promise<{ success: boolean }>;
+                updateItem: (id: string, updates: { text?: string; completed?: boolean; daily?: boolean; completedAt?: string | null; sortOrder?: number }) => Promise<{ success: boolean }>;
+                deleteItem: (id: string) => Promise<{ success: boolean }>;
+                getHistory: (dateKey: string) => Promise<{ todoId: string; text: string; completed: boolean; sectionTitle: string }[]>;
+                getAllHistory: () => Promise<{ date: string; items: unknown[] }[]>;
+                saveHistory: (dateKey: string, items: unknown[]) => Promise<{ success: boolean }>;
+            };
+
             // Auto-updater
             updater: {
                 // Actions

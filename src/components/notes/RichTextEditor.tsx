@@ -206,35 +206,6 @@ export function RichTextEditor({ noteId }: RichTextEditorProps) {
     };
   }, []);
 
-  // Sync search query from editor as user types (when slash menu is open)
-  useEffect(() => {
-    if (!slashMenuOpen) return;
-    const quill = quillRef.current?.getEditor();
-    if (!quill) return;
-    const syncSearch = () => {
-      const start = slashStartIndexRef.current;
-      if (start == null) return;
-      const sel = quill.getSelection();
-      if (!sel || sel.index <= start) {
-        setSlashSearchQuery('');
-        // Keep slashCursorRef when sel is null (e.g. focus moved to menu) for delete on apply
-        if (sel) slashCursorRef.current = null;
-        return;
-      }
-      const full = quill.getText(start, sel.index - start);
-      const query = full.startsWith('/') ? full.slice(1) : full;
-      setSlashSearchQuery(query);
-      slashCursorRef.current = sel.index;
-    };
-    quill.on('text-change', syncSearch);
-    quill.on('selection-change', syncSearch);
-    syncSearch();
-    return () => {
-      quill.off('text-change', syncSearch);
-      quill.off('selection-change', syncSearch);
-    };
-  }, [slashMenuOpen]);
-
   // Handle paste to detect URLs and convert to link previews
   useEffect(() => {
     const quill = quillRef.current?.getEditor();
@@ -392,7 +363,7 @@ export function RichTextEditor({ noteId }: RichTextEditorProps) {
     const quill = quillRef.current?.getEditor();
     const start = slashStartIndexRef.current;
     const end = slashCursorRef.current ?? quill?.getSelection()?.index ?? start;
-    if (!quill || start == null || end <= start) return;
+    if (!quill || start == null || end == null || end <= start) return;
     quill.deleteText(start, end - start, 'user');
     quill.setSelection(start, 0, 'silent');
     slashStartIndexRef.current = null;
@@ -431,6 +402,9 @@ export function RichTextEditor({ noteId }: RichTextEditorProps) {
         case 'ordered':
           quill.format('list', 'ordered');
           break;
+        case 'checkbox':
+          quill.format('list', 'unchecked');
+          break;
         case 'horizontalRule': {
           const pos = range.index;
           quill.insertEmbed(pos, 'divider', true, 'user');
@@ -450,8 +424,18 @@ export function RichTextEditor({ noteId }: RichTextEditorProps) {
     [deleteSlashAndSearch]
   );
 
-  const closeSlashMenu = useCallback(() => {
-    deleteSlashAndSearch();
+  const closeSlashMenu = useCallback((options?: { insertSpace?: boolean; skipDelete?: boolean }) => {
+    const start = slashStartIndexRef.current;
+    if (!options?.skipDelete) {
+      deleteSlashAndSearch();
+    }
+    if (options?.insertSpace && start != null) {
+      const quill = quillRef.current?.getEditor();
+      if (quill) {
+        quill.insertText(start, ' ', 'user');
+        quill.setSelection(start + 1, 0, 'silent');
+      }
+    }
     setSlashMenuOpen(false);
     setSlashMenuPosition(null);
     setSlashSearchQuery('');
@@ -459,6 +443,43 @@ export function RichTextEditor({ noteId }: RichTextEditorProps) {
     slashStartIndexRef.current = null;
     slashCursorRef.current = null;
   }, [deleteSlashAndSearch]);
+
+  // Sync search query from editor as user types (when slash menu is open)
+  // Close menu when slash is removed (e.g. user Backspaces past the trigger)
+  useEffect(() => {
+    if (!slashMenuOpen) return;
+    const quill = quillRef.current?.getEditor();
+    if (!quill) return;
+    const syncSearch = () => {
+      const start = slashStartIndexRef.current;
+      if (start == null) return;
+      const sel = quill.getSelection();
+      if (!sel || sel.index <= start) {
+        setSlashSearchQuery('');
+        if (sel) slashCursorRef.current = null;
+        const charAtStart = quill.getText(start, 1);
+        if (charAtStart !== '/') {
+          closeSlashMenu({ skipDelete: true });
+        }
+        return;
+      }
+      const full = quill.getText(start, sel.index - start);
+      if (!full.startsWith('/')) {
+        closeSlashMenu({ skipDelete: true });
+        return;
+      }
+      const query = full.slice(1);
+      setSlashSearchQuery(query);
+      slashCursorRef.current = sel.index;
+    };
+    quill.on('text-change', syncSearch);
+    quill.on('selection-change', syncSearch);
+    syncSearch();
+    return () => {
+      quill.off('text-change', syncSearch);
+      quill.off('selection-change', syncSearch);
+    };
+  }, [slashMenuOpen, closeSlashMenu]);
 
   const filteredSlashItems = useMemo(
     () => filterSlashItems(SLASH_ITEMS, slashSearchQuery),
@@ -478,6 +499,9 @@ export function RichTextEditor({ noteId }: RichTextEditorProps) {
       if (e.key === 'Escape') {
         e.preventDefault();
         closeSlashMenu();
+      } else if (e.key === ' ') {
+        e.preventDefault();
+        closeSlashMenu({ insertSpace: true });
       } else if (e.key === 'ArrowDown') {
         e.preventDefault();
         setSlashMenuSelectedIndex((i) => Math.min(i + 1, Math.max(0, filteredTypes.length - 1)));
@@ -512,7 +536,7 @@ export function RichTextEditor({ noteId }: RichTextEditorProps) {
         <div
           className="fixed inset-0 z-199"
           aria-hidden
-          onClick={closeSlashMenu}
+          onClick={() => closeSlashMenu()}
         />
       )}
       <SlashMenu

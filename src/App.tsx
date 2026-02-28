@@ -5,6 +5,8 @@ import { useBentoStore } from './stores/bentoStore';
 import { useMantraStore } from './stores/mantraStore';
 import { ThemeManager } from './components/theme/ThemeManager';
 import { BentoWorkspace } from './components/workspace/BentoWorkspace';
+import { TodoWorkspace } from './components/todo/TodoWorkspace';
+import { FIXED_TODO_WORKSPACE_ID } from './constants/workspaces';
 import { TitleBar } from './components/titlebar/TitleBar';
 import { CommandPalette, type CommandHandler, type CommandPaletteVariant } from './components/command/CommandPalette';
 import { UpdateToast } from './components/updater/UpdateToast';
@@ -273,7 +275,9 @@ function App() {
           }}
         />
         <main className="flex-1 overflow-hidden flex flex-col">
-          {currentWorkspace ? (
+          {currentWorkspaceId === FIXED_TODO_WORKSPACE_ID ? (
+            <TodoWorkspace />
+          ) : currentWorkspace ? (
             <BentoWorkspace spaceId={currentWorkspace.id} />
           ) : (
             <div className="flex items-center justify-center h-full text-(--text-secondary)">

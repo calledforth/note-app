@@ -381,7 +381,7 @@
 }
 
 .animate-command-open {
-  animation: command-open 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  animation: command-open 0.14s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
 /* Note swap animation - subtle fade in when note lands in new panel */
@@ -1465,4 +1465,42 @@
 .test-lab-editor .ql-editor ul[data-checked="false"]>li::before:hover {
   border-color: var(--note-checkbox-hover-border) !important;
   background-color: var(--note-checkbox-hover-bg) !important;
+}
+
+/* ========================================
+   Todo Workspace - Checkbox and Input
+   ======================================== */
+
+.todo-checkbox {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 14px;
+  height: 14px;
+  min-width: 14px;
+  min-height: 14px;
+  border-radius: 3px;
+  border: 1.5px solid var(--note-checkbox-border-unchecked);
+  background-color: transparent;
+  transition: all 0.15s ease;
+}
+
+.todo-checkbox.checked {
+  border-color: var(--note-checkbox-checked-border);
+  background-color: var(--note-checkbox-checked-bg);
+}
+
+.todo-checkbox:hover:not(.checked):not([disabled]) {
+  border-color: var(--note-checkbox-hover-border);
+  background-color: var(--note-checkbox-hover-bg);
+}
+
+.todo-input.completed {
+  text-decoration: line-through;
+  color: var(--note-completed-text);
+}
+
+.section-title {
+  font-size: 1rem;
+  font-weight: 500;
 }

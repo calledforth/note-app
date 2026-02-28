@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from 'react';
-import { Type, List, ListOrdered, Heading1, Heading2, Heading3, Minus } from 'lucide-react';
+import { Type, List, ListOrdered, Heading1, Heading2, Heading3, Minus, Square } from 'lucide-react';
 import clsx from 'clsx';
 
 export type SlashMenuItemType =
@@ -10,6 +10,7 @@ export type SlashMenuItemType =
   | 'italic'
   | 'bullet'
   | 'ordered'
+  | 'checkbox'
   | 'horizontalRule'
   | 'divider';
 
@@ -29,6 +30,7 @@ export const SLASH_ITEMS: SlashMenuItem[] = [
   { type: 'divider', label: '' },
   { type: 'bullet', label: 'Bullet list', icon: <List className="w-4 h-4" /> },
   { type: 'ordered', label: 'Numbered list', icon: <ListOrdered className="w-4 h-4" /> },
+  { type: 'checkbox', label: 'Checkbox list', icon: <Square className="w-4 h-4" /> },
   { type: 'horizontalRule', label: 'Divider', icon: <Minus className="w-4 h-4" /> },
 ];
 

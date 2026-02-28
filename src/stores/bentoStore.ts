@@ -1,6 +1,7 @@
 import { create } from 'zustand';
 import type { BentoWorkspace, BentoNote, LayoutNode } from '../types/bento';
 import { DEFAULT_LAYOUT, generateId, findFirstEmptyPanel } from '../types/bento';
+import { FIXED_TODO_WORKSPACE_ID, isFixedWorkspace } from '../constants/workspaces';
 import '../types/electron.d';
 
 // ============================================================================
@@ -148,19 +149,30 @@ export const useBentoStore = create<BentoStore>((set, get) => ({
             } else {
                 // Try to load the last used workspace, fallback to first
                 const lastWorkspaceId = await db.getLastWorkspaceId();
-                const targetWorkspace = lastWorkspaceId
-                    ? workspaces.find(w => w.id === lastWorkspaceId) || workspaces[0]
-                    : workspaces[0];
 
-                const notes = await db.getNotesForWorkspace(targetWorkspace.id);
+                if (lastWorkspaceId === FIXED_TODO_WORKSPACE_ID) {
+                    set({
+                        workspaces,
+                        currentWorkspaceId: FIXED_TODO_WORKSPACE_ID,
+                        notes: [],
+                        isLoading: false,
+                        isInitialized: true,
+                    });
+                } else {
+                    const targetWorkspace = lastWorkspaceId
+                        ? workspaces.find(w => w.id === lastWorkspaceId) || workspaces[0]
+                        : workspaces[0];
 
-                set({
-                    workspaces,
-                    currentWorkspaceId: targetWorkspace.id,
-                    notes,
-                    isLoading: false,
-                    isInitialized: true,
-                });
+                    const notes = await db.getNotesForWorkspace(targetWorkspace.id);
+
+                    set({
+                        workspaces,
+                        currentWorkspaceId: targetWorkspace.id,
+                        notes,
+                        isLoading: false,
+                        isInitialized: true,
+                    });
+                }
             }
         } catch (error) {
             console.error('[BentoStore] Initialization error:', error);
@@ -210,6 +222,8 @@ export const useBentoStore = create<BentoStore>((set, get) => ({
     },
 
     deleteWorkspace: async (id: string) => {
+        if (isFixedWorkspace(id)) return;
+
         const db = window.electronAPI?.database;
         if (!db) throw new Error('Database not available');
 

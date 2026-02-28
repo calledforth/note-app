@@ -321,6 +321,40 @@ ipcMain.handle('settings-get', (_event, key: string) => {
   return typeof value === 'string' ? value : null;
 });
 
+// Todo workspace handlers
+ipcMain.handle('todo-get-sections', () => database.getAllTodoSections());
+ipcMain.handle('todo-get-items', (_event, sectionId: string) => database.getTodoItemsBySection(sectionId));
+ipcMain.handle('todo-create-section', (_event, section) => {
+  database.createTodoSection(section);
+  return { success: true };
+});
+ipcMain.handle('todo-update-section', (_event, id: string, updates) => {
+  database.updateTodoSection(id, updates);
+  return { success: true };
+});
+ipcMain.handle('todo-delete-section', (_event, id: string) => {
+  database.deleteTodoSection(id);
+  return { success: true };
+});
+ipcMain.handle('todo-create-item', (_event, item) => {
+  database.createTodoItem(item);
+  return { success: true };
+});
+ipcMain.handle('todo-update-item', (_event, id: string, updates) => {
+  database.updateTodoItem(id, updates);
+  return { success: true };
+});
+ipcMain.handle('todo-delete-item', (_event, id: string) => {
+  database.deleteTodoItem(id);
+  return { success: true };
+});
+ipcMain.handle('todo-get-history', (_event, dateKey: string) => database.getTodoHistory(dateKey));
+ipcMain.handle('todo-get-all-history', () => database.getAllTodoHistory());
+ipcMain.handle('todo-save-history', (_event, dateKey: string, items: unknown[]) => {
+  database.saveTodoHistory(dateKey, items);
+  return { success: true };
+});
+
 ipcMain.handle('settings-set', (_event, key: string, value: string) => {
   settingsStore.set(key, value);
   return { success: true };
